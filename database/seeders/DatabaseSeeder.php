@@ -2,24 +2,62 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Product;
+use App\Models\Ingredient;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 1. Create the Owner/Admin Account
+        User::create([
+            'username' => 'admin_owner',
+            'password' => Hash::make('password123'), // Hash encrypts the password for security
+            'role' => 'Owner',
+            'contact_number' => '09123456789',
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // 2. Create the Cashier Account
+        User::create([
+            'username' => 'cashier_01',
+            'password' => Hash::make('cashier123'),
+            'role' => 'Cashier',
+            'contact_number' => '09987654321',
+        ]);
+
+        // 3. Seed Initial Menu Products
+        Product::create([
+            'product_name' => 'Classic Buffalo Wings (6 pcs)',
+            'price' => 180.00,
+            'stock_quantity' => 50,
+            'status' => 'Available',
+        ]);
+
+        Product::create([
+            'product_name' => 'Classic Milk Tea (Large)',
+            'price' => 95.00,
+            'stock_quantity' => 100,
+            'status' => 'Available',
+        ]);
+
+        // 4. Seed Raw Ingredients for the Kitchen Staff to Monitor
+        Ingredient::create([
+            'ingredient_name' => 'Raw Chicken Wings',
+            'quantity' => 20.5,
+            'unit' => 'kg',
+            'max_capacity' => 50.00,
+            'reorder_level' => 25.00, // 50% capacity alert threshold
+        ]);
+
+        Ingredient::create([
+            'ingredient_name' => 'Frying Oil',
+            'quantity' => 15.0,
+            'unit' => 'liters',
+            'max_capacity' => 20.00,
+            'reorder_level' => 10.00, 
         ]);
     }
 }

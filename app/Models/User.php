@@ -18,10 +18,14 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    protected $primaryKey = 'users_id';
+
+    // Update the default fillable array to match your ERD
     protected $fillable = [
-        'name',
-        'email',
+        'username',
         'password',
+        'role',
+        'contact_number',
     ];
 
     /**
