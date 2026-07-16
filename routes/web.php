@@ -9,3 +9,5 @@ Route::get('/', [DashboardController::class, 'index']);
 
 // Add this new route for the inventory table
 Route::get('/inventory', [ProductController::class, 'index']);
+
+Route::post('/inventory', [ProductController::class, 'store']);
