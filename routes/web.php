@@ -1,30 +1,29 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController; // Imports your new Controller
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\IngredientController; // Import the IngredientController
+use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\SalesController;
 
-// Your existing dashboard route
+// ---------------------------------------------------------
+// Dashboard & Landing Routes
+// ---------------------------------------------------------
+// Both the root URL and /dashboard now safely go through the controller
 Route::get('/', [DashboardController::class, 'index']);
-// Dashboard Route
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// Add this new route for the inventory table
-Route::get('/inventory', [ProductController::class, 'index']);
-
-Route::post('/inventory', [ProductController::class, 'store']);
-
-// The default landing page
-Route::get('/', function () {
-    return view('dashboard');
-});
-
-// Your new POS Terminal route
+// ---------------------------------------------------------
+// Point of Sale (POS) Routes
+// ---------------------------------------------------------
 Route::get('/pos', function () {
     return view('pointofsale');
 });
+Route::get('/pos', [SalesController::class, 'index'])->name('pos');
 
+// ---------------------------------------------------------
+// File Maintenance & Inventory Routes
+// ---------------------------------------------------------
 Route::get('/inventory', [ProductController::class, 'index'])->name('inventory');
 Route::post('/inventory/products', [ProductController::class, 'store'])->name('products.store');
 Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');

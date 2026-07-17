@@ -3,122 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PBWSIS - Point of Sale Dashboard</title>
+    <title>PBWSIS - POS Terminal</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100 font-sans antialiased h-screen overflow-hidden flex flex-col">
+<body class="bg-gray-100 text-gray-800 font-sans h-screen flex flex-col overflow-hidden">
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-[#66001a] text-white shadow-md py-4 px-6 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-            <h1 class="text-2xl font-bold tracking-wider">PRINCE BUFFALO WINGS</h1>
-            <span class="bg-black text-xs font-semibold px-2 py-1 rounded">POS TERMINAL</span>
+    <!-- POS Top Navigation -->
+    <nav class="bg-black text-white p-4 shadow-md shrink-0">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wider">PBWSIS <span class="text-red-900">|</span> POS Terminal</h1>
+            <div class="flex space-x-4 items-center">
+                <span class="text-gray-400 text-sm">Cashier on Duty</span>
+                <a href="{{ route('dashboard') }}" class="bg-red-900 hover:bg-red-800 text-white font-bold py-1 px-4 rounded transition duration-200 text-sm">
+                    Back to Dashboard
+                </a>
+            </div>
         </div>
-        <div class="flex items-center space-x-4">
-            <span class="text-sm">Cashier: <span class="font-bold">Active User</span></span>
-            <button class="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded text-sm transition">Logout</button>
-        </div>
-    </header>
+    </nav>
 
-    <!-- Main POS Layout -->
-    <main class="flex-1 flex overflow-hidden">
+    <!-- POS Main Interface (Split Screen) -->
+    <div class="flex-1 flex overflow-hidden">
         
-        <!-- Left Column: Product Selection -->
-        <section class="flex-1 p-6 overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-800">Menu Items</h2>
-                <input type="text" placeholder="Search products..." class="border border-gray-300 rounded px-4 py-2 w-64 focus:outline-none focus:border-[#66001a]">
-            </div>
-
-            <!-- Product Grid -->
+        <!-- Left Side: Product Grid (70% width) -->
+        <div class="w-2/3 p-6 bg-gray-100 overflow-y-auto">
+            <h2 class="text-lg font-bold text-black mb-4">Available Menu Items</h2>
+            
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Sample Product Card -->
-                <button class="bg-white rounded-lg shadow hover:shadow-lg transition border border-transparent hover:border-[#66001a] p-4 flex flex-col items-center">
-                    <div class="h-24 w-full bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-500">Image</div>
-                    <span class="font-bold text-gray-800 text-sm mb-1">Classic Buffalo Wings</span>
-                    <span class="text-[#66001a] font-black">₱250.00</span>
-                </button>
+                @forelse($products as $product)
+                <!-- Product Card -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md hover:border-red-900 transition duration-200" 
+                         data-id="{{ $product->id }}" 
+                         data-name="{{ $product->product_name }}" 
+                         data-price="{{ $product->price }}"
+                         onclick="addToCart(this)">
+                         
+                        <div class="h-24 bg-gray-200 rounded-md mb-3 flex items-center justify-center text-gray-400">
+                            <!-- Placeholder for product image -->
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <h3 class="text-sm font-bold text-gray-800 truncate">{{ $product->product_name }}</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-red-900 font-bold">₱{{ number_format($product->price, 2) }}</span>
+                            <span class="text-xs text-gray-500">Stock: {{ $product->stock_quantity }}</span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full p-4 bg-yellow-100 text-yellow-800 rounded-lg">
+                        No available products found. Please add stock via File Maintenance.
+                    </div>
+                @endforelse
+            </div>
+        </div>
 
-                <button class="bg-white rounded-lg shadow hover:shadow-lg transition border border-transparent hover:border-[#66001a] p-4 flex flex-col items-center">
-                    <div class="h-24 w-full bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-500">Image</div>
-                    <span class="font-bold text-gray-800 text-sm mb-1">Garlic Parmesan</span>
-                    <span class="text-[#66001a] font-black">₱260.00</span>
-                </button>
+        <!-- Right Side: Order Summary / Cart (30% width) -->
+        <div class="w-1/3 bg-white border-l border-gray-200 shadow-xl flex flex-col">
+            <div class="p-4 bg-black text-white">
+                <h2 class="font-bold text-lg">Current Order</h2>
+            </div>
+            
+            <!-- Cart Items Area -->
+            <div id="cartItemsContainer" class="flex-1 p-4 overflow-y-auto bg-gray-50">
+                <p class="text-gray-500 text-center mt-10 text-sm">Cart is currently empty. Click an item to add it.</p>
+                <!-- JS will inject cart items here later -->
+            </div>
+
+            <!-- Cart Totals & Checkout -->
+            <div class="p-4 border-t border-gray-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                 
-                <button class="bg-white rounded-lg shadow hover:shadow-lg transition border border-transparent hover:border-[#66001a] p-4 flex flex-col items-center">
-                    <div class="h-24 w-full bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-500">Image</div>
-                    <span class="font-bold text-gray-800 text-sm mb-1">Classic Milk Tea</span>
-                    <span class="text-[#66001a] font-black">₱120.00</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- Right Column: Cart and Checkout -->
-        <aside class="w-[400px] bg-white shadow-xl flex flex-col z-10 border-l border-gray-200">
-            <div class="p-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-lg font-bold text-gray-800">Current Order</h2>
-            </div>
-
-            <!-- Cart Items -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                <!-- Sample Cart Item -->
-                <div class="flex justify-between items-center border-b pb-2">
-                    <div>
-                        <p class="font-bold text-sm text-gray-800">Classic Buffalo Wings</p>
-                        <p class="text-xs text-gray-500">₱250.00 x 2</p>
-                    </div>
-                    <div class="font-bold text-gray-800">₱500.00</div>
+                <div class="flex justify-between mb-2 text-sm text-gray-600">
+                    <span>Subtotal</span>
+                    <span id="subtotalDisplay">₱0.00</span>
                 </div>
-            </div>
-
-            <!-- Order Channel & Discounts -->
-            <div class="p-4 bg-gray-50 border-t border-gray-200 space-y-4">
                 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2 uppercase">Order Channel</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="bg-black text-white text-xs py-2 rounded">Walk-in</button>
-                        <button class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs py-2 rounded transition">Grabfood</button>
-                        <button class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs py-2 rounded transition">Foodpanda</button>
-                        <button class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs py-2 rounded transition">Facebook</button>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2 uppercase">Discounts</label>
-                    <div class="flex space-x-2">
-                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs py-2 rounded transition">None</button>
-                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs py-2 rounded transition">Senior (20%)</button>
-                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs py-2 rounded transition">PWD (20%)</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Totals & Payment -->
-            <div class="p-4 bg-gray-800 text-white">
-                <div class="flex justify-between mb-1">
-                    <span class="text-gray-300">Subtotal</span>
-                    <span>₱500.00</span>
-                </div>
-                <div class="flex justify-between mb-3 text-red-400">
+                <div class="flex justify-between mb-4 text-sm text-red-900 font-bold">
                     <span>Discount</span>
-                    <span>-₱0.00</span>
-                </div>
-                <div class="flex justify-between text-xl font-black mb-4">
-                    <span>TOTAL</span>
-                    <span>₱500.00</span>
+                    <span id="discountDisplay">-₱0.00</span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 mb-2">
-                    <button class="bg-gray-600 hover:bg-gray-500 py-3 rounded font-bold transition">CASH</button>
-                    <button class="bg-blue-600 hover:bg-blue-500 py-3 rounded font-bold transition">GCASH</button>
+                <div class="flex justify-between mb-6 text-xl font-bold text-black border-t pt-2">
+                    <span>Total</span>
+                    <span id="totalDisplay">₱0.00</span>
                 </div>
-                <button class="w-full bg-[#66001a] hover:bg-[#800020] py-4 rounded font-black text-lg transition tracking-wide mt-2 shadow-lg">
-                    PROCESS PAYMENT
+
+                <button class="w-full bg-red-900 hover:bg-red-800 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-200 text-lg">
+                    Process Payment
                 </button>
             </div>
-        </aside>
-    </main>
+        </div>
 
+    </div>
+
+<!-- Future JavaScript Logic -->
+    <script>
+        function addToCart(element) {
+            // Extract the data from the custom HTML attributes
+            const id = element.getAttribute('data-id');
+            const name = element.getAttribute('data-name');
+            const price = parseFloat(element.getAttribute('data-price'));
+
+            console.log("Clicked:", name, "Price: ₱" + price);
+            // We will build the logic to update the cart interface here
+        }
+    </script>
 </body>
 </html>
