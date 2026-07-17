@@ -9,13 +9,15 @@ class Ingredient extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'ingredient_id';
+    protected $fillable = ['ingredient_name', 'quantity', 'unit', 'max_capacity', 'reorder_level'];
 
-    protected $fillable = [
-        'ingredient_name',
-        'quantity',
-        'unit',
-        'max_capacity',
-        'reorder_level',
-    ];
+    /**
+     * The products that use this ingredient.
+     */
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'product_ingredients')
+                    ->withPivot('quantity_needed')
+                    ->withTimestamps();
+    }
 }

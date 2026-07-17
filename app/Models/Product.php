@@ -9,14 +9,17 @@ class Product extends Model
 {
     use HasFactory;
 
-    // Override the default primary key
-    protected $primaryKey = 'product_id';
+    protected $fillable = ['product_name', 'price', 'stock_quantity', 'status'];
 
-    // Allow these columns to be filled via forms
-    protected $fillable = [
-        'product_name',
-        'price',
-        'stock_quantity',
-        'status',
-    ];
+    /**
+     * The ingredients that belong to the product.
+     */
+    public function ingredients()
+    {
+        // belongsToMany defines the many-to-many relationship.
+        // withPivot allows us to access the 'quantity_needed' column from the middle table.
+        return $this->belongsToMany(Ingredient::class, 'product_ingredients')
+                    ->withPivot('quantity_needed')
+                    ->withTimestamps();
+    }
 }
