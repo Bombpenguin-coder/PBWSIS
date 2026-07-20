@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
         // 1. Create the Owner/Admin Account
         User::create([
             'username' => 'admin_owner',
-            'password' => Hash::make('password123'), // Hash encrypts the password for security
+            'password' => Hash::make('password123'),
             'role' => 'Owner',
             'contact_number' => '09123456789',
         ]);
@@ -43,13 +43,13 @@ class DatabaseSeeder extends Seeder
             'status' => 'Available',
         ]);
 
-        // 4. Seed Raw Ingredients for the Kitchen Staff to Monitor
+        // 4. Seed Raw Ingredients
         Ingredient::create([
             'ingredient_name' => 'Raw Chicken Wings',
             'quantity' => 20.5,
             'unit' => 'kg',
             'max_capacity' => 50.00,
-            'reorder_level' => 25.00, // 50% capacity alert threshold
+            'reorder_level' => 25.00,
         ]);
 
         Ingredient::create([

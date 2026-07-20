@@ -8,13 +8,13 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans antialiased">
 
-    <!-- 1. The Frosted Glass Overlay (Lightened and blurred) -->
+    <!-- 1. The Frosted Glass Overlay -->
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 hidden transition-all duration-300" onclick="toggleSidebar()"></div>
 
-    <!-- 2. The Retractable Sidebar (Slightly transparent black with glass effect) -->
+    <!-- 2. The Retractable Sidebar -->
     <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-black/85 backdrop-blur-md text-white transform -translate-x-full transition-transform duration-300 ease-in-out z-50 shadow-2xl border-r-4 border-red-900 flex flex-col">    
-    
-    <!-- Sidebar Header / Branding -->
+        
+        <!-- Sidebar Header / Branding -->
         <div class="p-6 border-b border-gray-800 flex justify-between items-center">
             <h1 class="text-2xl font-bold tracking-wider text-white">PBW<span class="text-red-900">SIS</span></h1>
             <!-- Close Button inside sidebar -->
@@ -36,16 +36,28 @@
             </a>
         </nav>
         
-        <!-- User Profile Placeholder -->
-        <div class="p-4 border-t border-gray-800 text-sm text-gray-400">
-            Logged in as <span class="text-white font-bold">Owner</span>
+        <!-- Bottom Sidebar User Info & Logout Button -->
+        <div class="p-4 border-t border-gray-800 text-sm">
+            <p class="text-gray-400 text-xs">Logged in as</p>
+            <p class="text-white font-bold mb-3">
+                {{ Auth::user()->role ?? 'Owner' }} ({{ Auth::user()->username ?? 'admin' }})
+            </p>
+
+            <!-- Logout Form -->
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" 
+                    class="w-full py-2 px-4 bg-gray-800 hover:bg-red-700 text-gray-300 hover:text-white font-semibold text-xs rounded transition duration-200 text-center">
+                    🚪 Log Out
+                </button>
+            </form>
         </div>
     </div>
 
     <!-- 3. The Main Content Area -->
     <div class="flex-1 flex flex-col h-screen overflow-y-auto w-full">
         
-        <!-- Modern Header with Hamburger Menu Button -->
+        <!-- Header -->
         <header class="bg-white shadow-sm sticky top-0 z-30">
             <div class="flex items-center justify-between p-4 px-6">
                 <div class="flex items-center">
@@ -57,15 +69,13 @@
             </div>
         </header>
 
-        <!-- Dashboard Widgets (Reused from previous step) -->
+        <!-- Main Dashboard Content -->
         <main class="p-6 container mx-auto">
-            
             <div class="mb-8">
                 <p class="text-gray-600 text-lg">Welcome back. Here is the current status of Prince Buffalo Wings.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                
                 <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-black hover:shadow-lg transition duration-200">
                     <h3 class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Today's Sales</h3>
                     <p class="text-3xl font-bold text-black">₱0.00</p>
@@ -92,20 +102,16 @@
                     <p class="text-sm text-gray-500 mt-2">Data pending expense records</p>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <!-- 4. The JavaScript Logic to Toggle Menu -->
+    <!-- JavaScript Sidebar Toggle -->
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             
-            // Toggle the off-screen CSS class
             sidebar.classList.toggle('-translate-x-full');
-            
-            // Toggle the dark overlay visibility
             overlay.classList.toggle('hidden');
         }
     </script>
