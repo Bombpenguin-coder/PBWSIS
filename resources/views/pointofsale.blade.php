@@ -29,10 +29,10 @@
             <h2 class="text-lg font-bold text-black mb-4">Available Menu Items</h2>
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                @forelse($products as $product)
-                <!-- Product Card -->
+                   @forelse($products as $product)
+                    <!-- Product Card with corrected data-id -->
                     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md hover:border-red-900 transition duration-200" 
-                         data-id="{{ $product->id }}" 
+                         data-id="{{ $product->product_id }}" 
                          data-name="{{ $product->product_name }}" 
                          data-price="{{ $product->price }}"
                          onclick="addToCart(this)">
@@ -70,6 +70,17 @@
             <!-- Cart Totals & Checkout -->
             <div class="p-4 border-t border-gray-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                 
+                <!-- NEW: Discount Selection -->
+                <div class="mb-4 pb-4 border-b border-gray-100">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Apply Discount</label>
+                    <select id="discountType" onchange="updateTotals()" class="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-900 bg-gray-50">
+                        <option value="none">None (Regular)</option>
+                        <option value="senior">Senior Citizen (20%)</option>
+                        <option value="pwd">PWD (20%)</option>
+                    </select>
+                </div>
+                
+                <!-- Existing Totals -->
                 <div class="flex justify-between mb-2 text-sm text-gray-600">
                     <span>Subtotal</span>
                     <span id="subtotalDisplay">₱0.00</span>
@@ -93,16 +104,99 @@
 
     </div>
 
-<!-- Future JavaScript Logic -->
+<!-- JavaScript Cart Logic -->
     <script>
+        // 1. The Cart Array (State)
+        let cart = [];
+
+        // 2. Add item to cart
         function addToCart(element) {
-            // Extract the data from the custom HTML attributes
+            // 1. Extract the data safely
             const id = element.getAttribute('data-id');
             const name = element.getAttribute('data-name');
             const price = parseFloat(element.getAttribute('data-price'));
 
-            console.log("Clicked:", name, "Price: ₱" + price);
-            // We will build the logic to update the cart interface here
+            // 2. Debugging: Check what data is actually being pulled
+            console.log("Extracted Data -> ID:", id, "| Name:", name, "| Price: ₱" + price);
+
+            // 3. Check if this item is already in the cart array
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+                console.log("Item exists. Increasing quantity to:", existingItem.quantity);
+            } else {
+                cart.push({ id, name, price, quantity: 1 });
+                console.log("New item added to cart array.");
+            }
+
+            // 4. Redraw the cart UI
+            updateCartUI();
+        }
+
+        // 3. Remove item from cart
+        function removeFromCart(index) {
+            // Remove 1 item at the specific index
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        // 4. Update the visual Cart UI
+        function updateCartUI() {
+            const container = document.getElementById('cartItemsContainer');
+            container.innerHTML = ''; // Clear out the current HTML
+
+            // If empty, show the default message
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center mt-10 text-sm">Cart is currently empty. Click an item to add it.</p>';
+                updateTotals();
+                return;
+            }
+
+            // Loop through the cart array and build the HTML for each item
+            cart.forEach((item, index) => {
+                const itemHTML = `
+                    <div class="flex justify-between items-center mb-4 bg-white p-3 rounded shadow-sm border border-gray-100">
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-gray-800">${item.name}</h4>
+                            <div class="text-xs text-gray-500">₱${item.price.toFixed(2)} x ${item.quantity}</div>
+                        </div>
+                        <div class="font-bold text-red-900 mr-4">
+                            ₱${(item.price * item.quantity).toFixed(2)}
+                        </div>
+                        <button onclick="removeFromCart(${index})" class="text-gray-400 hover:text-red-600 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                `;
+                container.innerHTML += itemHTML;
+            });
+
+            updateTotals();
+        }
+
+        // 5. Calculate and display totals
+        function updateTotals() {
+            // Calculate subtotal by multiplying price * quantity for every item
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            // Check the selected discount type
+            const discountSelect = document.getElementById('discountType');
+            let discountRate = 0;
+            
+            // Apply 20% discount if Senior or PWD is chosen
+            if (discountSelect && (discountSelect.value === 'senior' || discountSelect.value === 'pwd')) {
+                discountRate = 0.20; 
+            }
+
+            // Calculate final numbers
+            const discount = subtotal * discountRate;
+            const total = subtotal - discount;
+
+            // Update the DOM elements
+            document.getElementById('subtotalDisplay').innerText = '₱' + subtotal.toFixed(2);
+            document.getElementById('discountDisplay').innerText = '-₱' + discount.toFixed(2);
+            document.getElementById('totalDisplay').innerText = '₱' + total.toFixed(2);
         }
     </script>
 </body>
