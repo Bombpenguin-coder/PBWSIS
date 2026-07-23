@@ -29,3 +29,4 @@ Route::get('/pos', [SalesController::class, 'index'])->name('pos');
 Route::get('/inventory', [ProductController::class, 'index'])->name('inventory');
 Route::post('/inventory/products', [ProductController::class, 'store'])->name('products.store');
 Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
+Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.checkout');

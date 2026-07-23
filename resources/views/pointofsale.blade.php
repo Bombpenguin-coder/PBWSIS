@@ -70,7 +70,18 @@
             <!-- Cart Totals & Checkout -->
             <div class="p-4 border-t border-gray-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                 
-                <!-- NEW: Discount Selection -->
+                <!-- NEW: Order Channel Selection -->
+                <div class="mb-4 pb-4 border-b border-gray-100">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Order Channel</label>
+                    <select id="orderChannel" class="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-900 bg-gray-50">
+                        <option value="Walk-in">Walk-in</option>
+                        <option value="Grabfood">Grabfood</option>
+                        <option value="Foodpanda">Foodpanda</option>
+                        <option value="Facebook">Facebook / Online</option>
+                    </select>
+                </div>
+
+                <!-- Existing: Discount Selection -->
                 <div class="mb-4 pb-4 border-b border-gray-100">
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Apply Discount</label>
                     <select id="discountType" onchange="updateTotals()" class="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-900 bg-gray-50">
@@ -96,8 +107,8 @@
                     <span id="totalDisplay">₱0.00</span>
                 </div>
 
-                <button class="w-full bg-red-900 hover:bg-red-800 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-200 text-lg">
-                    Process Payment
+                <button onclick="processOrder()" class="w-full bg-red-900 hover:bg-red-800 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-200 text-lg">
+                    Review & Process Order
                 </button>
             </div>
         </div>
@@ -197,6 +208,56 @@
             document.getElementById('subtotalDisplay').innerText = '₱' + subtotal.toFixed(2);
             document.getElementById('discountDisplay').innerText = '-₱' + discount.toFixed(2);
             document.getElementById('totalDisplay').innerText = '₱' + total.toFixed(2);
+        }
+
+        // 6. Bundle the order data for the backend
+        async function processOrder() {
+            if (cart.length === 0) {
+                alert("Cannot process an empty order. Please add items to the cart.");
+                return;
+            }
+
+            const selectedChannel = document.getElementById('orderChannel').value;
+            const selectedDiscount = document.getElementById('discountType').value;
+            
+            // Recalculate totals for the payload
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            let discountRate = (selectedDiscount === 'senior' || selectedDiscount === 'pwd') ? 0.20 : 0;
+            const discountAmount = subtotal * discountRate;
+            const finalTotal = subtotal - discountAmount;
+
+            const orderPayload = {
+                channel: selectedChannel,
+                discount_type: selectedDiscount,
+                discount_amount: discountAmount,
+                total_amount: finalTotal,
+                items: cart
+            };
+
+            try {
+                // Send data to Laravel safely with CSRF protection
+                const response = await fetch("{{ route('pos.checkout') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(orderPayload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Order Processed Successfully!");
+                    cart = []; // Empty the cart
+                    updateCartUI(); // Refresh UI
+                } else {
+                    alert("Error: " + result.error);
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                alert("A network error occurred.");
+            }
         }
     </script>
 </body>
