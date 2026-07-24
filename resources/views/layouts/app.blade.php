@@ -42,7 +42,7 @@
                     <a href="{{ route('inventory') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
                         Products
                     </a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">
+                    <a href="{{ route('ingredients.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.index') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
                         Ingredients
                     </a>
                     <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">

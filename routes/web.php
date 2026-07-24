@@ -30,3 +30,4 @@ Route::get('/inventory', [ProductController::class, 'index'])->name('inventory')
 Route::post('/inventory/products', [ProductController::class, 'store'])->name('products.store');
 Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
 Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.checkout');
+Route::get('/inventory/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');

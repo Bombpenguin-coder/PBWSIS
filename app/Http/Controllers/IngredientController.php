@@ -9,6 +9,16 @@ use Illuminate\Support\Facades\Log;
 class IngredientController extends Controller
 {
     /**
+     * Display a listing of the ingredients.
+     */
+    public function index()
+    {
+        // Fetch ingredients with pagination for efficiency
+        $ingredients = Ingredient::paginate(10); 
+        return view('ingredients', compact('ingredients'));
+    }
+
+    /**
      * Store a newly created ingredient in the database.
      */
     public function store(Request $request)
