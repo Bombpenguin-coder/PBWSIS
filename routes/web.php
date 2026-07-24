@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\WastageController;
 
 // ---------------------------------------------------------
 // Login & Registration Routes
@@ -31,3 +32,5 @@ Route::post('/inventory/products', [ProductController::class, 'store'])->name('p
 Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
 Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.checkout');
 Route::get('/inventory/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
+Route::get('/inventory/wastage', [WastageController::class, 'index'])->name('wastage.index');
+Route::post('/inventory/wastage', [WastageController::class, 'store'])->name('wastage.store');
