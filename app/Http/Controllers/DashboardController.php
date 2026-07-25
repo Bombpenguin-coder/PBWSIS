@@ -18,19 +18,23 @@ class DashboardController extends Controller
         // 1. Calculate Today's Total Sales
         $todaySales = Sale::whereDate('sale_date', Carbon::today())->sum('total_amount');
 
-        // 2. Calculate Low Stock Alerts (Ingredients below 50% max capacity)
-        $lowStockIngredients = Ingredient::whereRaw('quantity <= (max_capacity * 0.50)')->count();
+        // 2. Fetch Low Stock Lists (Ingredients below 50% & Products <= 10)
+        $lowStockIngredients = Ingredient::whereRaw('quantity <= (max_capacity * 0.50)')->get();
+        $lowStockProducts = Product::where('stock_quantity', '<=', 10)->get(); 
         
-        // Products below a flat threshold of 10 items
-        $lowStockProducts = Product::where('stock_quantity', '<=', 10)->count(); 
-        
-        $totalLowStock = $lowStockIngredients + $lowStockProducts;
+        $totalLowStock = $lowStockIngredients->count() + $lowStockProducts->count();
 
         // 3. Calculate Monthly Revenue
         $monthlyRevenue = Sale::whereMonth('sale_date', Carbon::now()->month)
                               ->whereYear('sale_date', Carbon::now()->year)
                               ->sum('total_amount');
 
-        return view('dashboard', compact('todaySales', 'totalLowStock', 'monthlyRevenue'));
+        return view('dashboard', compact(
+            'todaySales', 
+            'totalLowStock', 
+            'monthlyRevenue', 
+            'lowStockIngredients', 
+            'lowStockProducts'
+        ));
     }
 }

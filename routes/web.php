@@ -34,3 +34,8 @@ Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.check
 Route::get('/inventory/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
 Route::get('/inventory/wastage', [WastageController::class, 'index'])->name('wastage.index');
 Route::post('/inventory/wastage', [WastageController::class, 'store'])->name('wastage.store');
+// ---------------------------------------------------------
+// Sales History & Reports Routes
+// ---------------------------------------------------------
+Route::get('/sales/history', [SalesController::class, 'history'])->name('sales.history');
+Route::get('/sales/reports', [SalesController::class, 'reports'])->name('sales.reports');

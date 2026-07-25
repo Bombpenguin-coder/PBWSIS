@@ -28,7 +28,7 @@
                 Dashboard Overview
             </a>
             
-            <!-- NEW: File Maintenance Accordion Menu -->
+            <!-- File Maintenance Accordion Menu -->
             <div>
                 <!-- The Parent Toggle Button -->
                 <button onclick="toggleSubmenu('fileMaintenanceMenu', 'fileMaintenanceArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
@@ -57,8 +57,16 @@
             </a>
         </nav>
         
-        <div class="p-4 border-t border-gray-800 text-sm text-gray-400">
-            Logged in as <span class="text-white font-bold">Owner</span>
+        <!-- Sidebar Footer with Logout Link -->
+        <div class="p-4 border-t border-gray-800 text-sm text-gray-400 flex items-center justify-between">
+            <div>Logged in as <span class="text-white font-bold">Owner</span></div>
+            <form action="{{ route('logout') }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="text-xs font-bold text-red-400 hover:text-red-300 transition flex items-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>Logout</span>
+                </button>
+            </form>
         </div>
     </div>
 
@@ -75,6 +83,15 @@
                     <!-- Dynamic Page Header -->
                     <h2 class="text-xl font-bold text-gray-800">@yield('header_title', 'Dashboard')</h2>
                 </div>
+
+                <!-- Top Right Header Logout Button -->
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="flex items-center space-x-1.5 text-xs font-bold text-gray-600 hover:text-red-900 bg-gray-100 hover:bg-red-50 px-3 py-2 rounded-lg border border-gray-200 transition">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </div>
         </header>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleDetail;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -24,17 +25,15 @@ class SalesController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Create the main Sale record
             $sale = Sale::create([
                 'sale_date' => now(),
                 'total_amount' => $request->total_amount,
                 'discount_type' => $request->discount_type,
                 'discount_amount' => $request->discount_amount,
                 'order_channel' => $request->channel,
-                'payment_method' => 'Pending' // Will update later
+                'payment_method' => 'Pending'
             ]);
 
-            // 2. Loop through the cart items to save details and deduct stock
             foreach ($request->items as $item) {
                 SaleDetail::create([
                     'sale_id' => $sale->sale_id,
@@ -43,7 +42,6 @@ class SalesController extends Controller
                     'subtotal' => $item['price'] * $item['quantity']
                 ]);
 
-                // Deduct from the finished products inventory
                 Product::where('product_id', $item['id'])
                        ->decrement('stock_quantity', $item['quantity']);
             }
@@ -56,5 +54,29 @@ class SalesController extends Controller
             Log::error('Checkout Failed: ' . $e->getMessage());
             return response()->json(['error' => 'Transaction failed. Please try again.'], 500);
         }
+    }
+
+    public function history()
+    {
+        $todaySalesList = Sale::with('details.product')
+                              ->whereDate('sale_date', Carbon::today())
+                              ->orderBy('sale_date', 'desc')
+                              ->get();
+
+        return view('sales_history', compact('todaySalesList'));
+    }
+
+    public function reports()
+    {
+        $monthlySalesList = Sale::with('details.product')
+                                ->whereMonth('sale_date', Carbon::now()->month)
+                                ->whereYear('sale_date', Carbon::now()->year)
+                                ->orderBy('sale_date', 'desc')
+                                ->get();
+
+        $totalMonthlyAmount = $monthlySalesList->sum('total_amount');
+        $totalTransactions = $monthlySalesList->count();
+
+        return view('sales_reports', compact('monthlySalesList', 'totalMonthlyAmount', 'totalTransactions'));
     }
 }
