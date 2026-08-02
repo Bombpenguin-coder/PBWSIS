@@ -24,10 +24,12 @@ class WastageController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'ingredient_id' => 'required|exists:ingredients,ingredient_id',
+            'ingredient_id'   => 'required|exists:ingredients,ingredient_id',
             'quantity_wasted' => 'required|numeric|min:0.01',
-            'reason' => 'required|string|max:255',
-            'wastage_date' => 'required|date',
+            'reason'          => 'required|string|max:255|not_regex:/^[0-9]+$/',
+            'wastage_date'    => 'required|date|before_or_equal:today',
+        ], [
+            'reason.not_regex' => 'Please provide a valid descriptive reason (e.g., Expired, Dropped) instead of just numbers.',
         ]);
 
         try {
@@ -35,10 +37,10 @@ class WastageController extends Controller
 
             // 1. Save the Wastage Log
             Wastage::create([
-                'ingredient_id' => $request->ingredient_id,
+                'ingredient_id'   => $request->ingredient_id,
                 'quantity_wasted' => $request->quantity_wasted,
-                'reason' => $request->reason,
-                'wastage_date' => $request->wastage_date,
+                'reason'          => $request->reason,
+                'wastage_date'    => $request->wastage_date,
             ]);
 
             // 2. Deduct the wasted quantity from the actual Inventory

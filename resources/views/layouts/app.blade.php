@@ -32,7 +32,7 @@
             <div>
                 <!-- The Parent Toggle Button -->
                 <button onclick="toggleSubmenu('fileMaintenanceMenu', 'fileMaintenanceArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
-                    <span>File Maintenance</span>
+                    <span>Inventory Maintenance</span>
                     <!-- The SVG Arrow -->
                     <svg id="fileMaintenanceArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
