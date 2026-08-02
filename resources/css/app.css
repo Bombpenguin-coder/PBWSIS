@@ -11,3 +11,39 @@
     /* Prince Buffalo Wings Official Branding */
     --color: #ff8c00;
 }
+
+
+/* Printable Receipt Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printableReceipt, #printableReceipt * {
+        visibility: visible;
+    }
+    #printableReceipt {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        max-height: none !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    /* Hide modal buttons during printing */
+    .no-print {
+        display: none !important;
+    }
+}
+
+/* Hide number input spinners (Chrome, Safari, Edge, Opera) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Hide number input spinners (Firefox) */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
