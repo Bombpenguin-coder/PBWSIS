@@ -6,6 +6,17 @@
     <!-- Dynamic Title -->
     <title>PBWSIS - @yield('title', 'System')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PBWSIS - @yield('title', 'System')</title>
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Load CSS and multiple JS files via Vite -->
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard.js'])
+</head>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans antialiased">
 

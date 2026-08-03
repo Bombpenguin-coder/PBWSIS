@@ -56,6 +56,20 @@
 
     </div>
 
+    <!-- NEW: Visual Data Section -->
+    <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-red-900 mb-8">
+        <h2 class="text-lg font-bold mb-4 text-black">7-Day Sales Trend</h2>
+        
+        <!-- The Canvas with Data Attributes -->
+        <div class="relative h-72 w-full">
+            <canvas id="salesChart" 
+                    data-labels="{{ json_encode($chartLabels) }}" 
+                    data-values="{{ json_encode($chartData) }}">
+            </canvas>
+        </div>
+    </div>
+
+
     <!-- LOW STOCK QUICK VIEW MODAL -->
     <div id="lowStockModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-lg w-full shadow-2xl overflow-hidden border border-gray-100">
