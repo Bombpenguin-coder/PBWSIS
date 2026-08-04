@@ -13,7 +13,6 @@ class IngredientController extends Controller
      */
     public function index()
     {
-        // Fetch ingredients with pagination for efficiency
         $ingredients = Ingredient::paginate(10); 
         return view('ingredients', compact('ingredients'));
     }
@@ -23,24 +22,30 @@ class IngredientController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the specific fields defined in your ERD
         $validatedData = $request->validate([
             'ingredient_name' => 'required|string|max:255',
-            'quantity' => 'required|numeric|min:0',
-            'unit' => 'required|string|max:50', // e.g., kg, liters, pieces
-            'max_capacity' => 'required|numeric|min:1',
-            'reorder_level' => 'required|numeric|min:0',
+            'quantity'        => 'required|numeric|min:0',
+            'unit'            => 'required|string|max:50',
+            'max_capacity'    => 'required|numeric|min:1',
+            'reorder_level'   => 'required|numeric|min:0',
         ]);
 
         try {
-            Ingredient::create($validatedData);
+            Ingredient::create([
+                'ingredient_name' => $validatedData['ingredient_name'],
+                'quantity'        => $validatedData['quantity'],
+                'unit'            => $validatedData['unit'],
+                'max_capacity'    => $validatedData['max_capacity'],
+                'reorder_level'   => $validatedData['reorder_level'],
+            ]);
             
-            // Assuming you will create an 'ingredients.index' route and view later
             return back()->with('success', 'Ingredient added successfully!');
             
         } catch (\Exception $e) {
             Log::error('Failed to create ingredient: ' . $e->getMessage());
-            return back()->with('error', 'An error occurred while saving the ingredient.');
+            
+            // Appends $e->getMessage() to show you the exact SQL error banner on page
+            return back()->withInput()->with('error', 'Error: ' . $e->getMessage());
         }
     }
 }

@@ -9,18 +9,15 @@ class Ingredient extends Model
 {
     use HasFactory;
 
-    protected $table = 'ingredients';
-    
-    // Adjust primary key if yours is 'ingredient_id' instead of 'id'
-    protected $primaryKey = 'id'; 
+    // 1. Tell Laravel your custom Primary Key name
+    protected $primaryKey = 'ingredient_id';
 
-    public function products()
-    {
-        return $this->belongsToMany(
-            Product::class,
-            'product_ingredients',
-            'ingredient_id',
-            'product_id'
-        )->withPivot('quantity_required')->withTimestamps();
-    }
+    // 2. Allow mass assignment for these fields
+    protected $fillable = [
+        'ingredient_name',
+        'quantity',
+        'unit',
+        'max_capacity',
+        'reorder_level',
+    ];
 }
