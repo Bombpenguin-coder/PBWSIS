@@ -7,7 +7,13 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\WastageController;
+<<<<<<< Updated upstream
 use App\Http\Controllers\CategoryController; // Make sure this is at the top of the file
+=======
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\VatController;
+use App\Http\Controllers\DiscountController;
+>>>>>>> Stashed changes
 
 // ---------------------------------------------------------
 // Login & Registration Routes
@@ -40,7 +46,22 @@ Route::post('/inventory/wastage', [WastageController::class, 'store'])->name('wa
 // ---------------------------------------------------------
 Route::get('/sales/history', [SalesController::class, 'history'])->name('sales.history');
 Route::get('/sales/reports', [SalesController::class, 'reports'])->name('sales.reports');
+<<<<<<< Updated upstream
 
 // Category Routes
 Route::get('/inventory/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::post('/inventory/categories', [CategoryController::class, 'store'])->name('categories.store');
+=======
+// ---------------------------------------------------------
+// Suppliers, VAT settigs and Discouts Routes
+// ---------------------------------------------------------
+Route::middleware(['auth'])->group(function () {
+    // Existing routes here...
+
+    // File Maintenance Routes
+    Route::resource('suppliers', SupplierController::class);
+    Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
+    Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
+    Route::resource('discounts', DiscountController::class);
+});
+>>>>>>> Stashed changes
