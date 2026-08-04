@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\WastageController;
+use App\Http\Controllers\CategoryController; // Make sure this is at the top of the file
 
 // ---------------------------------------------------------
 // Login & Registration Routes
@@ -39,3 +40,7 @@ Route::post('/inventory/wastage', [WastageController::class, 'store'])->name('wa
 // ---------------------------------------------------------
 Route::get('/sales/history', [SalesController::class, 'history'])->name('sales.history');
 Route::get('/sales/reports', [SalesController::class, 'reports'])->name('sales.reports');
+
+// Category Routes
+Route::get('/inventory/categories', [CategoryController::class, 'index'])->name('categories.index');
+Route::post('/inventory/categories', [CategoryController::class, 'store'])->name('categories.store');

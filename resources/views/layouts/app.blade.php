@@ -49,7 +49,13 @@
                 </button>
                 
                 <!-- The Hidden Submenu Links -->
+                <!-- The Hidden Submenu Links -->
                 <div id="fileMaintenanceMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
+                    <!-- NEW: Categories Link -->
+                    <a href="{{ route('categories.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('categories.index') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Categories
+                    </a>
+                    
                     <a href="{{ route('inventory') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
                         Products
                     </a>
