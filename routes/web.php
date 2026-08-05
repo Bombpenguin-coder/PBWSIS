@@ -10,6 +10,7 @@ use App\Http\Controllers\WastageController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\VatController;
 use App\Http\Controllers\DiscountController;
+use App\Models\Discount;
 
 // ---------------------------------------------------------
 // Login & Registration Routes
@@ -46,7 +47,15 @@ Route::get('/sales/reports', [SalesController::class, 'reports'])->name('sales.r
 // Suppliers, VAT settigs and Discouts Routes
 // ---------------------------------------------------------
 Route::middleware(['auth'])->group(function () {
+
+Route::get('/discounts/active', function () {
+    return response()->json(
+        \App\Models\Discount::where('is_active', true)
+            ->get(['id', 'name', 'percentage'])
+    );
+});
     // Existing routes here...
+    Route::post('/sales', [App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
 
     // File Maintenance Routes
     Route::resource('suppliers', SupplierController::class);

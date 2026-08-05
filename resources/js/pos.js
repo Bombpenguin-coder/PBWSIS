@@ -2,10 +2,56 @@ let cart = [];
 let heldOrders = JSON.parse(localStorage.getItem('pbwsis_held_orders')) || [];
 let currentCategory = 'all';
 
-// Initialize badges on page load
+// Default fallback discounts in case API is not yet configured
+window.availableDiscounts = window.availableDiscounts || [
+    { id: 'sc_pwd', name: 'SC/PWD', rate: 20 },
+    { id: 'employee', name: 'Employee', rate: 15 },
+    { id: 'promo', name: 'Promo', rate: 10 }
+];
+
+// Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
     updateHeldCount();
+    fetchActiveDiscounts();
 });
+
+// --- FETCH DISCOUNTS FROM BACKEND ---
+
+async function fetchActiveDiscounts() {
+    try {
+        const response = await fetch('/discounts/active', {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+                // Map database fields (e.g. name, percentage) to standardized format
+                window.availableDiscounts = data.map(d => ({
+                    id: d.id || d.slug || d.name.toLowerCase().replace(/\s+/g, '_'),
+                    name: d.name,
+                    rate: parseFloat(d.percentage || d.value || d.rate || 0)
+                }));
+                
+                populateGlobalDiscountDropdown(); // Populate static/global UI dropdowns
+                updateCartUI(); // Re-render cart with new dynamic discount options
+            }
+        }
+    } catch (err) {
+        console.warn("Could not load dynamic discounts, using current options:", err);
+    }
+}
+
+// Populate global/static select elements (like #discountSelect in pointofsale.blade.php)
+function populateGlobalDiscountDropdown() {
+    const globalSelect = document.getElementById('discountSelect');
+    if (!globalSelect) return;
+
+    const options = window.availableDiscounts.map(d => `
+        <option value="${d.id}" data-value="${d.rate}">${d.name} (${d.rate}%)</option>
+    `).join('');
+
+    globalSelect.innerHTML = `<option value="none" data-value="0">No Discount</option>` + options;
+}
 
 // --- SEARCH & CATEGORY FILTER LOGIC ---
 
@@ -58,6 +104,8 @@ function filterProducts() {
 // --- CART & DISCOUNT STEPPER LOGIC ---
 
 function addToCart(element) {
+    if (!element) return;
+
     const id = element.getAttribute('data-id');
     const name = element.getAttribute('data-name');
     const price = parseFloat(element.getAttribute('data-price'));
@@ -72,16 +120,40 @@ function addToCart(element) {
         existingItem.quantity += 1;
     } else {
         cart.push({ 
-            id, 
-            name, 
-            price, 
+            id: id, 
+            name: name, 
+            price: price, 
             quantity: 1, 
             maxStock: maxStock,
+            discountType: 'none',
+            discountRate: 0,
             discountedQty: 0
         });
     }
 
     updateStockDisplay(id);
+    updateCartUI();
+}
+
+function updateItemDiscountType(index, selectElement) {
+    const item = cart[index];
+    if (!item) return;
+
+    const selectedValue = selectElement.value;
+
+    if (selectedValue === 'none') {
+        item.discountType = 'none';
+        item.discountRate = 0;
+        item.discountedQty = 0;
+    } else {
+        const foundDiscount = window.availableDiscounts.find(d => String(d.id) === String(selectedValue));
+        const rate = foundDiscount ? foundDiscount.rate : 0;
+
+        item.discountType = selectedValue;
+        item.discountRate = rate / 100;
+        item.discountedQty = item.discountedQty > 0 ? item.discountedQty : 1; 
+    }
+
     updateCartUI();
 }
 
@@ -101,6 +173,8 @@ function updateItemDiscountQty(index, delta) {
 
 function updateQuantity(index, delta) {
     const item = cart[index];
+    if (!item) return;
+
     const newQty = item.quantity + delta;
 
     if (newQty > item.maxStock) return;
@@ -122,6 +196,7 @@ function updateQuantity(index, delta) {
 
 function removeFromCart(index) {
     const item = cart[index];
+    if (!item) return;
     const productId = item.id;
     
     cart.splice(index, 1);
@@ -166,29 +241,51 @@ function updateCartUI() {
     cart.forEach((item, index) => {
         const itemSubtotal = item.price * item.quantity;
         const discountedUnits = item.discountedQty || 0;
-        const itemDiscount = discountedUnits * (item.price * 0.20);
+        const itemDiscount = discountedUnits * (item.price * (item.discountRate || 0));
         const itemFinalPrice = itemSubtotal - itemDiscount;
+        const hasDiscount = item.discountType && item.discountType !== 'none';
+
+        // Build dynamic <option> list from database array
+        const dynamicOptionsHTML = window.availableDiscounts.map(d => `
+            <option value="${d.id}" data-value="${d.rate}" ${String(item.discountType) === String(d.id) ? 'selected' : ''}>
+                ${d.name} (${d.rate}%)
+            </option>
+        `).join('');
 
         const itemHTML = `
             <div class="bg-white p-3 rounded shadow-sm border border-gray-200 space-y-2">
                 <div class="flex justify-between items-start">
-                    <div class="min-w-0 mr-2">
+                    <div class="min-w-0 mr-2 flex-1">
                         <h4 class="text-sm font-bold text-gray-800 truncate">${item.name}</h4>
                         <div class="text-xs text-gray-500">₱${item.price.toFixed(2)} each ${item.quantity > 1 ? `(x${item.quantity})` : ''}</div>
+                        
+                        <!-- DYNAMIC DISCOUNT SELECTOR UNDER PRODUCT NAME -->
+                        <div class="mt-1.5">
+                            <select onchange="updateItemDiscountType(${index}, this)" class="text-xs border border-gray-300 rounded px-1.5 py-1 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-1 focus:ring-red-900">
+                                <option value="none" data-value="0" ${item.discountType === 'none' ? 'selected' : ''}>No Discount</option>
+                                ${dynamicOptionsHTML}
+                            </select>
+                        </div>
                     </div>
-                    <div class="font-bold ${discountedUnits > 0 ? 'text-red-900' : 'text-gray-800'} text-right text-sm">
+
+                    <div class="font-bold ${hasDiscount && discountedUnits > 0 ? 'text-red-900' : 'text-gray-800'} text-right text-sm">
                         ₱${itemFinalPrice.toFixed(2)}
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <div class="flex items-center gap-1 bg-red-50 border border-red-200 px-2 py-1 rounded-lg">
-                        <span class="text-[11px] font-bold text-red-900 mr-1">🏷️ SC/PWD:</span>
-                        <button type="button" onclick="updateItemDiscountQty(${index}, -1)" class="w-5 h-5 bg-white border border-red-300 rounded font-black text-red-900 hover:bg-red-200 flex items-center justify-center text-xs shadow-sm">-</button>
-                        <span class="text-xs font-bold text-red-900 px-1 min-w-[35px] text-center">${discountedUnits}/${item.quantity}</span>
-                        <button type="button" onclick="updateItemDiscountQty(${index}, 1)" class="w-5 h-5 bg-white border border-red-300 rounded font-black text-red-900 hover:bg-red-200 flex items-center justify-center text-xs shadow-sm">+</button>
+                    <!-- DISCOUNT STEPPER -->
+                    <div>
+                        ${hasDiscount ? `
+                            <div class="flex items-center gap-1 bg-red-50 border border-red-200 px-2 py-0.5 rounded-lg">
+                                <button type="button" onclick="updateItemDiscountQty(${index}, -1)" class="w-5 h-5 bg-white border border-red-300 rounded font-black text-red-900 hover:bg-red-200 flex items-center justify-center text-xs shadow-sm">-</button>
+                                <span class="text-xs font-bold text-red-900 px-1 min-w-[35px] text-center">${discountedUnits}/${item.quantity}</span>
+                                <button type="button" onclick="updateItemDiscountQty(${index}, 1)" class="w-5 h-5 bg-white border border-red-300 rounded font-black text-red-900 hover:bg-red-200 flex items-center justify-center text-xs shadow-sm">+</button>
+                            </div>
+                        ` : ''}
                     </div>
 
+                    <!-- QUANTITY ADJUSTMENT & REMOVE -->
                     <div class="flex items-center space-x-2">
                         <div class="flex items-center border border-gray-300 rounded bg-gray-50">
                             <button onclick="updateQuantity(${index}, -1)" class="w-6 h-6 flex items-center justify-center text-xs font-bold text-gray-600 hover:bg-gray-200 rounded-l transition">-</button>
@@ -212,8 +309,9 @@ function updateCartUI() {
 function updateTotals() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = cart.reduce((sum, item) => {
+        if (!item.discountType || item.discountType === 'none') return sum;
         const discountedUnits = item.discountedQty || 0;
-        return sum + (discountedUnits * (item.price * 0.20));
+        return sum + (discountedUnits * (item.price * (item.discountRate || 0)));
     }, 0);
 
     const grandTotal = subtotal - discount;
@@ -258,9 +356,11 @@ function confirmHoldOrder() {
     }
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discountSelect = document.getElementById('discountType')?.value;
-    let discountRate = (discountSelect === 'senior' || discountSelect === 'pwd') ? 0.20 : 0;
-    const total = subtotal - (subtotal * discountRate);
+    const discount = cart.reduce((sum, item) => {
+        if (!item.discountType || item.discountType === 'none') return sum;
+        return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
+    }, 0);
+    const total = subtotal - discount;
 
     const heldSale = {
         id: 'HOLD-' + Date.now().toString().slice(-4),
@@ -268,7 +368,6 @@ function confirmHoldOrder() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         items: [...cart],
         channel: document.getElementById('orderChannel')?.value || 'Walk-in',
-        discount: discountSelect || 'none',
         total: total
     };
 
@@ -328,8 +427,6 @@ function recallOrder(index) {
 
     const channelEl = document.getElementById('orderChannel');
     if (channelEl) channelEl.value = selectedOrder.channel || 'Walk-in';
-    const discEl = document.getElementById('discountType');
-    if (discEl) discEl.value = selectedOrder.discount || 'none';
 
     heldOrders.splice(index, 1);
     localStorage.setItem('pbwsis_held_orders', JSON.stringify(heldOrders));
@@ -379,20 +476,21 @@ function openReviewModal() {
 
     let subtotal = 0;
     let totalDiscount = 0;
-    let totalDiscountedUnits = 0;
 
     cart.forEach(item => {
         const itemSubtotal = item.price * item.quantity;
         const discountedUnits = item.discountedQty || 0;
-        const itemDiscount = discountedUnits * (item.price * 0.20);
+        const itemDiscount = discountedUnits * (item.price * (item.discountRate || 0));
         const itemFinalPrice = itemSubtotal - itemDiscount;
 
         subtotal += itemSubtotal;
         totalDiscount += itemDiscount;
-        totalDiscountedUnits += discountedUnits;
 
-        const discountBadge = discountedUnits > 0 
-            ? `<span class="text-[10px] bg-red-100 text-red-900 font-bold px-1.5 py-0.5 rounded ml-1">${discountedUnits}x 20% SC/PWD</span>` 
+        const foundDiscount = window.availableDiscounts.find(d => String(d.id) === String(item.discountType));
+        const discountLabel = foundDiscount ? foundDiscount.name : (item.discountType || '').toUpperCase();
+
+        const discountBadge = (discountedUnits > 0 && item.discountType !== 'none')
+            ? `<span class="text-[10px] bg-red-100 text-red-900 font-bold px-1.5 py-0.5 rounded ml-1">${discountedUnits}x ${discountLabel}</span>` 
             : '';
 
         const itemHTML = `
@@ -414,16 +512,10 @@ function openReviewModal() {
 
     const modalSubtotal = document.getElementById('modalSubtotal');
     const modalDiscount = document.getElementById('modalDiscount');
-    const modalDiscountType = document.getElementById('modalDiscountType');
     const modalTotal = document.getElementById('modalTotal');
 
     if (modalSubtotal) modalSubtotal.innerText = '₱' + subtotal.toFixed(2);
     if (modalDiscount) modalDiscount.innerText = '-₱' + totalDiscount.toFixed(2);
-    if (modalDiscountType) {
-        modalDiscountType.innerText = totalDiscountedUnits > 0 
-            ? `SC/PWD (${totalDiscountedUnits} item${totalDiscountedUnits > 1 ? 's' : ''})` 
-            : 'None';
-    }
     if (modalTotal) modalTotal.innerText = '₱' + grandTotal.toFixed(2);
 
     const amountTendered = document.getElementById('amountTendered');
@@ -439,7 +531,10 @@ function closeReviewModal() {
 
 function calculateChange() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discount = cart.reduce((sum, item) => sum + ((item.discountedQty || 0) * item.price * 0.20), 0);
+    const discount = cart.reduce((sum, item) => {
+        if (!item.discountType || item.discountType === 'none') return sum;
+        return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
+    }, 0);
     const grandTotal = subtotal - discount;
 
     const amountInput = document.getElementById('amountTendered');
@@ -447,13 +542,11 @@ function calculateChange() {
 
     let rawVal = amountInput.value.trim();
 
-    // 1. BLOCK LEADING DOT OR ZERO
     if (rawVal.startsWith('.') || rawVal.startsWith('0')) {
         rawVal = rawVal.replace(/^[0.]+/g, '');
         amountInput.value = rawVal;
     }
 
-    // 2. TRUNCATE DECIMALS (max 2 digits)
     if (rawVal.includes('.')) {
         const parts = rawVal.split('.');
         if (parts[1] && parts[1].length > 2) {
@@ -464,7 +557,6 @@ function calculateChange() {
 
     let amountTendered = parseFloat(rawVal) || 0;
 
-    // 3. HARD CAP (₱100,000)
     const MAX_CASH_LIMIT = 100000;
     if (amountTendered > MAX_CASH_LIMIT) {
         amountTendered = MAX_CASH_LIMIT;
@@ -499,7 +591,10 @@ function calculateChange() {
 
 function setExactAmount() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discount = cart.reduce((sum, item) => sum + ((item.discountedQty || 0) * item.price * 0.20), 0);
+    const discount = cart.reduce((sum, item) => {
+        if (!item.discountType || item.discountType === 'none') return sum;
+        return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
+    }, 0);
     const grandTotal = subtotal - discount;
 
     const amountInput = document.getElementById('amountTendered');
@@ -532,10 +627,13 @@ async function confirmAndSubmitOrder() {
     if (cart.length === 0) return;
 
     const selectedChannel = document.getElementById('orderChannel')?.value || 'Walk-in';
-    const selectedDiscount = document.getElementById('discountType')?.value || 'none';
     
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discountAmount = cart.reduce((sum, item) => sum + ((item.discountedQty || 0) * item.price * 0.20), 0);
+    const discountAmount = cart.reduce((sum, item) => {
+        if (!item.discountType || item.discountType === 'none') return sum;
+        return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
+    }, 0);
+
     const finalTotal = subtotal - discountAmount;
     const amountTendered = parseFloat(document.getElementById('amountTendered')?.value) || 0;
 
@@ -544,9 +642,13 @@ async function confirmAndSubmitOrder() {
         return;
     }
 
+    const vatExclusiveSubtotal = subtotal / 1.12;
+    const vatAmount = subtotal - vatExclusiveSubtotal;
+
     const orderPayload = {
+        subtotal: subtotal,
+        vat_amount: vatAmount,
         channel: selectedChannel,
-        discount_type: selectedDiscount,
         discount_amount: discountAmount,
         total_amount: finalTotal,
         amount_tendered: amountTendered,
@@ -555,6 +657,8 @@ async function confirmAndSubmitOrder() {
             id: item.id,
             name: item.name,
             quantity: item.quantity,
+            discount_type: item.discountType || 'none',
+            discount_rate: item.discountRate || 0,
             discounted_qty: item.discountedQty || 0,
             price: item.price
         }))
@@ -569,8 +673,7 @@ async function confirmAndSubmitOrder() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     try {
-        // 🚨 Note: Change '/pos/checkout' if your web.php route uses a different path (e.g. '/pos/store')
-        const response = await fetch('/pos/checkout', { 
+        const response = await fetch('/sales', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -585,7 +688,6 @@ async function confirmAndSubmitOrder() {
         if (response.ok) {
             closeReviewModal();
             
-            // Update stock badges on screen
             cart.forEach(item => {
                 const card = document.getElementById(`product-card-${item.id}`);
                 if (card) {
@@ -616,7 +718,6 @@ async function confirmAndSubmitOrder() {
     }
 }
 
-// Alias processOrder to point to the main checkout logic
 const processOrder = confirmAndSubmitOrder;
 
 // --- PRINTING RECEIPT MODAL LOGIC ---
@@ -689,11 +790,14 @@ function closeThankYouModal() {
     document.getElementById('thankYouModal')?.classList.add('hidden');
 }
 
-// --- EXPOSE FUNCTIONS TO WINDOW (Single Clean Block) ---
+// --- EXPOSE FUNCTIONS TO WINDOW ---
 
+window.fetchActiveDiscounts = fetchActiveDiscounts;
+window.populateGlobalDiscountDropdown = populateGlobalDiscountDropdown;
 window.setCategory = setCategory;
 window.filterProducts = filterProducts;
 window.addToCart = addToCart;
+window.updateItemDiscountType = updateItemDiscountType;
 window.updateItemDiscountQty = updateItemDiscountQty;
 window.updateQuantity = updateQuantity;
 window.removeFromCart = removeFromCart;
