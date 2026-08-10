@@ -89,41 +89,38 @@
                                 @endif
                             </td>
 
-                            <!-- Actions -->
-                            <td class="py-3 px-4 text-center">
-                                <div class="flex items-center justify-center space-x-2">
-                                    @if(Route::has('ingredients.edit'))
-                                        <a href="{{ route('ingredients.edit', $ingredient->ingredient_id) }}" class="text-blue-600 hover:text-blue-800 text-xs font-semibold">
-                                            Edit
-                                        </a>
-                                    @endif
+                            <!-- Actions Column -->
+                            <td class="py-3 px-4 text-center space-x-1">
+                                <!-- Edit Button -->
+                                <button type="button" 
+                                    onclick="openEditModal('/ingredients/{{ $ingredient->ingredient_id }}', 'Edit Ingredient', [
+                                        { label: 'Ingredient Name', name: 'name', value: '{{ addslashes($ingredient->name ?? $ingredient->ingredient_name) }}', required: true },
+                                        { label: 'Stock Quantity', name: 'stock_quantity', type: 'number', value: '{{ $ingredient->quantity }}', required: true },
+                                        { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
+                                    ])" 
+                                    class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-md transition duration-150">
+                                    Edit
+                                </button>
 
-                                    @if(Route::has('ingredients.destroy'))
-                                        <form action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this ingredient?');" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs font-semibold">
-                                                Delete
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
+                                <!-- Delete Button -->
+                                <form action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this ingredient?');" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 px-3 py-1 rounded-md transition duration-150">
+                                        Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="6" class="py-8 px-4 text-center text-gray-400">
-                                <p class="text-sm">No raw materials found in the system.</p>
-                                <p class="text-xs mt-1">Click the "Add Ingredient" button above to add your first item.</p>
+                                No raw ingredients found in the system.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-        </div>
-        
-        <div class="mt-4">
-            {{ $ingredients->links() }}
         </div>
     </div>
 

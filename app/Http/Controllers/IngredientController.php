@@ -16,6 +16,13 @@ class IngredientController extends Controller
         $ingredients = Ingredient::paginate(10); 
         return view('ingredients', compact('ingredients'));
     }
+    public function destroy($id)
+{
+    $ingredient = Ingredient::findOrFail($id);
+    $ingredient->delete();
+
+    return redirect()->back()->with('success', 'Ingredient deleted successfully!');
+}
 
     /**
      * Store a newly created ingredient in the database.
@@ -48,4 +55,18 @@ class IngredientController extends Controller
             return back()->withInput()->with('error', 'Error: ' . $e->getMessage());
         }
     }
+  public function update(Request $request, $id)
+{
+    $ingredient = Ingredient::findOrFail($id);
+
+    $validated = $request->validate([
+        'name'           => 'required|string|max:255',
+        'stock_quantity' => 'required|numeric|min:0',
+        'unit'           => 'required|string|max:50',
+    ]);
+
+    $ingredient->update($validated);
+
+    return redirect()->back()->with('success', 'Ingredient updated successfully.');
+}
 }

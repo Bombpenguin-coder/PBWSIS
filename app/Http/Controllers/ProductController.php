@@ -32,4 +32,27 @@ class ProductController extends Controller
 
         return redirect()->back()->with('success', 'Product created successfully!');
     }
+
+    public function destroy($id)
+{
+    $product = Product::findOrFail($id);
+    $product->delete();
+
+    return redirect()->back()->with('success', 'Product deleted successfully!');
+}
+public function update(Request $request, $id)
+{
+    // Find product by product_id or primary key
+    $product = Product::where('product_id', $id)->firstOrFail();
+
+    $validated = $request->validate([
+        'product_name'   => 'required|string|max:255',
+        'price'          => 'required|numeric|min:0',
+        'stock_quantity' => 'required|integer|min:0',
+    ]);
+
+    $product->update($validated);
+
+    return redirect()->back()->with('success', 'Product updated successfully.');
+}
 }

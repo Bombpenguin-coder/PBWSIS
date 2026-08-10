@@ -38,6 +38,12 @@ Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.check
 Route::get('/inventory/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
 Route::get('/inventory/wastage', [WastageController::class, 'index'])->name('wastage.index');
 Route::post('/inventory/wastage', [WastageController::class, 'store'])->name('wastage.store');
+Route::delete('/inventory/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
+Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
+Route::delete('/inventory/wastage/{id}', [WastageController::class, 'destroy'])->name('wastage.destroy');
+Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
+Route::put('/wastage/{id}', [WastageController::class, 'update'])->name('wastage.update');
 // ---------------------------------------------------------
 // Sales History & Reports Routes
 // ---------------------------------------------------------

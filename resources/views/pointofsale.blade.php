@@ -32,6 +32,13 @@
         }
     </style>
 </head>
+<script>
+    // Expose Laravel VAT variable globally to window
+    window.vatConfig = @json($vat);
+</script>
+
+<!-- Load your external JS file after setting the variable -->
+@vite(['resources/js/pos.js'])
 <body class="bg-gray-100 text-gray-800 font-sans h-screen flex flex-col overflow-hidden">
 
     <!-- POS Top Navigation -->
@@ -178,16 +185,15 @@
                         </div>
 
                         <!-- Dynamic VAT Row -->
-                        <div class="flex justify-between text-xs text-gray-500">
-                            <span>VAT ({{ $vat->is_active ? $vat->rate . '%' . ($vat->is_inclusive ? ' Incl.' : ' Excl.') : 'Disabled' }})</span>
-                            <span id="vatDisplay" class="font-medium">₱0.00</span>
-                        </div>
+                       <div class="flex justify-between text-sm text-gray-500 py-1">
+    <span>VAT ({{ ($vat->is_enabled ?? $vat->is_active ?? true) ? number_format($vat->rate, 2) . '% ' . ($vat->is_inclusive ? 'Incl.' : 'Excl.') : 'Disabled' }}):</span>
+    <span id="vatDisplay">₱0.00</span>
+</div>
 
-                        <div class="flex justify-between text-lg font-black text-gray-900 border-t border-gray-200 pt-2">
-                            <span>Total</span>
-                            <span id="grandTotalDisplay" class="text-red-900">₱0.00</span>
-                        </div>
-                    </div>
+<div class="flex justify-between text-lg font-bold text-red-900 border-t pt-2 mt-1">
+    <span>Grand Total:</span>
+    <span id="grandTotalDisplay">₱0.00</span>
+</div>
 
                     <button type="button" onclick="openReviewModal()" 
                             class="w-full bg-red-900 hover:bg-red-800 text-white font-bold py-3 px-4 rounded-xl transition text-sm shadow-md flex items-center justify-center gap-2">
@@ -253,18 +259,27 @@
                 <div id="modalCartItems" class="bg-gray-50 rounded-lg p-3 border border-gray-200 space-y-2 max-h-48 overflow-y-auto"></div>
 
                 <div class="border-t border-b border-gray-200 py-3 space-y-1.5 text-sm">
-                    <div class="flex justify-between text-gray-600">
-                        <span>Subtotal:</span>
-                        <span id="modalSubtotal" class="font-medium">₱0.00</span>
-                    </div>
-                    <div class="flex justify-between text-red-900">
-                        <span>Discount:</span>
-                        <span id="modalDiscount" class="font-bold">-₱0.00</span>
-                    </div>
-                    <div class="flex justify-between text-base font-bold text-black border-t pt-2">
-                        <span>Grand Total:</span>
-                        <span id="modalTotal" class="text-xl text-red-900">₱0.00</span>
-                    </div>
+                   <!-- Inside <div id="reviewModal"> -->
+<div class="flex justify-between text-xs py-1">
+    <span class="text-gray-600">Subtotal:</span>
+    <span id="modalSubtotal" class="font-bold text-gray-800">₱0.00</span>
+</div>
+
+<div class="flex justify-between text-xs py-1">
+    <span class="text-red-600">Discount:</span>
+    <span id="modalDiscount" class="font-bold text-red-600">-₱0.00</span>
+</div>
+
+<!-- ADD THIS VAT ROW INSIDE THE MODAL -->
+<div class="flex justify-between text-xs py-1">
+    <span class="text-gray-500">VAT:</span>
+    <span id="modalVatDisplay" class="font-bold text-gray-700">₱0.00</span>
+</div>
+
+<div class="flex justify-between text-sm font-bold border-t border-gray-200 pt-2 mt-1">
+    <span>Grand Total:</span>
+    <span id="modalTotal" class="text-red-900">₱0.00</span>
+</div>
                 </div>
 
                 <!-- Cash Calculator -->
@@ -277,13 +292,7 @@
                                class="w-full text-lg font-bold p-2 border border-gray-300 rounded-r focus:outline-none focus:ring-2 focus:ring-red-900 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                     </div>
 
-                    <!-- Quick Cash Selection Buttons -->
-                    <div class="grid grid-cols-4 gap-2 pt-1">
-                        <button type="button" onclick="setExactAmount()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold py-1.5 rounded transition">Exact</button>
-                        <button type="button" onclick="addQuickCash(100)" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold py-1.5 rounded transition">+₱100</button>
-                        <button type="button" onclick="addQuickCash(500)" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold py-1.5 rounded transition">+₱500</button>
-                        <button type="button" onclick="clearCash()" class="bg-red-100 hover:bg-red-200 text-red-900 text-xs font-bold py-1.5 rounded transition">Clear</button>
-                    </div>
+                   
 
                     <div class="flex justify-between items-center pt-2 border-t border-gray-200">
                         <span class="text-sm font-bold text-gray-700">Change:</span>
@@ -322,26 +331,27 @@
                 <div id="receiptItemsList" class="space-y-1 py-1 border-b border-dashed border-gray-300"></div>
 
                 <div class="space-y-1 text-[11px] pt-1">
-                    <div class="flex justify-between">
-                        <span>Subtotal:</span>
-                        <span id="receiptSubtotal">₱0.00</span>
-                    </div>
-                    <div class="flex justify-between text-red-800">
-                        <span>Discount:</span>
-                        <span id="receiptDiscount">-₱0.00</span>
-                    </div>
-                    <div class="flex justify-between font-bold text-black border-t border-gray-300 pt-1 text-xs">
-                        <span>TOTAL:</span>
-                        <span id="receiptTotal">₱0.00</span>
-                    </div>
-                    <div class="flex justify-between text-gray-500 pt-1">
-                        <span>Tendered:</span>
-                        <span id="receiptTendered">₱0.00</span>
-                    </div>
-                    <div class="flex justify-between text-gray-500">
-                        <span>Change:</span>
-                        <span id="receiptChange">₱0.00</span>
-                    </div>
+                   <!-- Inside the Receipt Modal in pointofsale.blade.php -->
+<div class="flex justify-between text-xs py-0.5">
+    <span>Subtotal:</span>
+    <span id="receiptSubtotal">₱0.00</span>
+</div>
+
+<div class="flex justify-between text-xs text-red-600 py-0.5">
+    <span>Discount:</span>
+    <span id="receiptDiscount">-₱0.00</span>
+</div>
+
+<!-- ADD THIS VAT ROW -->
+<div class="flex justify-between text-xs text-gray-500 py-0.5">
+    <span>VAT (12% Incl.):</span>
+    <span id="receiptVat">₱0.00</span>
+</div>
+
+<div class="flex justify-between text-xs font-bold border-t border-dashed border-gray-300 pt-1 mt-1">
+    <span>TOTAL:</span>
+    <span id="receiptTotal">₱0.00</span>
+</div>
                 </div>
 
                 <div class="text-center border-t border-gray-300 pt-2 text-[10px] text-gray-400">

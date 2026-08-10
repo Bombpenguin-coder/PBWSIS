@@ -49,13 +49,14 @@
                         <th class="py-3 px-4 text-left font-medium">Ingredient</th>
                         <th class="py-3 px-4 text-left font-medium">Qty Lost</th>
                         <th class="py-3 px-4 text-left font-medium">Reason</th>
+                        <th class="py-3 px-4 text-center font-medium">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-sm bg-white">
                     @forelse($wastages as $log)
                         <tr class="hover:bg-gray-50/80 transition duration-150">
                             <td class="py-3 px-4 text-gray-500 font-mono text-xs">
-                                {{ \Carbon\Carbon::parse($log->wastage_date)->format('M d, Y') }}
+                                {{ \Carbon\Carbon::parse($log->wastage_date ?? $log->created_at)->format('M d, Y') }}
                             </td>
                             <td class="py-3 px-4 font-semibold text-gray-800">
                                 {{ $log->ingredient->ingredient_name ?? 'Unknown Ingredient' }}
@@ -68,21 +69,39 @@
                                     {{ $log->reason }}
                                 </span>
                             </td>
+
+                            <!-- Actions Column -->
+                            <td class="py-3 px-4 text-center space-x-1">
+                                <!-- Edit Button -->
+                                <button type="button" 
+                                    onclick="openEditModal('/wastage/{{ $log->wastage_id ?? $log->id }}', 'Edit Wastage Record', [
+                                        { label: 'Quantity Wasted', name: 'quantity_wasted', type: 'number', value: '{{ $log->quantity_wasted }}', required: true },
+                                        { label: 'Reason', name: 'reason', value: '{{ addslashes($log->reason) }}', required: true },
+                                        { label: 'Remarks', name: 'remarks', type: 'textarea', value: '{{ addslashes($log->remarks ?? '') }}' }
+                                    ])" 
+                                    class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-md transition duration-150">
+                                    Edit
+                                </button>
+
+                                <!-- Delete Button -->
+                                <form action="{{ route('wastage.destroy', $log->wastage_id ?? $log->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this wastage record?');" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 px-3 py-1 rounded-md transition duration-150">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="py-8 px-4 text-center text-gray-400">
-                                <p class="text-sm">No wastage records found.</p>
-                                <p class="text-xs mt-1">Great job minimizing waste! Click "Record Spoilage" above to log an item.</p>
+                            <td colspan="5" class="py-8 px-4 text-center text-gray-400">
+                                No wastage logs recorded yet.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-        </div>
-        
-        <div class="mt-4">
-            {{ $wastages->links() }}
         </div>
     </div>
 
@@ -127,8 +146,8 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_reason">Reason for Wastage</label>
-                    <input type="text" name="reason" id="modal_reason" value="{{ old('reason') }}" placeholder="e.g., Expired, Dropped, Burned" required 
+                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_reason">Reason</label>
+                    <input type="text" name="reason" id="modal_reason" value="{{ old('reason') }}" required placeholder="e.g., Expired, Spilled, Damaged" 
                            class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
                     @error('reason')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -136,16 +155,10 @@
                 </div>
 
                 <div class="mb-5">
-                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_wastage_date">Date</label>
-                    <input type="date" 
-                           name="wastage_date" 
-                           id="modal_wastage_date" 
-                           value="{{ old('wastage_date', date('Y-m-d')) }}" 
-                           max="{{ date('Y-m-d') }}" 
-                           onkeydown="return false;" 
-                           required 
-                           class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent bg-white cursor-pointer">
-                    @error('wastage_date')
+                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_remarks">Remarks (Optional)</label>
+                    <textarea name="remarks" id="modal_remarks" rows="2" placeholder="Additional details..." 
+                              class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">{{ old('remarks') }}</textarea>
+                    @error('remarks')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -156,7 +169,7 @@
                         Cancel
                     </button>
                     <button type="submit" class="bg-red-900 hover:bg-red-800 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
-                        Log & Deduct
+                        + Save Spoilage
                     </button>
                 </div>
             </form>

@@ -307,24 +307,50 @@ function updateCartUI() {
 }
 
 function updateTotals() {
+    // 1. Calculate subtotal
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // 2. Calculate item discounts
     const discount = cart.reduce((sum, item) => {
         if (!item.discountType || item.discountType === 'none') return sum;
         const discountedUnits = item.discountedQty || 0;
         return sum + (discountedUnits * (item.price * (item.discountRate || 0)));
     }, 0);
 
-    const grandTotal = subtotal - discount;
+    const discountedSubtotal = subtotal - discount;
 
+    // 3. Fetch VAT config from window.vatConfig
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    let vatAmount = 0;
+
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const rate = parseFloat(vatConfig.rate ?? 12.00);
+
+    if (isEnabled && discountedSubtotal > 0) {
+        if (isInclusive) {
+            // Extract tax component from inclusive price
+            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
+        } else {
+            // Calculate tax on top for exclusive price
+            vatAmount = discountedSubtotal * (rate / 100);
+        }
+    }
+
+    // 4. Calculate Grand Total
+    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
+
+    // 5. Update DOM elements
     const subtotalEl = document.getElementById('subtotalDisplay');
     const discountEl = document.getElementById('discountDisplay');
+    const vatEl = document.getElementById('vatDisplay');
     const totalEl = document.getElementById('grandTotalDisplay') || document.getElementById('totalDisplay');
 
     if (subtotalEl) subtotalEl.innerText = '₱' + subtotal.toFixed(2);
     if (discountEl) discountEl.innerText = '-₱' + discount.toFixed(2);
+    if (vatEl) vatEl.innerText = '₱' + vatAmount.toFixed(2);
     if (totalEl) totalEl.innerText = '₱' + grandTotal.toFixed(2);
 }
-
 // --- PARKED / HOLD ORDER MODAL LOGIC ---
 
 function updateHeldCount() {
@@ -486,7 +512,7 @@ function openReviewModal() {
         subtotal += itemSubtotal;
         totalDiscount += itemDiscount;
 
-        const foundDiscount = window.availableDiscounts.find(d => String(d.id) === String(item.discountType));
+        const foundDiscount = (window.availableDiscounts || []).find(d => String(d.id) === String(item.discountType));
         const discountLabel = foundDiscount ? foundDiscount.name : (item.discountType || '').toUpperCase();
 
         const discountBadge = (discountedUnits > 0 && item.discountType !== 'none')
@@ -508,14 +534,35 @@ function openReviewModal() {
         modalCartItems.innerHTML += itemHTML;
     });
 
-    const grandTotal = subtotal - totalDiscount;
+    const discountedSubtotal = subtotal - totalDiscount;
 
+    // --- VAT CALCULATION ---
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    let vatAmount = 0;
+
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const rate = parseFloat(vatConfig.rate ?? 12.00);
+
+    if (isEnabled && discountedSubtotal > 0) {
+        if (isInclusive) {
+            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
+        } else {
+            vatAmount = discountedSubtotal * (rate / 100);
+        }
+    }
+
+    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
+
+    // --- DOM UPDATES ---
     const modalSubtotal = document.getElementById('modalSubtotal');
     const modalDiscount = document.getElementById('modalDiscount');
+    const modalVatDisplay = document.getElementById('modalVatDisplay');
     const modalTotal = document.getElementById('modalTotal');
 
     if (modalSubtotal) modalSubtotal.innerText = '₱' + subtotal.toFixed(2);
     if (modalDiscount) modalDiscount.innerText = '-₱' + totalDiscount.toFixed(2);
+    if (modalVatDisplay) modalVatDisplay.innerText = '₱' + vatAmount.toFixed(2);
     if (modalTotal) modalTotal.innerText = '₱' + grandTotal.toFixed(2);
 
     const amountTendered = document.getElementById('amountTendered');
@@ -535,7 +582,24 @@ function calculateChange() {
         if (!item.discountType || item.discountType === 'none') return sum;
         return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
     }, 0);
-    const grandTotal = subtotal - discount;
+    
+    const discountedSubtotal = subtotal - discount;
+
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    let vatAmount = 0;
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const rate = parseFloat(vatConfig.rate ?? 12.00);
+
+    if (isEnabled && discountedSubtotal > 0) {
+        if (isInclusive) {
+            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
+        } else {
+            vatAmount = discountedSubtotal * (rate / 100);
+        }
+    }
+
+    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
 
     const amountInput = document.getElementById('amountTendered');
     if (!amountInput) return;
@@ -595,7 +659,24 @@ function setExactAmount() {
         if (!item.discountType || item.discountType === 'none') return sum;
         return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
     }, 0);
-    const grandTotal = subtotal - discount;
+    
+    const discountedSubtotal = subtotal - discount;
+
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    let vatAmount = 0;
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const rate = parseFloat(vatConfig.rate ?? 12.00);
+
+    if (isEnabled && discountedSubtotal > 0) {
+        if (isInclusive) {
+            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
+        } else {
+            vatAmount = discountedSubtotal * (rate / 100);
+        }
+    }
+
+    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
 
     const amountInput = document.getElementById('amountTendered');
     if (amountInput) {
@@ -740,14 +821,34 @@ function showPrintingModal(subtotal, discount, total, tendered, change, items) {
         });
     }
 
+    // --- VAT CALCULATION ---
+    const discountedSubtotal = subtotal - discount;
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    let vatAmount = 0;
+
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const rate = parseFloat(vatConfig.rate ?? 12.00);
+
+    if (isEnabled && discountedSubtotal > 0) {
+        if (isInclusive) {
+            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
+        } else {
+            vatAmount = discountedSubtotal * (rate / 100);
+        }
+    }
+
+    // --- DOM UPDATES ---
     const rSub = document.getElementById('receiptSubtotal');
     const rDisc = document.getElementById('receiptDiscount');
+    const rVat = document.getElementById('receiptVat');
     const rTot = document.getElementById('receiptTotal');
     const rTen = document.getElementById('receiptTendered');
     const rCha = document.getElementById('receiptChange');
 
     if (rSub) rSub.innerText = '₱' + subtotal.toFixed(2);
     if (rDisc) rDisc.innerText = '-₱' + discount.toFixed(2);
+    if (rVat) rVat.innerText = '₱' + vatAmount.toFixed(2);
     if (rTot) rTot.innerText = '₱' + total.toFixed(2);
     if (rTen) rTen.innerText = '₱' + tendered.toFixed(2);
     if (rCha) rCha.innerText = '₱' + change.toFixed(2);
@@ -789,6 +890,25 @@ function showThankYouModal(total, tendered, change) {
 function closeThankYouModal() {
     document.getElementById('thankYouModal')?.classList.add('hidden');
 }
+// Access the global variable set by Blade
+
+function calculateTotals(subtotal) {
+    // Read window.vatConfig directly whenever totals are calculated
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    let vatAmount = 0;
+
+    if (vatConfig.is_enabled) {
+        if (vatConfig.is_inclusive) {
+            // Formula for VAT Inclusive (e.g., 275 - (275 / 1.12))
+            vatAmount = subtotal - (subtotal / (1 + (vatConfig.rate / 100)));
+        } else {
+            // Formula for VAT Exclusive
+            vatAmount = subtotal * (vatConfig.rate / 100);
+        }
+    }
+
+    return vatAmount;
+}
 
 // --- EXPOSE FUNCTIONS TO WINDOW ---
 
@@ -804,7 +924,7 @@ window.removeFromCart = removeFromCart;
 window.updateStockDisplay = updateStockDisplay;
 window.updateCartUI = updateCartUI;
 window.updateTotals = updateTotals;
-
+window.calculateTotals = calculateTotals;
 window.updateHeldCount = updateHeldCount;
 window.holdCurrentOrder = holdCurrentOrder;
 window.closeHoldModal = closeHoldModal;

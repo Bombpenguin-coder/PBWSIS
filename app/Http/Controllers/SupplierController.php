@@ -15,12 +15,13 @@ class SupplierController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-        ]);
-
+       $request->validate([
+    'name'           => 'required|string|max:255',
+    'contact_person' => 'nullable|string|max:255',
+    'phone'          => 'nullable|string|regex:/^09\d{9}$/', // Must start with 09 and contain exactly 11 digits
+    'email'          => 'nullable|email|max:255',
+    'status'         => 'required|in:active,inactive',
+]);
         Supplier::create($request->all());
         return redirect()->back()->with('success', 'Supplier created successfully.');
     }

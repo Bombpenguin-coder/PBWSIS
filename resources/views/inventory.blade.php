@@ -82,41 +82,38 @@
                                 @endif
                             </td>
 
-                            <!-- Actions -->
-                            <td class="py-3 px-4 text-center">
-                                <div class="flex items-center justify-center space-x-2">
-                                    @if(Route::has('products.edit'))
-                                        <a href="{{ route('products.edit', $product->product_id) }}" class="text-blue-600 hover:text-blue-800 text-xs font-semibold">
-                                            Edit
-                                        </a>
-                                    @endif
+                            <!-- Actions Column -->
+                            <td class="py-3 px-4 text-center space-x-1">
+                                <!-- Edit Button -->
+                                <button type="button" 
+                                    onclick="openEditModal('/inventory/{{ $product->product_id }}', 'Edit Product', [
+                                        { label: 'Product Name', name: 'product_name', value: '{{ addslashes($product->product_name) }}', required: true },
+                                        { label: 'Price (₱)', name: 'price', type: 'number', value: '{{ $product->price }}', required: true },
+                                        { label: 'Stock Quantity', name: 'stock_quantity', type: 'number', value: '{{ $product->stock_quantity }}', required: true }
+                                    ])" 
+                                    class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-md transition duration-150">
+                                    Edit
+                                </button>
 
-                                    @if(Route::has('products.destroy'))
-                                        <form action="{{ route('products.destroy', $product->product_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this product?');" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs font-semibold">
-                                                Delete
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
+                                <!-- Delete Button -->
+                                <form action="{{ route('products.destroy', $product->product_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline"> 
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 px-3 py-1 rounded-md transition duration-150">
+                                        Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="6" class="py-8 px-4 text-center text-gray-400">
-                                <p class="text-sm">No products found in the system.</p>
-                                <p class="text-xs mt-1">Click the "Add Product" button above to add your first item.</p>
+                                No products found in the system.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-        </div>
-        
-        <div class="mt-4">
-            {{ $products->links() }}
         </div>
     </div>
 

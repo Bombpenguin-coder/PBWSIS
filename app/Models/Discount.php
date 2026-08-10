@@ -8,5 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Discount extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'type', 'value', 'is_active'];
+
+    protected $fillable = [
+        'name',
+        'type',
+        'value',
+        'is_active',
+    ];
 }

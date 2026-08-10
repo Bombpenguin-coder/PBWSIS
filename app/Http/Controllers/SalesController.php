@@ -6,6 +6,7 @@ use App\Models\Discount;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleDetail;
+use App\Models\Vat;
 use App\Models\VatSetting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -20,19 +21,38 @@ class SalesController extends Controller
                            ->where('stock_quantity', '>', 0)
                            ->get();
 
-        // Fetch VAT configuration with fallback defaults
-        $vat = VatSetting::first() ?? (object) [
-            'rate' => 12.00,
-            'is_inclusive' => true,
-            'is_active' => true,
+        // 1. Fetch VAT configuration safely from either Vat or VatSetting model
+        $rawVat = null;
+        if (class_exists(Vat::class)) {
+            $rawVat = Vat::first();
+        } 
+        if (!$rawVat && class_exists(VatSetting::class)) {
+            $rawVat = VatSetting::first();
+        }
+
+        // 2. Normalize VAT object properties for JS consumption
+        $vat = (object) [
+            'rate'         => (float) ($rawVat->rate ?? $rawVat->vat_rate ?? 12.00),
+            'is_inclusive' => (bool) ($rawVat->is_inclusive ?? $rawVat->vat_inclusive ?? true),
+            'is_enabled'   => (bool) ($rawVat->is_enabled ?? $rawVat->is_active ?? true),
         ];
+        // Normalize VAT object properties for Blade & JS consumption
+$vat = (object) [
+    'rate'         => (float) ($rawVat->rate ?? $rawVat->vat_rate ?? 12.00),
+    'is_inclusive' => (bool) ($rawVat->is_inclusive ?? $rawVat->vat_inclusive ?? true),
+    'is_enabled'   => (bool) ($rawVat->is_enabled ?? $rawVat->is_active ?? true),
+    'is_active'    => (bool) ($rawVat->is_enabled ?? $rawVat->is_active ?? true),
+];
 
         // Fetch active discounts if model exists
         $discounts = class_exists(Discount::class) 
             ? Discount::where('is_active', true)->get() 
             : collect([]);
 
-        return view('pointofsale', compact('products', 'vat', 'discounts'));
+        // Adjust view name to 'pos' or 'pointofsale' depending on your blade filename
+        $viewName = view()->exists('pos') ? 'pos' : 'pointofsale';
+
+        return view($viewName, compact('products', 'vat', 'discounts'));
     }
 
     public function store(Request $request)
@@ -51,11 +71,20 @@ class SalesController extends Controller
 
         try {
             return DB::transaction(function () use ($request) {
+                $subtotal = $request->subtotal ?? $request->total_amount;
+                
+                // Automatic backend VAT calculation if front-end passed 0/null
+                $vatAmount = $request->vat_amount;
+                if ($vatAmount === null || $vatAmount == 0) {
+                    // Extract 12% inclusive VAT component as default calculation
+                    $vatAmount = $subtotal - ($subtotal / 1.12);
+                }
+
                 // 1. Create Sale Record
                 $sale = Sale::create([
                     'sale_date'       => now(),
-                    'subtotal'        => $request->subtotal ?? 0,
-                    'vat_amount'      => $request->vat_amount ?? 0,
+                    'subtotal'        => $subtotal,
+                    'vat_amount'      => round($vatAmount, 2),
                     'discount_type'   => $request->discount_type,
                     'discount_amount' => $request->discount_amount ?? 0,
                     'total_amount'    => $request->total_amount,
@@ -64,17 +93,17 @@ class SalesController extends Controller
                 ]);
 
                 foreach ($request->items as $item) {
-                    // 2. Fetch fresh product data with a pessimistic lock to prevent stock race conditions
+                    // 2. Fetch fresh product data with a pessimistic lock
                     $product = Product::where('product_id', $item['id'])
                                       ->lockForUpdate()
                                       ->firstOrFail();
 
-                    // Check stock sufficiency before deducting
+                    // Check stock sufficiency
                     if ($product->stock_quantity < $item['quantity']) {
                         throw new \Exception("Insufficient stock for item: {$product->product_name}. Remaining stock: {$product->stock_quantity}");
                     }
 
-                    // 3. Create Sale Detail using actual stored price
+                    // 3. Create Sale Detail
                     SaleDetail::create([
                         'sale_id'    => $sale->sale_id,
                         'product_id' => $product->product_id,
@@ -111,17 +140,29 @@ class SalesController extends Controller
         return view('sales_history', compact('todaySalesList'));
     }
 
-    public function reports()
+    public function reports(Request $request)
     {
+        $selectedMonth = (int) $request->input('month', Carbon::now()->month);
+        $selectedYear = (int) $request->input('year', Carbon::now()->year);
+
         $monthlySalesList = Sale::with('details.product')
-                                ->whereMonth('sale_date', Carbon::now()->month)
-                                ->whereYear('sale_date', Carbon::now()->year)
+                                ->whereMonth('sale_date', $selectedMonth)
+                                ->whereYear('sale_date', $selectedYear)
                                 ->orderBy('sale_date', 'desc')
                                 ->get();
 
         $totalMonthlyAmount = $monthlySalesList->sum('total_amount');
         $totalTransactions = $monthlySalesList->count();
 
-        return view('sales_reports', compact('monthlySalesList', 'totalMonthlyAmount', 'totalTransactions'));
+        $reportDateTitle = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->format('F Y');
+
+        return view('sales_reports', compact(
+            'monthlySalesList', 
+            'totalMonthlyAmount', 
+            'totalTransactions',
+            'selectedMonth',
+            'selectedYear',
+            'reportDateTitle'
+        ));
     }
 }

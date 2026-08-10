@@ -4,14 +4,53 @@
 @section('header_title', 'Monthly Reports')
 
 @section('content')
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-bold text-gray-900">Revenue Report — {{ \Carbon\Carbon::now()->format('F Y') }}</h2>
+            <h2 class="text-xl font-bold text-gray-900">Revenue Report — {{ $reportDateTitle }}</h2>
             <p class="text-sm text-gray-500">Gross sales performance and monthly transaction summary.</p>
         </div>
         <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold rounded-lg transition">
             ← Back to Dashboard
         </a>
+    </div>
+
+    <!-- Date Filter Bar -->
+    <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100 mb-6">
+        <form method="GET" action="{{ route('sales.reports') }}" class="flex flex-wrap items-end gap-4">
+            <!-- Month Selection -->
+            <div>
+                <label for="month" class="block text-xs font-bold text-gray-600 uppercase mb-1">Select Month</label>
+                <select name="month" id="month" class="text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black">
+                    @foreach(range(1, 12) as $m)
+                        <option value="{{ $m }}" {{ $selectedMonth == $m ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create()->month($m)->format('F') }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Year Selection -->
+            <div>
+                <label for="year" class="block text-xs font-bold text-gray-600 uppercase mb-1">Select Year</label>
+                <select name="year" id="year" class="text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black">
+                    @foreach(range(date('Y') - 3, date('Y')) as $y)
+                        <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Filter & Print Buttons -->
+            <div class="flex items-center gap-2">
+                <button type="submit" class="bg-black hover:bg-gray-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow-sm">
+                    Filter Report
+                </button>
+                <button type="button" onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg transition border border-gray-300">
+                    🖨️ Print Report
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- Summary Banner Cards -->
@@ -29,7 +68,7 @@
     <!-- Monthly Transactions Table -->
     <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
         <div class="p-4 bg-gray-50 border-b border-gray-100">
-            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">All Monthly Transactions</h3>
+            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">All Transactions for {{ $reportDateTitle }}</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -71,7 +110,7 @@
                     @empty
                         <tr>
                             <td colspan="5" class="p-8 text-center text-gray-500 text-sm">
-                                No sales recorded for this month yet.
+                                No sales recorded for {{ $reportDateTitle }} yet.
                             </td>
                         </tr>
                     @endforelse

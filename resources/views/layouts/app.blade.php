@@ -143,10 +143,7 @@
                 <!-- Top Right Header Logout Button -->
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
-                    <button type="submit" class="flex items-center space-x-1.5 text-xs font-bold text-gray-600 hover:text-red-900 bg-gray-100 hover:bg-red-50 px-3 py-2 rounded-lg border border-gray-200 transition">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                        <span>Logout</span>
-                    </button>
+                   
                 </form>
             </div>
         </header>
@@ -156,6 +153,29 @@
             @yield('content')
         </main>
     </div>
+    <!-- ... main layout content ... -->
+
+    <!-- Global Edit Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="editModalTitle" class="text-lg font-bold text-gray-800">Edit Item</h3>
+                <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+
+            <form id="editForm" method="POST">
+                @csrf
+                @method('PUT')
+
+                <div id="editFormFields" class="space-y-3"></div>
+
+                <div class="flex justify-end gap-2 mt-5">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-red-900 text-white rounded-lg text-sm font-semibold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- The JavaScript Logic -->
     <script>
@@ -164,8 +184,8 @@
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
+            if (sidebar) sidebar.classList.toggle('-translate-x-full');
+            if (overlay) overlay.classList.toggle('hidden');
         }
 
         // Toggles the nested submenus
@@ -179,6 +199,43 @@
             if (arrow) {
                 arrow.classList.toggle('rotate-180');
             }
+        }
+
+        // Global Edit Modal Helpers
+        function openEditModal(actionUrl, title, fields) {
+            const form = document.getElementById('editForm');
+            const titleEl = document.getElementById('editModalTitle');
+            const container = document.getElementById('editFormFields');
+
+            if (form) form.action = actionUrl;
+            if (titleEl) titleEl.innerText = title;
+            if (container) container.innerHTML = '';
+
+            fields.forEach(field => {
+                let inputHtml = '';
+                if (field.type === 'textarea') {
+                    inputHtml = `
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">${field.label}</label>
+                            <textarea name="${field.name}" class="w-full border rounded-lg p-2 text-sm" ${field.required ? 'required' : ''}>${field.value || ''}</textarea>
+                        </div>
+                    `;
+                } else {
+                    inputHtml = `
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">${field.label}</label>
+                            <input type="${field.type || 'text'}" name="${field.name}" value="${field.value ?? ''}" class="w-full border rounded-lg p-2 text-sm" ${field.required ? 'required' : ''}>
+                        </div>
+                    `;
+                }
+                container.innerHTML += inputHtml;
+            });
+
+            document.getElementById('editModal')?.classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal')?.classList.add('hidden');
         }
     </script>
 </body>
