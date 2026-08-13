@@ -10,6 +10,7 @@ use App\Http\Controllers\WastageController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\VatController;
 use App\Http\Controllers\DiscountController;
+use App\Http\Controllers\CategoryController;
 use App\Models\Discount;
 
 // ---------------------------------------------------------
@@ -44,6 +45,8 @@ Route::delete('/inventory/wastage/{id}', [WastageController::class, 'destroy'])-
 Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
 Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
 Route::put('/wastage/{id}', [WastageController::class, 'update'])->name('wastage.update');
+Route::get('/inventory/categories', [CategoryController::class, 'index'])->name('categories.index');
+Route::post('/inventory/categories', [CategoryController::class, 'store'])->name('categories.store');
 // ---------------------------------------------------------
 // Sales History & Reports Routes
 // ---------------------------------------------------------

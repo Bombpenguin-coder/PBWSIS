@@ -27,91 +27,85 @@
         </div>
 
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-    <!-- Dashboard Link -->
-    <a href="{{ route('dashboard') }}" class="block px-4 py-3 rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'bg-red-900 text-white font-semibold shadow' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-        Dashboard Overview
-    </a>
+            
+            <!-- 1. OPERATIONS -->
+            <div>
+                <button onclick="toggleSubmenu('opsMenu', 'opsArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
+                    <span class="font-bold tracking-wider text-xs uppercase">Operations</span>
+                    <svg id="opsArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="opsMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
+                    <a href="{{ route('pos') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        POS / Billing
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Held Orders</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">KOT / Counter Tickets</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Bills</a>
+                </div>
+            </div>
 
-    @php
-        $isInventoryActive = request()->routeIs('inventory', 'ingredients.index', 'wastage.index');
-        $isFileMaintActive = request()->routeIs('suppliers.*', 'vat.*', 'discounts.*');
-        $isUserMaintActive = request()->routeIs('users.*');
-    @endphp
+            <!-- 2. INSIGHTS -->
+            <div>
+                <button onclick="toggleSubmenu('insightsMenu', 'insightsArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
+                    <span class="font-bold tracking-wider text-xs uppercase">Insights</span>
+                    <svg id="insightsArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="insightsMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Dashboard
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Reports</a>
+                </div>
+            </div>
 
-    <!-- 1. Inventory Maintenance -->
-    <div>
-        <button onclick="toggleSubmenu('inventoryMenu', 'inventoryArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
-            <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                <span>Inventory Maintenance</span>
-            </span>
-            <svg id="inventoryArrow" class="w-4 h-4 transform transition-transform duration-300 {{ $isInventoryActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-        </button>
+            <!-- 3. INVENTORY -->
+            <div>
+                <button onclick="toggleSubmenu('inventoryMenu', 'inventoryArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
+                    <span class="font-bold tracking-wider text-xs uppercase">Inventory</span>
+                    <svg id="inventoryArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="inventoryMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
+                    <a href="{{ route('ingredients.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Ingredients
+                    </a>
+                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Wastage Logs
+                    </a>
+                </div>
+            </div>
 
-        <div id="inventoryMenu" class="{{ $isInventoryActive ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
-            <a href="{{ route('inventory') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-red-900/40' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                Products
-            </a>
-            <a href="{{ route('ingredients.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.index') ? 'text-white font-bold bg-red-900/40' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                Ingredients
-            </a>
-            <a href="{{ route('wastage.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.index') ? 'text-white font-bold bg-red-900/40' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                Wastage Logs
-            </a>
-        </div>
-    </div>
+            <!-- 4. FILE MAINTENANCE -->
+            <div>
+                <button onclick="toggleSubmenu('fileMenu', 'fileArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
+                    <span class="font-bold tracking-wider text-xs uppercase">File Maintenance</span>
+                    <svg id="fileArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="fileMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
+                    <a href="{{ route('categories.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Categories</a>
+                    <a href="{{ route('inventory') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Products Catalog</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Discount</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">VAT</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Purchases</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Suppliers</a>
+                </div>
+            </div>
 
-    <!-- 2. File Maintenance -->
-    <div>
-        <button onclick="toggleSubmenu('fileMaintMenu', 'fileMaintArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
-            <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 002 2z"></path></svg>
-                <span>File Maintenance</span>
-            </span>
-            <svg id="fileMaintArrow" class="w-4 h-4 transform transition-transform duration-300 {{ $isFileMaintActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-        </button>
+            <!-- 5. ADMINISTRATION -->
+            <div>
+                <button onclick="toggleSubmenu('adminMenu', 'adminArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
+                    <span class="font-bold tracking-wider text-xs uppercase">Administration</span>
+                    <svg id="adminArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="adminMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Import / Export</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">User Management</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">List Management</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Settings</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Audit Log</a>
+                </div>
+            </div>
 
-        <div id="fileMaintMenu" class="{{ $isFileMaintActive ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
-            <a href="{{ Route::has('suppliers.index') ? route('suppliers.index') : '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-red-900/40' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                Suppliers
-            </a>
-            <a href="{{ Route::has('vat.index') ? route('vat.index') : '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-red-900/40' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                VAT Settings
-            </a>
-            <a href="{{ Route::has('discounts.index') ? route('discounts.index') : '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-red-900/40' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                Discounts
-            </a>
-        </div>
-    </div>
-
-    <!-- 3. User Maintenance -->
-    <div>
-        <button onclick="toggleSubmenu('userMaintMenu', 'userMaintArrow')" class="w-full flex justify-between items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200 focus:outline-none">
-            <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <span>User Maintenance</span>
-            </span>
-            <svg id="userMaintArrow" class="w-4 h-4 transform transition-transform duration-300 {{ $isUserMaintActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-        </button>
-
-        <div id="userMaintMenu" class="{{ $isUserMaintActive ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
-            <a href="{{ Route::has('users.index') ? route('users.index') : '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('users.*') ? 'text-white font-bold bg-red-900/40' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                Users & Roles
-            </a>
-        </div>
-    </div>
-
-    <!-- Point of Sale -->
-    <a href="{{ route('pos') }}" class="block px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition duration-200">
-        Point of Sale (POS)
-    </a>
-</nav>
+        </nav>
         
         <!-- Sidebar Footer with Logout Link -->
         <div class="p-4 border-t border-gray-800 text-sm text-gray-400 flex items-center justify-between">
