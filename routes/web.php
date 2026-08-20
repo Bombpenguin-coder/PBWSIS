@@ -11,7 +11,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\VatController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\CategoryController;
-use App\Models\Discount;
+use App\Http\Controllers\UserManagementController;
 
 // ---------------------------------------------------------
 // Login & Registration Routes
@@ -26,6 +26,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Create Account / Register Routes (THIS IS THE MISSING ROUTE)
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
+
+// Administration Routes
+Route::get('/admin/users', [UserManagementController::class, 'index'])->name('users.index');
 
 // ---------------------------------------------------------
 // System Routes
@@ -67,8 +70,20 @@ Route::get('/discounts/active', function () {
     Route::post('/sales', [App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
 
     // File Maintenance Routes
-    Route::resource('suppliers', SupplierController::class);
-    Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
-    Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
-    Route::resource('discounts', DiscountController::class);
+// 1. Categories (The one we made together)
+Route::get('/inventory/categories', [CategoryController::class, 'index'])->name('categories.index');
+Route::post('/inventory/categories', [CategoryController::class, 'store'])->name('categories.store');
+
+// 2. Suppliers (Resource magic generates suppliers.index)
+Route::resource('suppliers', SupplierController::class);
+
+// 3. Discounts (Resource magic generates discounts.index)
+Route::resource('discounts', DiscountController::class);
+
+// 4. VAT (Custom routes)
+Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
+Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
+
+// POS / Sales Routes
+Route::post('/sales', [App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
 });

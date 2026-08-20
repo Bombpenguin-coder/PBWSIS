@@ -10,10 +10,10 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    // Custom primary key
+    // Override the default 'id' primary key
     protected $primaryKey = 'users_id';
 
-    // Mass assignable attributes
+    // Allow these specific columns to be saved to the database
     protected $fillable = [
         'username',
         'password',

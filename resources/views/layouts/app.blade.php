@@ -81,12 +81,13 @@
                     <svg id="fileArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="fileMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
-                    <a href="{{ route('categories.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Categories</a>
-                    <a href="{{ route('inventory') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Products Catalog</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Discount</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">VAT</a>
+                        <!-- Links safely pointing to verified route names -->
+                    <a href="{{ route('categories.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Categories</a>
+                    <a href="{{ route('inventory') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Products Catalog</a>
+                    <a href="{{ route('discounts.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Discount</a>
+                    <a href="{{ route('vat.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">VAT</a>
                     <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Purchases</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Suppliers</a>
+                    <a href="{{ route('suppliers.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Suppliers</a>
                 </div>
             </div>
 
@@ -98,7 +99,7 @@
                 </button>
                 <div id="adminMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
                     <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Import / Export</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">User Management</a>
+                    <a href="{{ route('users.index') }}" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">User Management</a>
                     <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">List Management</a>
                     <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Settings</a>
                     <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Audit Log</a>
