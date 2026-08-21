@@ -9,10 +9,8 @@ class Ingredient extends Model
 {
     use HasFactory;
 
-    // 1. Tell Laravel your custom Primary Key name
     protected $primaryKey = 'ingredient_id';
 
-    // 2. Allow mass assignment for these fields
     protected $fillable = [
         'ingredient_name',
         'quantity',
@@ -20,4 +18,11 @@ class Ingredient extends Model
         'max_capacity',
         'reorder_level',
     ];
+
+    // Many-to-Many Relationship to Products (Recipes)
+   public function products()
+{
+    return $this->belongsToMany(Product::class, 'product_ingredients', 'ingredient_id', 'product_id')
+                ->withPivot('quantity_needed');
+}
 }

@@ -48,7 +48,7 @@
                         <th class="py-3 px-4 text-left font-medium">ID</th>
                         <th class="py-3 px-4 text-left font-medium">Product Name</th>
                         <th class="py-3 px-4 text-left font-medium">Price</th>
-                        <th class="py-3 px-4 text-left font-medium">Stock Level</th>
+                        
                         <th class="py-3 px-4 text-center font-medium">Status</th>
                         <th class="py-3 px-4 text-center font-medium">Actions</th>
                     </tr>
@@ -65,9 +65,7 @@
                             <td class="py-3 px-4 font-semibold text-gray-700">₱{{ number_format($product->price, 2) }}</td>
                             
                             <!-- Stock Level Indicator -->
-                            <td class="py-3 px-4 font-bold {{ $isLow ? 'text-red-600' : 'text-emerald-600' }}">
-                                {{ $product->stock_quantity }} <span class="text-xs font-normal text-gray-500">pcs</span>
-                            </td>
+                           
 
                             <!-- Status Badge -->
                             <td class="py-3 px-4 text-center">
@@ -88,8 +86,8 @@
                                 <button type="button" 
                                     onclick="openEditModal('/inventory/{{ $product->product_id }}', 'Edit Product', [
                                         { label: 'Product Name', name: 'product_name', value: '{{ addslashes($product->product_name) }}', required: true },
-                                        { label: 'Price (₱)', name: 'price', type: 'number', value: '{{ $product->price }}', required: true },
-                                        { label: 'Stock Quantity', name: 'stock_quantity', type: 'number', value: '{{ $product->stock_quantity }}', required: true }
+                                        { label: 'Price (₱)', name: 'price', type: 'number', value: '{{ $product->price }}', required: true }
+                                     
                                     ])" 
                                     class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-md transition duration-150">
                                     Edit
@@ -118,70 +116,51 @@
     </div>
 
     <!-- ================= BLURRED MODAL POPUP FORM ================= -->
-    <div id="addProductModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all max-h-[90vh] flex flex-col">
-            
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center border-b pb-3 mb-4 shrink-0">
-                <h3 class="text-base font-bold text-gray-800">
-                    Add New Product
-                </h3>
-                <button type="button" onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none">&times;</button>
+   <!-- Add Product Modal -->
+<div id="addProductModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-4">
+            <h3 class="text-base font-bold text-gray-800">Add New Product</h3>
+            <button type="button" onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
+        </div>
+
+        <form action="{{ route('products.store') }}" method="POST" class="overflow-y-auto pr-1">
+            @csrf
+
+            <div class="mb-3">
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_product_name">Product Name</label>
+                <input type="text" name="product_name" id="modal_product_name" value="{{ old('product_name') }}" required placeholder="e.g., Iced Caramel Macchiato" class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
+                @error('product_name')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            <!-- Modal Body Form -->
-            <form action="{{ route('products.store') }}" method="POST" class="overflow-y-auto pr-1">
-                @csrf
-                
-                <div class="mb-3">
-                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_product_name">Product Name</label>
-                    <input type="text" name="product_name" id="modal_product_name" value="{{ old('product_name') }}" required placeholder="e.g., Iced Caramel Macchiato" 
-                           class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
-                    @error('product_name')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+            <div class="mb-3">
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_price">Price (₱)</label>
+                <input type="number" step="0.01" name="price" id="modal_price" value="{{ old('price') }}" required placeholder="0.00" class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
+                @error('price')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-                <div class="grid grid-cols-2 gap-2 mb-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_price">Price (₱)</label>
-                        <input type="number" step="0.01" name="price" id="modal_price" value="{{ old('price') }}" required placeholder="0.00" 
-                               class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
-                        @error('price')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_stock_quantity">Initial Stock</label>
-                        <input type="number" name="stock_quantity" id="modal_stock_quantity" value="{{ old('stock_quantity') }}" required placeholder="0" 
-                               class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
-                        @error('stock_quantity')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_status">Status</label>
+                <select name="status" id="modal_status" required class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
+                    <option value="Available" {{ old('status') == 'Available' ? 'selected' : '' }}>Available</option>
+                    <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+                </select>
+                @error('status')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-                <div class="mb-5">
-                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_status">Status</label>
-                    <select name="status" id="modal_status" required class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent bg-white">
-                        <option value="Available" {{ old('status') == 'Available' ? 'selected' : '' }}>Available</option>
-                        <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
-                    </select>
-                    @error('status')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Modal Action Buttons -->
-                <div class="flex justify-end space-x-2 pt-3 border-t">
-                    <button type="button" onclick="closeAddModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold py-2 px-3 rounded-lg transition">
-                        Cancel
-                    </button>
-                    <button type="submit" class="bg-red-900 hover:bg-red-800 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
-                        + Save Product
-                    </button>
-                </div>
-            </form>
+            <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-red-900 hover:bg-red-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">+ Save Product</button>
+            </div>
+        </form>
+    </div>
+</div>
         </div>
     </div>
 

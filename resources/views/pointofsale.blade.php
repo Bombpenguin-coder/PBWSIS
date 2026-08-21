@@ -96,7 +96,7 @@
                              data-name="{{ $product->product_name }}" 
                              data-category="{{ strtolower($product->category_name ?? $product->category ?? '') }}"
                              data-price="{{ $product->price }}"
-                             data-stock="{{ $product->stock_quantity }}"
+                            
                              onclick="addToCart(this)">
                              
                             <div class="h-24 bg-gray-200 rounded-md mb-3 flex items-center justify-center text-gray-400">
@@ -105,9 +105,7 @@
                             <h3 class="text-sm font-bold text-gray-800 truncate">{{ $product->product_name }}</h3>
                             <div class="flex justify-between items-center mt-2">
                                 <span class="text-red-900 font-bold">₱{{ number_format($product->price, 2) }}</span>
-                                <span class="text-xs text-gray-500">
-                                    Stock: <span id="stock-val-{{ $product->product_id }}">{{ $product->stock_quantity }}</span>
-                                </span>
+                              
                             </div>
                         </div>
                     @empty

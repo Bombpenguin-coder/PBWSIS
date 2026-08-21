@@ -8,7 +8,9 @@ window.availableDiscounts = window.availableDiscounts || [
     { id: 'employee', name: 'Employee', rate: 15 },
     { id: 'promo', name: 'Promo', rate: 10 }
 ];
-
+window.addToCart = addToCart;
+window.updateQuantity = updateQuantity;
+window.removeFromCart = removeFromCart;
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
     updateHeldCount();
@@ -109,22 +111,19 @@ function addToCart(element) {
     const id = element.getAttribute('data-id');
     const name = element.getAttribute('data-name');
     const price = parseFloat(element.getAttribute('data-price'));
-    const maxStock = parseInt(element.getAttribute('data-stock')) || 0;
+
+    if (!id || isNaN(price)) return;
 
     const existingItem = cart.find(item => item.id === id);
-    const currentCartQty = existingItem ? existingItem.quantity : 0;
-
-    if (currentCartQty >= maxStock) return;
 
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        cart.push({ 
-            id: id, 
-            name: name, 
-            price: price, 
-            quantity: 1, 
-            maxStock: maxStock,
+        cart.push({
+            id: id,
+            name: name,
+            price: price,
+            quantity: 1,
             discountType: 'none',
             discountRate: 0,
             discountedQty: 0
@@ -177,7 +176,7 @@ function updateQuantity(index, delta) {
 
     const newQty = item.quantity + delta;
 
-    if (newQty > item.maxStock) return;
+    
 
     if (newQty <= 0) {
         removeFromCart(index);
@@ -206,25 +205,14 @@ function removeFromCart(index) {
 }
 
 function updateStockDisplay(productId) {
+    if (!productId) return;
+
     const card = document.getElementById(`product-card-${productId}`);
-    if (!card) return;
-
-    const maxStock = parseInt(card.getAttribute('data-stock')) || 0;
-    const cartItem = cart.find(item => item.id === productId);
-    const cartQty = cartItem ? cartItem.quantity : 0;
-    const remainingStock = maxStock - cartQty;
-
-    const stockValElement = document.getElementById(`stock-val-${productId}`);
-    if (stockValElement) {
-        stockValElement.innerText = remainingStock;
-    }
-
-    if (remainingStock <= 0) {
-        card.classList.add('opacity-40', 'cursor-not-allowed');
-    } else {
-        card.classList.remove('opacity-40', 'cursor-not-allowed');
+    if (card) {
+        card.classList.remove('opacity-50', 'pointer-events-none', 'cursor-not-allowed');
     }
 }
+
 
 function updateCartUI() {
     const container = document.getElementById('cartItemsContainer');
@@ -933,7 +921,6 @@ window.openHeldOrdersModal = openHeldOrdersModal;
 window.recallOrder = recallOrder;
 window.deleteHeldOrder = deleteHeldOrder;
 window.closeHeldOrdersModal = closeHeldOrdersModal;
-
 window.showEmptyCartModal = showEmptyCartModal;
 window.closeEmptyCartModal = closeEmptyCartModal;
 window.openReviewModal = openReviewModal;
@@ -942,10 +929,8 @@ window.calculateChange = calculateChange;
 window.setExactAmount = setExactAmount;
 window.addQuickCash = addQuickCash;
 window.clearCash = clearCash;
-
 window.confirmAndSubmitOrder = confirmAndSubmitOrder;
 window.processOrder = processOrder;
-
 window.showPrintingModal = showPrintingModal;
 window.printReceipt = printReceipt;
 window.finishPrinting = finishPrinting;

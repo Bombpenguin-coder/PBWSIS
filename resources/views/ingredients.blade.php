@@ -59,7 +59,7 @@
                             $percent = $ingredient->max_capacity > 0 
                                 ? min(100, round(($ingredient->quantity / $ingredient->max_capacity) * 100)) 
                                 : 0;
-                            $isLow = $ingredient->quantity <= ($ingredient->max_capacity * 0.50);
+             $isLow = $ingredient->quantity <= ($ingredient->reorder_threshold ?? ($ingredient->max_capacity * 0.15));
                         @endphp
                         <tr class="hover:bg-gray-50/80 transition duration-150">
                             <td class="py-3 px-4 text-gray-500 font-mono text-xs">#{{ $ingredient->ingredient_id }}</td>

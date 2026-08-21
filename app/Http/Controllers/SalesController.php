@@ -17,11 +17,12 @@ class SalesController extends Controller
 {
     public function index()
     {
-        $products = Product::where('status', 'Available')
-                           ->where('stock_quantity', '>', 0)
+        // Eager load ingredients for dynamic portion calculations
+        $products = Product::with('ingredients')
+                           ->where('status', 'Available')
                            ->get();
 
-        // 1. Fetch VAT configuration safely from either Vat or VatSetting model
+        // 1. Fetch VAT configuration safely
         $rawVat = null;
         if (class_exists(Vat::class)) {
             $rawVat = Vat::first();
@@ -30,26 +31,18 @@ class SalesController extends Controller
             $rawVat = VatSetting::first();
         }
 
-        // 2. Normalize VAT object properties for JS consumption
+        // 2. Normalize VAT object properties
         $vat = (object) [
             'rate'         => (float) ($rawVat->rate ?? $rawVat->vat_rate ?? 12.00),
             'is_inclusive' => (bool) ($rawVat->is_inclusive ?? $rawVat->vat_inclusive ?? true),
             'is_enabled'   => (bool) ($rawVat->is_enabled ?? $rawVat->is_active ?? true),
+            'is_active'    => (bool) ($rawVat->is_enabled ?? $rawVat->is_active ?? true),
         ];
-        // Normalize VAT object properties for Blade & JS consumption
-$vat = (object) [
-    'rate'         => (float) ($rawVat->rate ?? $rawVat->vat_rate ?? 12.00),
-    'is_inclusive' => (bool) ($rawVat->is_inclusive ?? $rawVat->vat_inclusive ?? true),
-    'is_enabled'   => (bool) ($rawVat->is_enabled ?? $rawVat->is_active ?? true),
-    'is_active'    => (bool) ($rawVat->is_enabled ?? $rawVat->is_active ?? true),
-];
 
-        // Fetch active discounts if model exists
         $discounts = class_exists(Discount::class) 
             ? Discount::where('is_active', true)->get() 
             : collect([]);
 
-        // Adjust view name to 'pos' or 'pointofsale' depending on your blade filename
         $viewName = view()->exists('pos') ? 'pos' : 'pointofsale';
 
         return view($viewName, compact('products', 'vat', 'discounts'));
@@ -73,15 +66,18 @@ $vat = (object) [
             return DB::transaction(function () use ($request) {
                 $subtotal = $request->subtotal ?? $request->total_amount;
                 
-                // Automatic backend VAT calculation if front-end passed 0/null
                 $vatAmount = $request->vat_amount;
                 if ($vatAmount === null || $vatAmount == 0) {
-                    // Extract 12% inclusive VAT component as default calculation
                     $vatAmount = $subtotal - ($subtotal / 1.12);
                 }
 
-                // 1. Create Sale Record
+                $today = Carbon::today();
+                $dailyCount = Sale::whereDate('sale_date', $today)->count() + 1;
+                $orderNumber = 'ORD-' . $today->format('Ymd') . '-' . str_pad($dailyCount, 4, '0', STR_PAD_LEFT);
+
+                // Create Sale Record
                 $sale = Sale::create([
+                    'order_number'    => $orderNumber,
                     'sale_date'       => now(),
                     'subtotal'        => $subtotal,
                     'vat_amount'      => round($vatAmount, 2),
@@ -93,17 +89,17 @@ $vat = (object) [
                 ]);
 
                 foreach ($request->items as $item) {
-                    // 2. Fetch fresh product data with a pessimistic lock
-                    $product = Product::where('product_id', $item['id'])
-                                      ->lockForUpdate()
-                                      ->firstOrFail();
+                    $product = Product::with('ingredients')
+                                       ->where('product_id', $item['id'])
+                                       ->lockForUpdate()
+                                       ->firstOrFail();
 
-                    // Check stock sufficiency
-                    if ($product->stock_quantity < $item['quantity']) {
-                        throw new \Exception("Insufficient stock for item: {$product->product_name}. Remaining stock: {$product->stock_quantity}");
+                    // Check portion availability against raw ingredients
+                    if ($product->available_stock < $item['quantity']) {
+                        throw new \Exception("Insufficient ingredient stock for: {$product->product_name}. Max available portions: {$product->available_stock}");
                     }
 
-                    // 3. Create Sale Detail
+                    // Create Sale Detail
                     SaleDetail::create([
                         'sale_id'    => $sale->sale_id,
                         'product_id' => $product->product_id,
@@ -111,13 +107,22 @@ $vat = (object) [
                         'subtotal'   => $product->price * $item['quantity'],
                     ]);
 
-                    // 4. Deduct inventory
-                    $product->decrement('stock_quantity', $item['quantity']);
+                    // Deduct raw ingredients quantity
+foreach ($product->ingredients as $ingredient) {
+    $qtyNeeded = $ingredient->pivot->quantity_needed 
+              ?? $ingredient->pivot->quantity_required 
+              ?? $ingredient->pivot->quantity 
+              ?? 1;
+
+    $deductAmount = $qtyNeeded * $item['quantity'];
+    $ingredient->decrement('current_stock', $deductAmount);
+}
                 }
 
                 return response()->json([
-                    'message' => 'Transaction successful!',
-                    'sale_id' => $sale->sale_id,
+                    'message'      => 'Transaction successful!',
+                    'sale_id'      => $sale->sale_id,
+                    'order_number' => $sale->order_number,
                 ], 200);
             });
 
@@ -159,9 +164,9 @@ $vat = (object) [
         return view('sales_reports', compact(
             'monthlySalesList', 
             'totalMonthlyAmount', 
-            'totalTransactions',
-            'selectedMonth',
-            'selectedYear',
+            'totalTransactions', 
+            'selectedMonth', 
+            'selectedYear', 
             'reportDateTitle'
         ));
     }

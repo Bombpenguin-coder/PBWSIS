@@ -9,7 +9,8 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::latest()->paginate(10);
+        // Eager load ingredients for inventory display
+        $products = Product::with('ingredients')->latest()->paginate(10);
 
         return view('inventory', compact('products'));
     }
@@ -17,42 +18,40 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'product_name'   => 'required|string|max:255',
-            'price'          => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'status'         => 'required|in:Available,Unavailable',
+            'product_name' => 'required|string|max:255',
+            'price'        => 'required|numeric|min:0',
+            'status'       => 'required|in:Available,Unavailable',
         ]);
 
         Product::create([
-            'product_name'   => $request->product_name,
-            'price'          => $request->price,
-            'stock_quantity' => $request->stock_quantity,
-            'status'         => $request->status,
+            'product_name' => $request->product_name,
+            'price'        => $request->price,
+            'status'       => $request->status,
         ]);
 
         return redirect()->back()->with('success', 'Product created successfully!');
     }
 
     public function destroy($id)
-{
-    $product = Product::findOrFail($id);
-    $product->delete();
+    {
+        $product = Product::findOrFail($id);
+        $product->delete();
 
-    return redirect()->back()->with('success', 'Product deleted successfully!');
-}
-public function update(Request $request, $id)
-{
-    // Find product by product_id or primary key
-    $product = Product::where('product_id', $id)->firstOrFail();
+        return redirect()->back()->with('success', 'Product deleted successfully!');
+    }
 
-    $validated = $request->validate([
-        'product_name'   => 'required|string|max:255',
-        'price'          => 'required|numeric|min:0',
-        'stock_quantity' => 'required|integer|min:0',
-    ]);
+    public function update(Request $request, $id)
+    {
+        $product = Product::where('product_id', $id)->firstOrFail();
 
-    $product->update($validated);
+        $validated = $request->validate([
+            'product_name' => 'required|string|max:255',
+            'price'        => 'required|numeric|min:0',
+            'status'       => 'nullable|in:Available,Unavailable',
+        ]);
 
-    return redirect()->back()->with('success', 'Product updated successfully.');
-}
+        $product->update($validated);
+
+        return redirect()->back()->with('success', 'Product updated successfully.');
+    }
 }
