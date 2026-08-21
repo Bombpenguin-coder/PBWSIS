@@ -61,7 +61,7 @@
                                             data-username="{{ $user->username }}"
                                             data-role="{{ $user->role }}"
                                             data-contact="{{ $user->contact_number }}"
-                                            onclick="openEditModal(this)" 
+                                            onclick="openUserEditModal(this)" 
                                             class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 py-1 px-3 rounded transition">
                                         Edit
                                     </button>
@@ -114,7 +114,7 @@
                     <input type="text" name="contact_number" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-red-900">
                 </div>
                 <div class="flex justify-end space-x-2">
-                    <button type="button" onclick="closeModal('addUserModal')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
+                    <button type="button" onclick="closeUserModal('addUserModal')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
                     <button type="submit" class="bg-red-900 hover:bg-red-800 text-white font-bold py-2 px-4 rounded transition duration-200">Save Account</button>
                 </div>
             </form>
@@ -150,41 +150,39 @@
                     <input type="text" id="edit_contact" name="contact_number" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-900">
                 </div>
                 <div class="flex justify-end space-x-2">
-                    <button type="button" onclick="closeModal('editUserModal')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
+                    <button type="button" onclick="closeUserModal('editUserModal')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
                     <button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded transition duration-200">Update Account</button>
                 </div>
             </form>
         </div>
     </div>
 
-<!-- Cleaned up Scripts -->
+<!-- Dedicated Scripts for User Management -->
     <script>
-        function openModal(modalId) {
+        // Use unique names to avoid conflicting with app.blade.php
+        function openUserModal(modalId) {
             document.getElementById(modalId).classList.remove('hidden');
         }
 
-        function closeModal(modalId) {
+        function closeUserModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
 
-        // Safely extract the data from the clicked button without any loops
-        function openEditModal(buttonElement) {
-            // Get the data from the button's HTML attributes
+        // Renamed to openUserEditModal
+        function openUserEditModal(buttonElement) {
             const id = buttonElement.getAttribute('data-id');
             const username = buttonElement.getAttribute('data-username');
             const role = buttonElement.getAttribute('data-role');
             const contact = buttonElement.getAttribute('data-contact');
 
-            // Place the data into the form inputs
             document.getElementById('edit_username').value = username;
             document.getElementById('edit_role').value = role;
             document.getElementById('edit_contact').value = contact || '';
             
-            // Set the correct URL to submit the changes to
             document.getElementById('editUserForm').action = '/admin/users/' + id;
             
-            // Open the modal
-            openModal('editUserModal');
+            // Call our unique open function
+            openUserModal('editUserModal');
         }
     </script>
 @endsection
