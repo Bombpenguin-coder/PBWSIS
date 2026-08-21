@@ -29,6 +29,9 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Administration Routes
 Route::get('/admin/users', [UserManagementController::class, 'index'])->name('users.index');
+Route::post('/admin/users', [UserManagementController::class, 'store'])->name('users.store');
+Route::delete('/admin/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+Route::put('/admin/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
 
 // ---------------------------------------------------------
 // System Routes
