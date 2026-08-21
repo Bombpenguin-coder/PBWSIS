@@ -45,7 +45,6 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-900 text-gray-100 text-xs uppercase tracking-wider">
                     <tr>
-                        <th class="py-3 px-4 text-left font-medium">ID</th>
                         <th class="py-3 px-4 text-left font-medium">Ingredient</th>
                         <th class="py-3 px-4 text-left font-medium">Current Stock</th>
                         <th class="py-3 px-4 text-left font-medium">Capacity Bar</th>
@@ -62,7 +61,6 @@
              $isLow = $ingredient->quantity <= ($ingredient->reorder_threshold ?? ($ingredient->max_capacity * 0.15));
                         @endphp
                         <tr class="hover:bg-gray-50/80 transition duration-150">
-                            <td class="py-3 px-4 text-gray-500 font-mono text-xs">#{{ $ingredient->ingredient_id }}</td>
                             <td class="py-3 px-4 font-semibold text-gray-800">{{ $ingredient->ingredient_name }}</td>
                             <td class="py-3 px-4 font-bold {{ $isLow ? 'text-red-600' : 'text-emerald-600' }}">
                                 {{ number_format($ingredient->quantity, 2) }} <span class="text-xs font-normal text-gray-500">{{ $ingredient->unit }}</span>
@@ -114,7 +112,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 px-4 text-center text-gray-400">
+                            <td colspan="5" class="py-8 px-4 text-center text-gray-400">
                                 No raw ingredients found in the system.
                             </td>
                         </tr>

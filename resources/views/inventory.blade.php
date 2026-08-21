@@ -45,7 +45,6 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-900 text-gray-100 text-xs uppercase tracking-wider">
                     <tr>
-                        <th class="py-3 px-4 text-left font-medium">ID</th>
                         <th class="py-3 px-4 text-left font-medium">Product Name</th>
                         <th class="py-3 px-4 text-left font-medium">Price</th>
                         
@@ -60,7 +59,6 @@
                             $isAvailable = $product->status === 'Available';
                         @endphp
                         <tr class="hover:bg-gray-50/80 transition duration-150">
-                            <td class="py-3 px-4 text-gray-500 font-mono text-xs">#{{ $product->product_id }}</td>
                             <td class="py-3 px-4 font-semibold text-gray-800">{{ $product->product_name }}</td>
                             <td class="py-3 px-4 font-semibold text-gray-700">₱{{ number_format($product->price, 2) }}</td>
                             
@@ -105,7 +103,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 px-4 text-center text-gray-400">
+                            <td colspan="5" class="py-8 px-4 text-center text-gray-400">
                                 No products found in the system.
                             </td>
                         </tr>
