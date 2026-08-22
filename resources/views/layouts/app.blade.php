@@ -35,14 +35,22 @@
                     <svg id="opsArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="opsMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
-                    <a href="{{ route('pos') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                        POS / Billing
-                    </a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Held Orders</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">KOT / Counter Tickets</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Bills</a>
-                </div>
-            </div>
+    <a href="{{ route('pos') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+        POS / Billing
+    </a>
+    
+    <a href="{{ route('operations.held') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.held') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+        Held Orders
+    </a>
+    
+    <a href="{{ route('operations.kot') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.kot') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+        KOT / Counter Tickets
+    </a>
+    
+    <a href="{{ route('operations.bills') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.bills') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+        Bills
+    </a>
+</div>
 
             <!-- 2. INSIGHTS -->
             <div>

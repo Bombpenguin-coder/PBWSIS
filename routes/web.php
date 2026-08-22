@@ -12,6 +12,8 @@ use App\Http\Controllers\VatController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\OperationController;
+use App\Http\Controllers\PosController;
 
 // ---------------------------------------------------------
 // Login & Registration Routes
@@ -93,4 +95,19 @@ Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
 
 // POS / Sales Routes
 Route::post('/sales', [App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
+
+
+
+
+Route::prefix('operations')->group(function () {
+    Route::get('/held-orders', [OperationController::class, 'heldOrders'])->name('operations.held');
+    Route::get('/kot', [OperationController::class, 'kitchenTickets'])->name('operations.kot');
+    Route::put('/kot/{id}', [OperationController::class, 'updateKotStatus'])->name('operations.kot.update');
+    Route::get('/bills', [OperationController::class, 'bills'])->name('operations.bills');
+    Route::post('/bills/{id}/pay', [OperationController::class, 'checkoutBill'])->name('operations.pay');
+});
+
+
+
+Route::post('/pos/order', [PosController::class, 'storeOrder'])->name('pos.order.store');
 });
