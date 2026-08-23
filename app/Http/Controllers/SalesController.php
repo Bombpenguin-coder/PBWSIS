@@ -22,7 +22,7 @@ class SalesController extends Controller
                            ->where('status', 'Available')
                            ->get();
 
-        // 1. Fetch VAT configuration safely
+        // Fetch VAT configuration safely
         $rawVat = null;
         if (class_exists(Vat::class)) {
             $rawVat = Vat::first();
@@ -31,7 +31,6 @@ class SalesController extends Controller
             $rawVat = VatSetting::first();
         }
 
-        // 2. Normalize VAT object properties
         $vat = (object) [
             'rate'         => (float) ($rawVat->rate ?? $rawVat->vat_rate ?? 12.00),
             'is_inclusive' => (bool) ($rawVat->is_inclusive ?? $rawVat->vat_inclusive ?? true),
@@ -71,14 +70,17 @@ class SalesController extends Controller
                     $vatAmount = $subtotal - ($subtotal / 1.12);
                 }
 
-                $today = Carbon::today();
-                $dailyCount = Sale::whereDate('sale_date', $today)->count() + 1;
-                $orderNumber = 'ORD-' . $today->format('Ymd') . '-' . str_pad($dailyCount, 4, '0', STR_PAD_LEFT);
+                // 1. Generate Order Number that RESETS EVERY MONTH (e.g., ORD-202608-0001)
+                $saleDate = now();
+                $monthlyCount = Sale::whereYear('sale_date', $saleDate->year)
+                                    ->whereMonth('sale_date', $saleDate->month)
+                                    ->count() + 1;
+                $orderNumber = 'ORD-' . $saleDate->format('Ym') . '-' . str_pad($monthlyCount, 4, '0', STR_PAD_LEFT);
 
                 // Create Sale Record
                 $sale = Sale::create([
                     'order_number'    => $orderNumber,
-                    'sale_date'       => now(),
+                    'sale_date'       => $saleDate,
                     'subtotal'        => $subtotal,
                     'vat_amount'      => round($vatAmount, 2),
                     'discount_type'   => $request->discount_type,
@@ -94,34 +96,33 @@ class SalesController extends Controller
                                        ->lockForUpdate()
                                        ->firstOrFail();
 
-                    // Check portion availability against raw ingredients
                     if ($product->available_stock < $item['quantity']) {
                         throw new \Exception("Insufficient ingredient stock for: {$product->product_name}. Max available portions: {$product->available_stock}");
                     }
 
                     // Create Sale Detail
                     SaleDetail::create([
-                        'sale_id'    => $sale->sale_id,
+                        'sale_id'    => $sale->sale_id ?? $sale->id,
                         'product_id' => $product->product_id,
                         'quantity'   => $item['quantity'],
                         'subtotal'   => $product->price * $item['quantity'],
                     ]);
 
                     // Deduct raw ingredients quantity
-foreach ($product->ingredients as $ingredient) {
-    $qtyNeeded = $ingredient->pivot->quantity_needed 
-              ?? $ingredient->pivot->quantity_required 
-              ?? $ingredient->pivot->quantity 
-              ?? 1;
+                    foreach ($product->ingredients as $ingredient) {
+                        $qtyNeeded = $ingredient->pivot->quantity_needed 
+                                  ?? $ingredient->pivot->quantity_required 
+                                  ?? $ingredient->pivot->quantity 
+                                  ?? 1;
 
-    $deductAmount = $qtyNeeded * $item['quantity'];
-    $ingredient->decrement('current_stock', $deductAmount);
-}
+                        $deductAmount = $qtyNeeded * $item['quantity'];
+                        $ingredient->decrement('quantity', $deductAmount);
+                    }
                 }
 
                 return response()->json([
                     'message'      => 'Transaction successful!',
-                    'sale_id'      => $sale->sale_id,
+                    'sale_id'      => $sale->sale_id ?? $sale->id,
                     'order_number' => $sale->order_number,
                 ], 200);
             });
@@ -146,28 +147,32 @@ foreach ($product->ingredients as $ingredient) {
     }
 
     public function reports(Request $request)
-    {
-        $selectedMonth = (int) $request->input('month', Carbon::now()->month);
-        $selectedYear = (int) $request->input('year', Carbon::now()->year);
+{
+    // Read month and year from GET request parameters, default to current date if empty
+    $selectedMonth = $request->filled('month') ? (int) $request->input('month') : (int) Carbon::now()->month;
+    $selectedYear  = $request->filled('year')  ? (int) $request->input('year')  : (int) Carbon::now()->year;
 
-        $monthlySalesList = Sale::with('details.product')
-                                ->whereMonth('sale_date', $selectedMonth)
-                                ->whereYear('sale_date', $selectedYear)
-                                ->orderBy('sale_date', 'desc')
-                                ->get();
+    // Define exact start and end boundaries for the selected month
+    $startDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->startOfMonth()->toDateTimeString();
+    $endDate   = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->endOfMonth()->toDateTimeString();
 
-        $totalMonthlyAmount = $monthlySalesList->sum('total_amount');
-        $totalTransactions = $monthlySalesList->count();
+    $monthlySalesList = Sale::with('details.product')
+                            ->whereBetween('sale_date', [$startDate, $endDate])
+                            ->orderBy('sale_date', 'desc')
+                            ->get();
 
-        $reportDateTitle = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->format('F Y');
+    $totalMonthlyAmount = $monthlySalesList->sum('total_amount');
+    $totalTransactions  = $monthlySalesList->count();
 
-        return view('sales_reports', compact(
-            'monthlySalesList', 
-            'totalMonthlyAmount', 
-            'totalTransactions', 
-            'selectedMonth', 
-            'selectedYear', 
-            'reportDateTitle'
-        ));
-    }
+    $reportDateTitle = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->format('F Y');
+
+    return view('sales_reports', compact(
+        'monthlySalesList', 
+        'totalMonthlyAmount', 
+        'totalTransactions', 
+        'selectedMonth', 
+        'selectedYear', 
+        'reportDateTitle'
+    ));
+}
 }

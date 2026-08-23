@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Sale;
 use App\Models\Ingredient;
-use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -21,13 +20,9 @@ class DashboardController extends Controller
                               ->whereYear('sale_date', Carbon::now()->year)
                               ->sum('total_amount');
 
-        // 2. Fetch Low Stock Collections (This fixes the error!)
-        // Use ->get() instead of ->count() so the Blade file has the actual item data for the modal
+        // 2. Fetch Low Stock Raw Ingredients ONLY (Uses 'quantity')
         $lowStockIngredients = Ingredient::whereRaw('quantity <= (max_capacity * 0.50)')->get();
-        $lowStockProducts = Product::where('stock_quantity', '<=', 10)->get(); 
-        
-        // Calculate the total integer for the top widget
-        $totalLowStock = $lowStockIngredients->count() + $lowStockProducts->count();
+        $totalLowStock = $lowStockIngredients->count();
 
         // 3. Calculate 7-Day Sales Trend for the Chart
         $chartLabels = [];
@@ -40,15 +35,14 @@ class DashboardController extends Controller
             $chartData[] = $dailyTotal;
         }
 
-        // 4. Pass ALL variables to the view, including the ones your groupmates' code needs
+        // 4. Pass variables to view
         return view('dashboard', compact(
             'todaySales', 
             'totalLowStock', 
             'monthlyRevenue',
             'chartLabels',
             'chartData',
-            'lowStockIngredients', // Added for the modal
-            'lowStockProducts'     // Added for the modal
+            'lowStockIngredients'
         ));
     }
 }

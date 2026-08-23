@@ -17,12 +17,13 @@
     <!-- Date Filter Bar -->
     <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100 mb-6">
         <form method="GET" action="{{ route('sales.reports') }}" class="flex flex-wrap items-end gap-4">
+            
             <!-- Month Selection -->
             <div>
                 <label for="month" class="block text-xs font-bold text-gray-600 uppercase mb-1">Select Month</label>
-                <select name="month" id="month" class="text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black">
+                <select name="month" id="month" onchange="this.form.submit()" class="text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer">
                     @foreach(range(1, 12) as $m)
-                        <option value="{{ $m }}" {{ $selectedMonth == $m ? 'selected' : '' }}>
+                        <option value="{{ $m }}" {{ (int) $selectedMonth === $m ? 'selected' : '' }}>
                             {{ \Carbon\Carbon::create()->month($m)->format('F') }}
                         </option>
                     @endforeach
@@ -32,9 +33,9 @@
             <!-- Year Selection -->
             <div>
                 <label for="year" class="block text-xs font-bold text-gray-600 uppercase mb-1">Select Year</label>
-                <select name="year" id="year" class="text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black">
-                    @foreach(range(date('Y') - 3, date('Y')) as $y)
-                        <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>
+                <select name="year" id="year" onchange="this.form.submit()" class="text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer">
+                    @foreach(range(date('Y') - 3, date('Y') + 1) as $y)
+                        <option value="{{ $y }}" {{ (int) $selectedYear === $y ? 'selected' : '' }}>
                             {{ $y }}
                         </option>
                     @endforeach
@@ -84,7 +85,9 @@
                 <tbody class="divide-y divide-gray-100 text-sm">
                     @forelse($monthlySalesList as $sale)
                         <tr class="hover:bg-gray-50/50 transition">
-                            <td class="p-4 font-bold text-gray-900">#{{ $sale->sale_id }}</td>
+                            <td class="p-4 font-bold text-gray-900">
+                                {{ $sale->order_number ?? '#' . $sale->sale_id }}
+                            </td>
                             <td class="p-4 text-gray-500 text-xs">
                                 {{ \Carbon\Carbon::parse($sale->sale_date)->format('M d, Y — h:i A') }}
                             </td>
@@ -109,8 +112,11 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="p-8 text-center text-gray-500 text-sm">
-                                No sales recorded for {{ $reportDateTitle }} yet.
+                            <td colspan="5" class="p-12 text-center text-gray-500">
+                                <div class="flex flex-col items-center justify-center space-y-1">
+                                    <p class="font-bold text-base text-gray-700">No sales transactions found for {{ $reportDateTitle }}.</p>
+                                    <p class="text-xs text-gray-400">Select another month or year using the filter above.</p>
+                                </div>
                             </td>
                         </tr>
                     @endforelse

@@ -10,7 +10,22 @@ class Sale extends Model
     use HasFactory;
 
     protected $primaryKey = 'sale_id';
-    protected $fillable = ['sale_date', 'total_amount', 'discount_type', 'discount_amount', 'payment_method', 'order_channel'];
+
+    protected $fillable = [
+        'order_number',
+        'sale_date',
+        'subtotal',
+        'vat_amount',
+        'total_amount',
+        'discount_type',
+        'discount_amount',
+        'payment_method',
+        'order_channel',
+    ];
+
+    protected $casts = [
+        'sale_date' => 'datetime',
+    ];
 
     public function details()
     {
