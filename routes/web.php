@@ -96,9 +96,7 @@ Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
 // POS / Sales Routes
 Route::post('/sales', [App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
 
-
-
-
+// Operations Routes
 Route::prefix('operations')->group(function () {
     Route::get('/held-orders', [OperationController::class, 'heldOrders'])->name('operations.held');
     Route::get('/kot', [OperationController::class, 'kitchenTickets'])->name('operations.kot');
@@ -107,7 +105,9 @@ Route::prefix('operations')->group(function () {
     Route::post('/bills/{id}/pay', [OperationController::class, 'checkoutBill'])->name('operations.pay');
 });
 
+// Purchases Route
+Route::view('/purchases', 'layouts.purchases')->name('purchases.index');
 
-
+// POS Order Route
 Route::post('/pos/order', [PosController::class, 'storeOrder'])->name('pos.order.store');
 });

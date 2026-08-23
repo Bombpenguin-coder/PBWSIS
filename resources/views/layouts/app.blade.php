@@ -35,22 +35,11 @@
                     <svg id="opsArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="opsMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
-    <a href="{{ route('pos') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-        POS / Billing
-    </a>
-    
-    <a href="{{ route('operations.held') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.held') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-        Held Orders
-    </a>
-    
-    <a href="{{ route('operations.kot') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.kot') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-        KOT / Counter Tickets
-    </a>
-    
-    <a href="{{ route('operations.bills') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.bills') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-        Bills
-    </a>
-</div>
+            <a href="{{ route('pos') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}"> POS / Billing</a>
+            <a href="{{ route('operations.held') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.held') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Held Orders</a>
+            <a href="{{ route('operations.kot') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.kot') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">KOT / Counter Tickets</a>
+            <a href="{{ route('operations.bills') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.bills') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Bills</a>
+        </div>
 
             <!-- 2. INSIGHTS -->
             <div>
@@ -59,9 +48,7 @@
                     <svg id="insightsArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="insightsMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
-                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                        Dashboard
-                    </a>
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Dashboard</a>
                     <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Reports</a>
                 </div>
             </div>
@@ -73,12 +60,8 @@
                     <svg id="inventoryArrow" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="inventoryMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
-                    <a href="{{ route('ingredients.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                        Ingredients
-                    </a>
-                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
-                        Wastage Logs
-                    </a>
+                    <a href="{{ route('ingredients.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Ingredients</a>
+                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Wastage Logs</a>
                 </div>
             </div>
 
@@ -94,7 +77,7 @@
                     <a href="{{ route('inventory') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Products Catalog</a>
                     <a href="{{ route('discounts.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Discount</a>
                     <a href="{{ route('vat.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">VAT</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Purchases</a>
+                    <a href="{{ route('purchases.index') }}" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Purchases</a>
                     <a href="{{ route('suppliers.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Suppliers</a>
                 </div>
             </div>
