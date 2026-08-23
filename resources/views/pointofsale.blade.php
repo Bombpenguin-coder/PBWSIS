@@ -168,9 +168,14 @@
                 
                 <!-- BOTTOM ORDER SUMMARY -->
                 <div class="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
-                    <!-- Hidden Channel Input for Backend -->
-                    <input type="hidden" id="orderChannel" value="Walk-in">
-
+                    <!-- Order Type Selector -->
+                    <div class="flex items-center justify-between bg-gray-100 p-1.5 rounded-lg border border-gray-200 mb-2">
+                    <span class="text-xs font-bold text-gray-600 uppercase px-1">Order Type:</span>
+                    <select id="orderChannel" onchange="updateOrderChannel(this.value)" class="text-xs font-bold bg-white text-gray-800 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-900 cursor-pointer">
+                        <option value="Dine-in"> Dine-in</option>
+                        <option value="Take-out"> Take-out</option>
+                    </select>
+                </div>
                     <div class="space-y-1.5 text-sm">
                         <div class="flex justify-between text-gray-500">
                             <span>Subtotal</span>

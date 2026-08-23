@@ -485,6 +485,7 @@ function openReviewModal() {
 
     const modalCartItems = document.getElementById('modalCartItems');
     if (!modalCartItems) return;
+    document.getElementById('modalChannel').innerText = document.getElementById('orderChannel').value;
 
     modalCartItems.innerHTML = '';
 
@@ -897,6 +898,19 @@ function calculateTotals(subtotal) {
 
     return vatAmount;
 }
+
+// Global Helper for Order Channel Updates
+window.updateOrderChannel = function(channelValue) {
+    const channelSelect = document.getElementById('orderChannel');
+    if (channelSelect) {
+        channelSelect.value = channelValue;
+    }
+    
+    const modalBadge = document.getElementById('modalChannel');
+    if (modalBadge) {
+        modalBadge.innerText = channelValue;
+    }
+};
 
 // --- EXPOSE FUNCTIONS TO WINDOW ---
 
