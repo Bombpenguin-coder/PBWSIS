@@ -103,13 +103,10 @@
                             <!-- Actions -->
                             <td class="py-3 px-4 text-center space-x-1">
                                 <button type="button" 
-                                    onclick="openEditModal('/inventory/{{ $product->product_id }}', 'Edit Product', [
-                                        { label: 'Product Name', name: 'product_name', value: '{{ addslashes($product->product_name) }}', required: true },
-                                        { label: 'Price (₱)', name: 'price', type: 'number', value: '{{ $product->price }}', required: true }
-                                    ])" 
-                                    class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-md transition duration-150">
-                                    Edit
-                                </button>
+    onclick="openEditModalWithData({{ json_encode($product) }})" 
+    class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-md transition duration-150">
+    Edit
+</button>
 
                                 <form action="{{ route('products.destroy', $product->product_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline"> 
                                     @csrf
@@ -219,51 +216,178 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script>
-        function openAddModal() {
-            document.getElementById('addProductModal').classList.remove('hidden');
+  <!-- Scripts -->
+<script>
+    const rawIngredientsList = @json($ingredients ?? []);
+    let editIngredientIndex = 0;
+
+    function openAddModal() {
+        document.getElementById('addProductModal').classList.remove('hidden');
+    }
+
+    function closeAddModal() {
+        document.getElementById('addProductModal').classList.add('hidden');
+    }
+
+    let productIngredientIndex = 1;
+
+    function addProductIngredientRow() {
+        const wrapper = document.getElementById('productIngredientsWrapper');
+        if (!wrapper) return;
+        
+        const row = document.createElement('div');
+        row.className = 'ingredient-row flex space-x-2 items-center';
+        row.innerHTML = `
+            <select name="ingredients[${productIngredientIndex}][ingredient_id]" required class="w-2/3 border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
+                <option value="" disabled selected>Select Raw Ingredient</option>
+                @foreach($ingredients as $ingredient)
+                    <option value="{{ $ingredient->ingredient_id }}">
+                        {{ addslashes($ingredient->ingredient_name) }} ({{ $ingredient->unit }})
+                    </option>
+                @endforeach
+            </select>
+
+            <input type="number" step="0.01" name="ingredients[${productIngredientIndex}][quantity]" placeholder="Qty" required class="w-1/3 border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
+
+            <button type="button" onclick="removeProductIngredientRow(this)" class="text-gray-400 hover:text-red-600 font-bold text-sm px-1">&times;</button>
+        `;
+
+        wrapper.appendChild(row);
+        productIngredientIndex++;
+    }
+
+    function removeProductIngredientRow(button) {
+        const wrapper = document.getElementById('productIngredientsWrapper');
+        if (wrapper && wrapper.children.length > 1) {
+            button.parentElement.remove();
+        }
+    }
+
+    // --- CUSTOM EDIT MODAL LOADER ---
+    function openEditModalWithData(product) {
+        const fields = [
+            { label: 'Product Name', name: 'product_name', value: product.product_name || '', required: true },
+            { label: 'Price (₱)', name: 'price', type: 'number', value: product.price || '', required: true },
+            { label: 'Product Photo (Optional)', name: 'image', type: 'file' }
+        ];
+
+        // Trigger base modal setup
+        if (typeof window.openEditModal === 'function') {
+            window.openEditModal('/inventory/' + product.product_id, 'Edit Product', fields);
         }
 
-        function closeAddModal() {
-            document.getElementById('addProductModal').classList.add('hidden');
-        }
+        setTimeout(() => {
+            const forms = document.querySelectorAll('form');
+            let editForm = null;
 
-        let productIngredientIndex = 1;
+            forms.forEach(f => {
+                if (f.action.includes('/inventory/')) editForm = f;
+            });
 
-        function addProductIngredientRow() {
-            const wrapper = document.getElementById('productIngredientsWrapper');
-            
-            const row = document.createElement('div');
-            row.className = 'ingredient-row flex space-x-2 items-center';
-            row.innerHTML = `
-                <select name="ingredients[${productIngredientIndex}][ingredient_id]" required class="w-2/3 border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
-                    <option value="" disabled selected>Select Raw Ingredient</option>
-                    @foreach($ingredients as $ingredient)
-                        <option value="{{ $ingredient->ingredient_id }}">
-                            {{ addslashes($ingredient->ingredient_name) }} ({{ $ingredient->unit }})
-                        </option>
-                    @endforeach
+            if (!editForm) return;
+
+            editForm.setAttribute('enctype', 'multipart/form-data');
+
+            // --- REPLACE OR INJECT STATUS SELECT DROPDOWN ---
+            let statusContainer = editForm.querySelector('#editStatusContainer');
+            if (statusContainer) statusContainer.remove();
+
+            statusContainer = document.createElement('div');
+            statusContainer.id = 'editStatusContainer';
+            statusContainer.className = 'mb-3 text-left';
+            statusContainer.innerHTML = `
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Status</label>
+                <select name="status" required class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
+                    <option value="Available" ${product.status === 'Available' ? 'selected' : ''}>Available</option>
+                    <option value="Unavailable" ${product.status === 'Unavailable' ? 'selected' : ''}>Unavailable</option>
                 </select>
-
-                <input type="number" step="0.01" name="ingredients[${productIngredientIndex}][quantity]" placeholder="Qty" required class="w-1/3 border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
-
-                <button type="button" onclick="removeProductIngredientRow(this)" class="text-gray-400 hover:text-red-600 font-bold text-sm px-1">&times;</button>
             `;
 
-            wrapper.appendChild(row);
-            productIngredientIndex++;
-        }
-
-        function removeProductIngredientRow(button) {
-            const wrapper = document.getElementById('productIngredientsWrapper');
-            if (wrapper.children.length > 1) {
-                button.parentElement.remove();
+            // Insert Status field above Image or right before submit buttons
+            const imageInput = editForm.querySelector('[name="image"]');
+            if (imageInput && imageInput.parentNode) {
+                imageInput.parentNode.parentNode.insertBefore(statusContainer, imageInput.parentNode);
+            } else {
+                const buttonContainer = editForm.querySelector('.flex.justify-end') || editForm.lastElementChild;
+                editForm.insertBefore(statusContainer, buttonContainer);
             }
-        }
 
-        @if ($errors->any())
-            openAddModal();
-        @endif
-    </script>
+            // Image Preview Handler
+            let oldPreview = editForm.querySelector('#editImagePreview');
+            if (oldPreview) oldPreview.remove();
+
+            if (product.image) {
+                const imgInput = editForm.querySelector('[name="image"]');
+                if (imgInput) {
+                    const preview = document.createElement('div');
+                    preview.id = 'editImagePreview';
+                    preview.className = 'mt-1 mb-2 flex items-center gap-2';
+                    preview.innerHTML = `
+                        <img src="/storage/${product.image}" class="w-10 h-10 object-cover rounded-md border border-gray-200">
+                        <span class="text-[11px] text-gray-500">Current photo</span>
+                    `;
+                    imgInput.parentNode.appendChild(preview);
+                }
+            }
+
+            // --- INGREDIENTS SECTION ---
+            let existingSection = document.getElementById('editIngredientsSection');
+            if (existingSection) existingSection.remove();
+
+            const section = document.createElement('div');
+            section.id = 'editIngredientsSection';
+            section.className = 'mb-4 border-t border-gray-100 pt-3 text-left';
+            section.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider">Required Ingredients</label>
+                    <button type="button" onclick="addEditIngredientRow()" class="text-xs font-bold text-red-900 hover:text-red-700">+ Add Ingredient</button>
+                </div>
+                <div id="editIngredientsWrapper" class="space-y-2"></div>
+            `;
+
+            const buttonContainer = editForm.querySelector('.flex.justify-end') || editForm.lastElementChild;
+            editForm.insertBefore(section, buttonContainer);
+
+            const wrapper = document.getElementById('editIngredientsWrapper');
+            editIngredientIndex = 0;
+
+            if (product.ingredients && product.ingredients.length > 0) {
+                product.ingredients.forEach(ing => {
+                    const qty = ing.pivot ? ing.pivot.quantity_needed : (ing.quantity_needed || '');
+                    addEditIngredientRow(ing.ingredient_id, qty);
+                });
+            } else {
+                addEditIngredientRow();
+            }
+        }, 10);
+    }
+
+    function addEditIngredientRow(selectedId = '', qty = '') {
+        const wrapper = document.getElementById('editIngredientsWrapper');
+        if (!wrapper) return;
+
+        let options = '<option value="" disabled ' + (!selectedId ? 'selected' : '') + '>Select Raw Ingredient</option>';
+        rawIngredientsList.forEach(ing => {
+            const selected = ing.ingredient_id == selectedId ? 'selected' : '';
+            options += `<option value="${ing.ingredient_id}" ${selected}>${ing.ingredient_name} (${ing.unit})</option>`;
+        });
+
+        const row = document.createElement('div');
+        row.className = 'ingredient-row flex space-x-2 items-center';
+        row.innerHTML = `
+            <select name="ingredients[${editIngredientIndex}][ingredient_id]" required class="w-2/3 border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
+                ${options}
+            </select>
+            <input type="number" step="0.01" name="ingredients[${editIngredientIndex}][quantity]" value="${qty}" placeholder="Qty" required class="w-1/3 border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
+            <button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-red-600 font-bold text-sm px-1">&times;</button>
+        `;
+
+        wrapper.appendChild(row);
+        editIngredientIndex++;
+    }
+
+    @if ($errors->any())
+        openAddModal();
+    @endif
+</script>
 @endsection
