@@ -41,85 +41,98 @@
         </div>
 
         <!-- Product List Table -->
-<div class="overflow-x-auto rounded-lg border border-gray-100">
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-900 text-gray-100 text-xs uppercase tracking-wider">
-            <tr>
-                <th class="py-3 px-4 text-left font-medium">Product Name</th>
-                <th class="py-3 px-4 text-left font-medium">Price</th>
-                <th class="py-3 px-4 text-left font-medium">Recipe / Ingredients</th>
-                <th class="py-3 px-4 text-center font-medium">Status</th>
-                <th class="py-3 px-4 text-center font-medium">Actions</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100 text-sm bg-white">
-            @forelse($products as $product)
-                @php
-                    $isAvailable = $product->status === 'Available';
-                @endphp
-                <tr class="hover:bg-gray-50/80 transition duration-150">
-                    <td class="py-3 px-4 font-semibold text-gray-800">{{ $product->product_name }}</td>
-                    <td class="py-3 px-4 font-semibold text-gray-700">₱{{ number_format($product->price, 2) }}</td>
-                    
-                    <!-- Recipe / Ingredients Badge List -->
-                    <td class="py-3 px-4">
-                        <div class="flex flex-wrap gap-1">
-                            @forelse($product->ingredients as $ingredient)
-    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-        {{ $ingredient->ingredient_name }}: 
-        <strong class="ml-1 text-gray-900">{{ $ingredient->pivot->quantity_needed }} {{ $ingredient->unit }}</strong>
-    </span>
-@empty
-    <span class="text-xs text-gray-400 italic">No ingredients assigned</span>
-@endforelse
-                        </div>
-                    </td>
+        <div class="overflow-x-auto rounded-lg border border-gray-100">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-900 text-gray-100 text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4 text-left font-medium">Product Details</th>
+                        <th class="py-3 px-4 text-left font-medium">Price</th>
+                        <th class="py-3 px-4 text-left font-medium">Recipe / Ingredients</th>
+                        <th class="py-3 px-4 text-center font-medium">Status</th>
+                        <th class="py-3 px-4 text-center font-medium">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm bg-white">
+                    @forelse($products as $product)
+                        @php
+                            $isAvailable = $product->status === 'Available';
+                        @endphp
+                        <tr class="hover:bg-gray-50/80 transition duration-150">
+                            <td class="py-3 px-4 font-semibold text-gray-800 flex items-center gap-3">
+    @if($product->image)
+        <img src="{{ asset('storage/' . $product->image) }}" 
+             alt="{{ $product->product_name }}" 
+             class="w-10 h-10 object-cover rounded-lg border border-gray-200">
+    @else
+        <div class="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] text-gray-400">
+            No Image
+        </div>
+    @endif
+    <span>{{ $product->product_name }}</span>
+</td>
 
-                    <!-- Status Badge -->
-                    <td class="py-3 px-4 text-center">
-                        @if($isAvailable)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                Available
-                            </span>
-                        @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Unavailable
-                            </span>
-                        @endif
-                    </td>
+                            <td class="py-3 px-4 font-semibold text-gray-700">₱{{ number_format($product->price, 2) }}</td>
+                            
+                            <!-- Ingredients List -->
+                            <td class="py-3 px-4">
+                                <div class="flex flex-wrap gap-1">
+                                    @forelse($product->ingredients as $ingredient)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                                            {{ $ingredient->ingredient_name }}: 
+                                            <strong class="ml-1 text-gray-900">{{ $ingredient->pivot->quantity_needed }} {{ $ingredient->unit }}</strong>
+                                        </span>
+                                    @empty
+                                        <span class="text-xs text-gray-400 italic">No ingredients assigned</span>
+                                    @endforelse
+                                </div>
+                            </td>
 
-                    <!-- Actions Column -->
-                    <td class="py-3 px-4 text-center space-x-1">
-                        <button type="button" 
-                            onclick="openEditModal('/inventory/{{ $product->product_id }}', 'Edit Product', [
-                                { label: 'Product Name', name: 'product_name', value: '{{ addslashes($product->product_name) }}', required: true },
-                                { label: 'Price (₱)', name: 'price', type: 'number', value: '{{ $product->price }}', required: true }
-                            ])" 
-                            class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-md transition duration-150">
-                            Edit
-                        </button>
+                            <!-- Status Badge -->
+                            <td class="py-3 px-4 text-center">
+                                @if($isAvailable)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                        Available
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        Unavailable
+                                    </span>
+                                @endif
+                            </td>
 
-                        <form action="{{ route('products.destroy', $product->product_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline"> 
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 px-3 py-1 rounded-md transition duration-150">
-                                Delete
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5" class="py-8 px-4 text-center text-gray-400">
-                        No products found in the system.
-                    </td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+                            <!-- Actions -->
+                            <td class="py-3 px-4 text-center space-x-1">
+                                <button type="button" 
+                                    onclick="openEditModal('/inventory/{{ $product->product_id }}', 'Edit Product', [
+                                        { label: 'Product Name', name: 'product_name', value: '{{ addslashes($product->product_name) }}', required: true },
+                                        { label: 'Price (₱)', name: 'price', type: 'number', value: '{{ $product->price }}', required: true }
+                                    ])" 
+                                    class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-md transition duration-150">
+                                    Edit
+                                </button>
 
-    <!-- ================= BLURRED MODAL POPUP FORM ================= -->
+                                <form action="{{ route('products.destroy', $product->product_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline"> 
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-800 px-3 py-1 rounded-md transition duration-150">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="py-8 px-4 text-center text-gray-400">
+                                No products found in the system.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= MODAL POPUP FORM ================= -->
     <div id="addProductModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-4">
@@ -127,20 +140,29 @@
                 <button type="button" onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
             </div>
 
-            <form action="{{ route('products.store') }}" method="POST" class="overflow-y-auto pr-1">
+            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="overflow-y-auto pr-1">
                 @csrf
 
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_product_name">Product Name</label>
-                    <input type="text" name="product_name" id="modal_product_name" value="{{ old('product_name') }}" required placeholder="e.g., Iced Caramel Macchiato" class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
+                    <input type="text" name="product_name" id="modal_product_name" value="{{ old('product_name') }}" required placeholder="e.g., Iced Caramel Macchiato" class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
                     @error('product_name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Product Image Input -->
+                <div class="mb-3">
+                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_image">Product Photo</label>
+                    <input type="file" name="image" id="modal_image" accept="image/*" class="w-full border border-gray-300 p-1.5 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 bg-gray-50">
+                    @error('image')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_price">Price (₱)</label>
-                    <input type="number" step="0.01" name="price" id="modal_price" value="{{ old('price') }}" required placeholder="0.00" class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
+                    <input type="number" step="0.01" name="price" id="modal_price" value="{{ old('price') }}" required placeholder="0.00" class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
                     @error('price')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -148,7 +170,7 @@
 
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1" for="modal_status">Status</label>
-                    <select name="status" id="modal_status" required class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent">
+                    <select name="status" id="modal_status" required class="w-full border border-gray-300 p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900">
                         <option value="Available" {{ old('status') == 'Available' ? 'selected' : '' }}>Available</option>
                         <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
                     </select>
@@ -157,7 +179,7 @@
                     @enderror
                 </div>
 
-                <!-- REQUIRED INGREDIENTS SECTION -->
+                <!-- Ingredients Section -->
                 <div class="mb-5 border-t border-gray-100 pt-3">
                     <div class="flex justify-between items-center mb-2">
                         <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -197,7 +219,7 @@
         </div>
     </div>
 
-    <!-- Scripts to Toggle Modal & Handle Dynamic Inputs -->
+    <!-- Scripts -->
     <script>
         function openAddModal() {
             document.getElementById('addProductModal').classList.remove('hidden');

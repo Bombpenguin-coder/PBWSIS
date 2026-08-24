@@ -10,7 +10,7 @@ class Product extends Model
     use HasFactory;
 
     protected $primaryKey = 'product_id';
-    protected $fillable = ['product_name', 'price', 'status'];
+    protected $fillable = ['product_name', 'image', 'price', 'status'];
     protected $appends = ['available_stock'];
 
     public function ingredients()

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Ingredient;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -22,16 +23,24 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'product_name'               => 'required|string|max:255',
-            'price'                      => 'required|numeric|min:0',
-            'status'                     => 'required|in:Available,Unavailable',
-            'ingredients'                => 'required|array|min:1',
-            'ingredients.*.ingredient_id'=> 'required|exists:ingredients,ingredient_id',
-            'ingredients.*.quantity'     => 'required|numeric|min:0.01',
+            'product_name'                => 'required|string|max:255',
+            'image'                       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'price'                       => 'required|numeric|min:0',
+            'status'                      => 'required|in:Available,Unavailable',
+            'ingredients'                 => 'required|array|min:1',
+            'ingredients.*.ingredient_id' => 'required|exists:ingredients,ingredient_id',
+            'ingredients.*.quantity'      => 'required|numeric|min:0.01',
         ]);
+
+        // Handle Image Upload
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('products', 'public');
+        }
 
         $product = Product::create([
             'product_name' => $validated['product_name'],
+            'image'        => $imagePath,
             'price'        => $validated['price'],
             'status'       => $validated['status'],
         ]);
@@ -43,16 +52,7 @@ class ProductController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Product created with ingredients successfully!');
-    }
-
-    public function destroy($id)
-    {
-        $product = Product::findOrFail($id);
-        $product->ingredients()->detach(); // Clean up pivot table relationships
-        $product->delete();
-
-        return redirect()->back()->with('success', 'Product deleted successfully!');
+        return redirect()->back()->with('success', 'Product created successfully!');
     }
 
     public function update(Request $request, $id)
@@ -60,16 +60,26 @@ class ProductController extends Controller
         $product = Product::where('product_id', $id)->firstOrFail();
 
         $validated = $request->validate([
-            'product_name'               => 'required|string|max:255',
-            'price'                      => 'required|numeric|min:0',
-            'status'                     => 'nullable|in:Available,Unavailable',
-            'ingredients'                => 'nullable|array',
-            'ingredients.*.ingredient_id'=> 'required_with:ingredients|exists:ingredients,ingredient_id',
-            'ingredients.*.quantity'     => 'required_with:ingredients|numeric|min:0.01',
+            'product_name'                => 'required|string|max:255',
+            'image'                       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'price'                       => 'required|numeric|min:0',
+            'status'                      => 'nullable|in:Available,Unavailable',
+            'ingredients'                 => 'nullable|array',
+            'ingredients.*.ingredient_id' => 'required_with:ingredients|exists:ingredients,ingredient_id',
+            'ingredients.*.quantity'      => 'required_with:ingredients|numeric|min:0.01',
         ]);
+
+        // Handle Image Replacement
+        if ($request->hasFile('image')) {
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
 
         $product->update([
             'product_name' => $validated['product_name'],
+            'image'        => $validated['image'] ?? $product->image,
             'price'        => $validated['price'],
             'status'       => $validated['status'] ?? $product->status,
         ]);
@@ -84,5 +94,20 @@ class ProductController extends Controller
         }
 
         return redirect()->back()->with('success', 'Product updated successfully.');
+    }
+
+    public function destroy($id)
+    {
+        $product = Product::where('product_id', $id)->firstOrFail();
+
+        // Delete product image from storage if it exists
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        $product->ingredients()->detach(); // Clean up pivot table relationships
+        $product->delete();
+
+        return redirect()->back()->with('success', 'Product deleted successfully!');
     }
 }
