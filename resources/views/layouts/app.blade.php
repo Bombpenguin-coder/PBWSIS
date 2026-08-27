@@ -49,7 +49,7 @@
                 </button>
                 <div id="insightsMenu" class="hidden pl-4 pr-2 py-2 mt-1 space-y-1 bg-black/40 rounded-md border-l-2 border-red-900 ml-2">
                     <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Dashboard</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition duration-200">Reports</a>
+                 <a href="{{ route('reports.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('reports.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">Reports</a>
                 </div>
             </div>
 

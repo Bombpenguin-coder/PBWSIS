@@ -96,4 +96,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Purchases
     Route::view('/purchases', 'layouts.purchases')->name('purchases.index');
+
+    Route::get('/reports', [SalesController::class, 'reports'])->name('reports.index');
 });

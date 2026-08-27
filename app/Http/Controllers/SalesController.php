@@ -8,6 +8,7 @@ use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\Vat;
 use App\Models\VatSetting;
+use App\Models\Wastage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -147,32 +148,94 @@ class SalesController extends Controller
     }
 
     public function reports(Request $request)
-{
-    // Read month and year from GET request parameters, default to current date if empty
-    $selectedMonth = $request->filled('month') ? (int) $request->input('month') : (int) Carbon::now()->month;
-    $selectedYear  = $request->filled('year')  ? (int) $request->input('year')  : (int) Carbon::now()->year;
+    {
+        $activeTab = $request->input('tab', 'summary');
 
-    // Define exact start and end boundaries for the selected month
-    $startDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->startOfMonth()->toDateTimeString();
-    $endDate   = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->endOfMonth()->toDateTimeString();
+        $currentYear  = (int) Carbon::now()->year;
+        $currentMonth = (int) Carbon::now()->month;
 
-    $monthlySalesList = Sale::with('details.product')
-                            ->whereBetween('sale_date', [$startDate, $endDate])
-                            ->orderBy('sale_date', 'desc')
-                            ->get();
+        // Read GET inputs
+        $selectedYear  = $request->filled('year')  ? (int) $request->input('year')  : $currentYear;
+        $selectedMonth = $request->filled('month') ? (int) $request->input('month') : $currentMonth;
 
-    $totalMonthlyAmount = $monthlySalesList->sum('total_amount');
-    $totalTransactions  = $monthlySalesList->count();
+        // Redirect future date requests to the current month/year to fix the URL
+        if ($selectedYear > $currentYear || ($selectedYear === $currentYear && $selectedMonth > $currentMonth)) {
+            return redirect()->route('reports.index', [
+                'tab'   => $activeTab,
+                'month' => $currentMonth,
+                'year'  => $currentYear,
+            ]);
+        }
 
-    $reportDateTitle = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->format('F Y');
+        // Define exact start and end boundaries for the selected month
+        $startDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->startOfMonth()->toDateTimeString();
+        $endDate   = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->endOfMonth()->toDateTimeString();
 
-    return view('sales_reports', compact(
-        'monthlySalesList', 
-        'totalMonthlyAmount', 
-        'totalTransactions', 
-        'selectedMonth', 
-        'selectedYear', 
-        'reportDateTitle'
-    ));
-}
+        // 1. Sales Summary Metrics
+        $salesQuery = Sale::whereBetween('sale_date', [$startDate, $endDate]);
+
+        $monthlySalesList = (clone $salesQuery)->with('details.product')
+                                               ->orderBy('sale_date', 'desc')
+                                               ->get();
+
+        $totalSales    = (clone $salesQuery)->sum('total_amount');
+        $totalSubtotal = (clone $salesQuery)->sum('subtotal');
+        $totalVat      = (clone $salesQuery)->sum('vat_amount');
+        $totalDiscount = (clone $salesQuery)->sum('discount_amount');
+        $totalOrders   = (clone $salesQuery)->count();
+
+        // 2. Best Selling Products
+        $bestSellers = SaleDetail::select(
+                'products.product_name', 
+                DB::raw('SUM(sale_details.quantity) as total_qty'), 
+                DB::raw('SUM(sale_details.subtotal) as total_revenue')
+            )
+            ->join('products', 'sale_details.product_id', '=', 'products.product_id')
+            ->whereHas('sale', function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('sale_date', [$startDate, $endDate]);
+            })
+            ->groupBy('products.product_id', 'products.product_name')
+            ->orderByDesc('total_qty')
+            ->get();
+
+        // 3. Payment Method Breakdown
+        $paymentMethods = (clone $salesQuery)
+            ->select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(total_amount) as total'))
+            ->groupBy('payment_method')
+            ->get();
+
+        // 4. Wastage Costs
+        $totalWastageCost = 0;
+        if (class_exists(Wastage::class)) {
+            $wastageQuery = Wastage::whereBetween('created_at', [$startDate, $endDate]);
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('wastages', 'total_cost')) {
+                $totalWastageCost = $wastageQuery->sum('total_cost');
+            } elseif (\Illuminate\Support\Facades\Schema::hasColumn('wastages', 'cost')) {
+                $totalWastageCost = $wastageQuery->sum('cost');
+            } elseif (\Illuminate\Support\Facades\Schema::hasColumn('wastages', 'amount')) {
+                $totalWastageCost = $wastageQuery->sum('amount');
+            } elseif (\Illuminate\Support\Facades\Schema::hasColumn('wastages', 'total_amount')) {
+                $totalWastageCost = $wastageQuery->sum('total_amount');
+            }
+        }
+
+        $reportDateTitle = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->format('F Y');
+
+        return view('sales_reports', compact(
+            'monthlySalesList',
+            'totalSales',
+            'totalSubtotal',
+            'totalVat',
+            'totalDiscount',
+            'totalOrders',
+            'bestSellers',
+            'paymentMethods',
+            'totalWastageCost',
+            'selectedMonth',
+            'selectedYear',
+            'reportDateTitle',
+            'activeTab'
+        ));
+    }
 }
