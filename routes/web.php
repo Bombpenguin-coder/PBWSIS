@@ -98,4 +98,7 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/purchases', 'layouts.purchases')->name('purchases.index');
 
     Route::get('/reports', [SalesController::class, 'reports'])->name('reports.index');
+
+    // Reciepts Section
+    Route::get('/test-receipt', function () { return view('receipt'); });
 });
