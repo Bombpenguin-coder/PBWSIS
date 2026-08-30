@@ -775,11 +775,11 @@ async function confirmAndSubmitOrder() {
             soldItems.forEach(item => updateStockDisplay(item.id));
 
         } else {
-            alert("Error: " + (result.error || result.message || "Failed to process order"));
+            showErrorToast(result.error || result.message || "Failed to process order");
         }
     } catch (error) {
         console.error("Fetch error:", error);
-        alert("A network error occurred.");
+        showErrorToast("A network error occurred. Please try again.");
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
