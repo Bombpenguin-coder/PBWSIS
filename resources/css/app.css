@@ -9,9 +9,10 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     
     /* Prince Buffalo Wings Official Branding */
-    --color: #ff8c00;
+    --color-brand-orange: #ff8c00;
+    --color-brand-dark: #0f0f10;
+    --color-brand-card: #1a1a1e;
 }
-
 
 /* Printable Receipt Styles */
 @media print {
@@ -30,20 +31,17 @@
         box-shadow: none !important;
         border: none !important;
     }
-    /* Hide modal buttons during printing */
     .no-print {
         display: none !important;
     }
 }
 
-/* Hide number input spinners (Chrome, Safari, Edge, Opera) */
+/* Hide number input spinners */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
-
-/* Hide number input spinners (Firefox) */
 input[type="number"] {
     -moz-appearance: textfield;
 }

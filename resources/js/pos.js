@@ -217,79 +217,45 @@ function updateStockDisplay(productId) {
 function updateCartUI() {
     const container = document.getElementById('cartItemsContainer');
     if (!container) return;
-    
-    container.innerHTML = '';
 
     if (cart.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center mt-10 text-sm">Cart is currently empty. Click an item to add it.</p>';
+        container.innerHTML = `<p class="text-zinc-500 text-center mt-10 text-sm">Cart is currently empty. Click an item to add it.</p>`;
         updateTotals();
         return;
     }
 
-    cart.forEach((item, index) => {
-        const itemSubtotal = item.price * item.quantity;
-        const discountedUnits = item.discountedQty || 0;
-        const itemDiscount = discountedUnits * (item.price * (item.discountRate || 0));
-        const itemFinalPrice = itemSubtotal - itemDiscount;
-        const hasDiscount = item.discountType && item.discountType !== 'none';
-
-        // Build dynamic <option> list from database array
-        const dynamicOptionsHTML = window.availableDiscounts.map(d => `
-            <option value="${d.id}" data-value="${d.rate}" ${String(item.discountType) === String(d.id) ? 'selected' : ''}>
-                ${d.name} (${d.rate}%)
-            </option>
-        `).join('');
-
-        const itemHTML = `
-            <div class="bg-white p-3 rounded shadow-sm border border-gray-200 space-y-2">
-                <div class="flex justify-between items-start">
-                    <div class="min-w-0 mr-2 flex-1">
-                        <h4 class="text-sm font-bold text-gray-800 truncate">${item.name}</h4>
-                        <div class="text-xs text-gray-500">₱${item.price.toFixed(2)} each ${item.quantity > 1 ? `(x${item.quantity})` : ''}</div>
-                        
-                        <!-- DYNAMIC DISCOUNT SELECTOR UNDER PRODUCT NAME -->
-                        <div class="mt-1.5">
-                            <select onchange="updateItemDiscountType(${index}, this)" class="text-xs border border-gray-300 rounded px-1.5 py-1 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-1 focus:ring-red-900">
-                                <option value="none" data-value="0" ${item.discountType === 'none' ? 'selected' : ''}>No Discount</option>
-                                ${dynamicOptionsHTML}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="font-bold ${hasDiscount && discountedUnits > 0 ? 'text-red-900' : 'text-gray-800'} text-right text-sm">
-                        ₱${itemFinalPrice.toFixed(2)}
-                    </div>
+    container.innerHTML = cart.map(item => `
+        <div class="bg-[#18191c] p-3 rounded-xl border border-zinc-800 shadow-sm space-y-2 text-white">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h4 class="font-bold text-sm text-white">${item.name}</h4>
+                    <span class="text-xs text-zinc-400">₱${parseFloat(item.price).toFixed(2)} each</span>
                 </div>
-
-                <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <!-- DISCOUNT STEPPER -->
-                    <div>
-                        ${hasDiscount ? `
-                            <div class="flex items-center gap-1 bg-red-50 border border-red-200 px-2 py-0.5 rounded-lg">
-                                <button type="button" onclick="updateItemDiscountQty(${index}, -1)" class="w-5 h-5 bg-white border border-red-300 rounded font-black text-red-900 hover:bg-red-200 flex items-center justify-center text-xs shadow-sm">-</button>
-                                <span class="text-xs font-bold text-red-900 px-1 min-w-[35px] text-center">${discountedUnits}/${item.quantity}</span>
-                                <button type="button" onclick="updateItemDiscountQty(${index}, 1)" class="w-5 h-5 bg-white border border-red-300 rounded font-black text-red-900 hover:bg-red-200 flex items-center justify-center text-xs shadow-sm">+</button>
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    <!-- QUANTITY ADJUSTMENT & REMOVE -->
-                    <div class="flex items-center space-x-2">
-                        <div class="flex items-center border border-gray-300 rounded bg-gray-50">
-                            <button onclick="updateQuantity(${index}, -1)" class="w-6 h-6 flex items-center justify-center text-xs font-bold text-gray-600 hover:bg-gray-200 rounded-l transition">-</button>
-                            <span class="px-2 text-xs font-bold text-gray-800">${item.quantity}</span>
-                            <button onclick="updateQuantity(${index}, 1)" class="w-6 h-6 flex items-center justify-center text-xs font-bold text-gray-600 hover:bg-gray-200 rounded-r transition ${item.quantity >= item.maxStock ? 'opacity-40 cursor-not-allowed' : ''}">+</button>
-                        </div>
-
-                        <button onclick="removeFromCart(${index})" class="text-gray-400 hover:text-red-600 transition p-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>
-                </div>
+                <span class="font-bold text-sm text-[#ff8c00]">₱${(item.price * item.quantity).toFixed(2)}</span>
             </div>
-        `;
-        container.innerHTML += itemHTML;
-    });
+            
+            <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+                <!-- Select / Discount Controls -->
+                <select onchange="updateItemDiscountType(${item.id}, this.value)" 
+                        class="bg-[#202226] text-xs text-zinc-300 border border-zinc-700 rounded px-2 py-1 focus:ring-1 focus:ring-[#ff8c00] focus:outline-none">
+                    <option value="none">No Discount</option>
+                    ${(window.availableDiscounts || []).map(d => `<option value="${d.id}" ${item.discountId == d.id ? 'selected' : ''}>${d.name}</option>`).join('')}
+                </select>
+
+                <!-- Quantity Controls -->
+                <div class="flex items-center space-x-1 border border-zinc-700 rounded-lg bg-[#202226] p-0.5">
+                    <button onclick="updateQuantity(${item.id}, -1)" class="px-2 py-0.5 text-zinc-300 hover:text-white hover:bg-zinc-700 rounded text-xs">-</button>
+                    <span class="px-2 text-xs font-bold text-white">${item.quantity}</span>
+                    <button onclick="updateQuantity(${item.id}, 1)" class="px-2 py-0.5 text-zinc-300 hover:text-white hover:bg-zinc-700 rounded text-xs">+</button>
+                </div>
+
+                <!-- Remove Button -->
+                <button onclick="removeFromCart(${item.id})" class="text-zinc-500 hover:text-red-400 text-xs p-1">
+                    🗑️
+                </button>
+            </div>
+        </div>
+    `).join('');
 
     updateTotals();
 }
@@ -508,18 +474,19 @@ function openReviewModal() {
             ? `<span class="text-[10px] bg-red-100 text-red-900 font-bold px-1.5 py-0.5 rounded ml-1">${discountedUnits}x ${discountLabel}</span>` 
             : '';
 
-        const itemHTML = `
-            <div class="flex justify-between items-center text-xs py-1.5 border-b border-gray-100 last:border-0">
-                <div>
-                    <span class="font-bold text-gray-800">${item.name}</span>
-                    <span class="text-gray-500"> (x${item.quantity})</span>
-                    ${discountBadge}
-                </div>
-                <div class="font-bold text-gray-800">
-                    ₱${itemFinalPrice.toFixed(2)}
-                </div>
-            </div>
-        `;
+        // Inside openReviewModal() in pos.js
+const itemHTML = `
+    <div class="flex justify-between items-center text-xs py-1.5 border-b border-zinc-800/80 last:border-0 text-white">
+        <div>
+            <span class="font-bold text-white">${item.name}</span>
+            <span class="text-zinc-400"> (x${item.quantity})</span>
+            ${discountBadge}
+        </div>
+        <div class="font-bold text-[#ff8c00]">
+            ₱${itemFinalPrice.toFixed(2)}
+        </div>
+    </div>
+`;
         modalCartItems.innerHTML += itemHTML;
     });
 
