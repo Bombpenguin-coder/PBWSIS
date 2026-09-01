@@ -26,8 +26,8 @@
         @endif
 
         <!-- Registration Form -->
-        <form action="/register" method="POST" class="space-y-4">
-            @csrf
+        <form action="{{ route('setup.store') }}" method="POST">
+                @csrf
 
             <!-- Username -->
             <div>

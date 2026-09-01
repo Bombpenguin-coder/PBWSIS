@@ -35,7 +35,7 @@
         @endif
 
         <!-- Login Form -->
-        <form action="/login" method="POST" class="space-y-5">
+        <form action="{{ route('login.submit') }}" method="POST">
             @csrf
 
             <!-- Username Input -->

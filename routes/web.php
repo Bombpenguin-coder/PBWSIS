@@ -28,6 +28,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 
+// Authentication Routes
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// First-time owner setup routes
+Route::get('/setup', [AuthController::class, 'showRegister'])->name('setup.register');
+Route::post('/setup', [AuthController::class, 'storeOwner'])->name('setup.store');
+
 // ---------------------------------------------------------
 // Protected Application Routes (Requires Login)
 // ---------------------------------------------------------
