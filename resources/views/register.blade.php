@@ -67,9 +67,14 @@
             </button>
         </form>
 
-        <div class="mt-6 text-center">
-            <a href="/" class="text-xs text-zinc-400 hover:text-white transition underline">Already have an account? Log In</a>
-        </div>
+        <!-- Only show the login link if the system has already been initialized -->
+        @if(\App\Models\User::exists())
+            <div class="text-center mt-4">
+                <a href="{{ route('login') }}" class="text-sm text-blue-600 hover:underline">
+                    Already have an account? Login here.
+                </a>
+            </div>
+        @endif
     </div>
 
 </body>

@@ -10,17 +10,11 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
 
+    // 1. Intercept the login screen
     public function showLogin()
     {
-        // DEBUG: Stop the app and show me exactly how many users are in the table
-        $userCount = User::count();
-        $ownerCount = User::where('role', 'Owner')->count();
-        
-        // Uncomment the line below to run the diagnostic test
-        dd('Total Users: ' . $userCount, 'Total Owners: ' . $ownerCount);
-
         // If no owner exists in the entire database, force them to setup the system
-        if (User::where('role', 'Owner')->doesntExist()) {
+        if (\App\Models\User::where('role', 'Owner')->doesntExist()) {
             return redirect()->route('setup.register');
         }
 
