@@ -94,6 +94,16 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/admin/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
     Route::delete('/admin/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
 
+    // Protected Administration Routes
+    Route::middleware(['auth', 'role:Owner'])->group(function () {
+        Route::get('/admin/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::post('/admin/users', [UserManagementController::class, 'store'])->name('users.store');
+        Route::put('/admin/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+        Route::delete('/admin/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+    
+    // We can also add routes for Categories, Suppliers, and Discounts inside this group later!
+});
+
     // Purchases
     Route::view('/purchases', 'layouts.purchases')->name('purchases.index');
 
