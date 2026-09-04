@@ -114,47 +114,38 @@
         <a href="{{ route('sales.store') }}" class="btn-back">Back to POS</a>
     </div>
 
-    <!-- Receipt Printable Area -->
-    <div class="receipt">
-        <div class="text-center">
-            <h2 style="margin: 0; font-size: 16px;">Prince Buffalo Wings</h2>
-            <div style="font-size: 11px;">123 Flavor Street, Taguig City</div>
-            <div style="font-size: 11px;">Tel: 0912-345-6789</div>
+    <!-- Receipt Content -->
+    <div class="text-center mb-4">
+        <h1 class="font-bold text-xl">Prince Buffalo Wings</h1>
+        <p class="text-xs">123 Flavor Street, Taguig City</p>
+        <p class="text-xs">Order #: {{ $sale->order_number }}</p>
+    </div>
+
+    <div class="border-t border-b border-black py-2 mb-2 border-dashed">
+        <div class="flex justify-between text-xs font-bold mb-1">
+            <span>Item</span>
+            <span>Total</span>
         </div>
+        
+        <!-- Loop through the actual items from the database -->
+        @foreach($sale->details as $item)
+            <div class="flex justify-between text-xs mb-1">
+                <span>{{ $item->quantity }}x {{ $item->product->name ?? 'Unknown Item' }}</span>
+                <span>₱ {{ number_format($item->subtotal, 2) }}</span>
+            </div>
+        @endforeach
+    </div>
 
-        <div class="divider"></div>
+    <div class="flex justify-between font-bold text-sm mb-4">
+        <span>Total Amount:</span>
+        <span>₱ {{ number_format($sale->total_amount, 2) }}</span>
+    </div>
 
-        <table>
-            <thead>
-                <tr style="border-bottom: 1px dashed #000;">
-                    <th style="text-align: left;">Item</th>
-                    <th style="text-align: right;">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1x Garlic Parmesan (6pcs)</td>
-                    <td class="text-right">₱ 180.00</td>
-                </tr>
-                <tr>
-                    <td>2x Extra Rice</td>
-                    <td class="text-right">₱ 50.00</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="divider"></div>
-
-        <div class="total-row">
-            <span>Total Amount:</span>
-            <span>₱ 230.00</span>
-        </div>
-
-        <div class="text-center footer-text">
-            <div>Cashier: Keith</div>
-            <div>Date: 2026-08-29 08:53</div>
-            <div class="font-bold" style="margin-top: 6px;">Thank you for your order!</div>
-        </div>
+    <div class="text-center text-xs">
+        <!-- Display the actual cashier name and transaction date -->
+        <p>Cashier: {{ $sale->user->username ?? 'Staff' }}</p>
+        <p>Date: {{ $sale->created_at->format('Y-m-d h:i A') }}</p>
+        <p class="mt-2 font-bold">Thank you for your order!</p>
     </div>
 
 </body>

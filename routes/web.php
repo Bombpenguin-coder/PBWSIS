@@ -148,6 +148,13 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/purchases', 'layouts.purchases')->name('purchases.index');
     Route::get('/test-receipt', function () { return view('receipt'); });
 
+    Route::get('/receipt/{sale_id}', function ($sale_id) {
+        // Fetch the sale, the cashier, the items, and the product details
+        $sale = \App\Models\Sale::with(['user', 'details.product'])->findOrFail($sale_id);
+        
+        return view('receipt', compact('sale'));
+    })->name('receipt.show');
+
     // ---------------------------------------------------------
     // Owner Only Administration
     // ---------------------------------------------------------
