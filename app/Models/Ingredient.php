@@ -20,9 +20,9 @@ class Ingredient extends Model
     ];
 
     // Many-to-Many Relationship to Products (Recipes)
-   public function products()
-{
-    return $this->belongsToMany(Product::class, 'product_ingredients', 'ingredient_id', 'product_id')
-                ->withPivot('quantity_needed');
-}
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'product_ingredients', 'ingredient_id', 'product_id')
+                    ->withPivot('quantity_needed');
+    }
 }

@@ -16,13 +16,14 @@ class IngredientController extends Controller
         $ingredients = Ingredient::paginate(10); 
         return view('ingredients', compact('ingredients'));
     }
-    public function destroy($id)
-{
-    $ingredient = Ingredient::findOrFail($id);
-    $ingredient->delete();
 
-    return redirect()->back()->with('success', 'Ingredient deleted successfully!');
-}
+    public function destroy($id)
+    {
+        $ingredient = Ingredient::findOrFail($id);
+        $ingredient->delete();
+
+        return redirect()->back()->with('success', 'Ingredient deleted successfully!');
+    }
 
     /**
      * Store a newly created ingredient in the database.
@@ -50,23 +51,34 @@ class IngredientController extends Controller
             
         } catch (\Exception $e) {
             Log::error('Failed to create ingredient: ' . $e->getMessage());
-            
-            // Appends $e->getMessage() to show you the exact SQL error banner on page
             return back()->withInput()->with('error', 'Error: ' . $e->getMessage());
         }
     }
-  public function update(Request $request, $id)
-{
-    $ingredient = Ingredient::findOrFail($id);
 
-    $validated = $request->validate([
-        'name'           => 'required|string|max:255',
-        'stock_quantity' => 'required|numeric|min:0',
-        'unit'           => 'required|string|max:50',
-    ]);
+    public function update(Request $request, $id)
+    {
+        try {
+            $ingredient = Ingredient::findOrFail($id);
 
-    $ingredient->update($validated);
+            $validated = $request->validate([
+                'ingredient_name' => 'required|string|max:255',
+                'quantity'        => 'required|numeric|min:0',
+                'unit'            => 'required|string|max:50',
+            ]);
 
-    return redirect()->back()->with('success', 'Ingredient updated successfully.');
-}
+            $ingredient->update([
+                'ingredient_name' => $validated['ingredient_name'],
+                'quantity'        => $validated['quantity'],
+                'unit'            => $validated['unit'],
+            ]);
+
+            return redirect()->back()->with('success', 'Ingredient updated successfully.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput()->with('error', 'Validation failed. Check your input values.');
+        } catch (\Exception $e) {
+            Log::error('Failed to update ingredient: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Database Error: ' . $e->getMessage());
+        }
+    }
 }

@@ -31,13 +31,12 @@
                 <h2 class="text-lg font-bold text-white">Current Raw Materials</h2>
                 <p class="text-xs text-zinc-400">Live inventory levels and health status</p>
             </div>
-            
-            <button type="button" onclick="openAddModal()" class="bg-[#ff8c00] hover:bg-[#e07b00] text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Add Ingredient
-            </button>
+          <button type="button" onclick="openAddModal()" class="bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+    </svg>
+    Add Ingredient
+</button>
         </div>
 
         <!-- Ingredient List Table -->
@@ -88,27 +87,31 @@
                             </td>
 
                             <!-- Actions Column -->
-                            <td class="py-3 px-4 text-center space-x-1">
-                                <!-- Edit Button -->
-                                <button type="button" 
-                                    onclick="openEditModal('/ingredients/{{ $ingredient->ingredient_id }}', 'Edit Ingredient', [
-                                        { label: 'Ingredient Name', name: 'name', value: '{{ addslashes($ingredient->name ?? $ingredient->ingredient_name) }}', required: true },
-                                        { label: 'Stock Quantity', name: 'stock_quantity', type: 'number', value: '{{ $ingredient->quantity }}', required: true },
-                                        { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
-                                    ])" 
-                                    class="text-xs font-semibold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1 rounded-md transition duration-150">
-                                    Edit
-                                </button>
+                          <!-- Actions Column -->
+<td class="py-3 px-4 text-center">
+    <div class="flex items-center justify-center gap-2">
+        <!-- Edit Button -->
+     <button type="button" 
+    onclick="openEditModal('{{ route('inventory.ingredients.update', $ingredient->ingredient_id) }}', 'Edit Ingredient', [
+        { label: 'Ingredient Name', name: 'ingredient_name', value: '{{ addslashes($ingredient->ingredient_name) }}', required: true },
+        { label: 'Stock Quantity', name: 'quantity', type: 'number', value: '{{ (float)$ingredient->quantity }}', required: true },
+        { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
+    ])" 
+    class="text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1.5 rounded-md transition duration-150">
+    Edit
+</button>
 
-                                <!-- Delete Button -->
-                                <form action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this ingredient?');" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1 rounded-md transition duration-150">
-                                        Delete
-                                    </button>
-                                </form>
-                            </td>
+        <!-- Delete Button Form -->
+      <form action="{{ route('inventory.ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this ingredient?');">
+    @csrf
+    @method('DELETE')
+    <button type="submit" 
+        class="text-xs font-semibold text-red-500 hover:text-white bg-red-500/10 hover:bg-red-600 px-3 py-1.5 rounded-md transition duration-150">
+        Delete
+    </button>
+</form>
+    </div>
+</td>
                         </tr>
                     @empty
                         <tr>
@@ -135,7 +138,7 @@
             </div>
 
             <!-- Modal Body Form -->
-            <form action="{{ route('ingredients.store') }}" method="POST" class="overflow-y-auto pr-1 space-y-3">
+          <form action="{{ route('inventory.ingredients.store') }}" method="POST">
                 @csrf
                 
                 <div>
@@ -189,9 +192,9 @@
                     <button type="button" onclick="closeAddModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
                         Cancel
                     </button>
-                    <button type="submit" class="bg-[#ff8c00] hover:bg-[#e07b00] text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
-                        + Add Ingredient
-                    </button>
+                  <button type="submit" class="bg-[#800000] hover:bg-[#660000] text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
+    + Add Ingredient
+</button>
                 </div>
             </form>
         </div>

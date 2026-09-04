@@ -12,7 +12,7 @@
             
             <div>
                 <label class="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Select Month</label>
-                <select name="month" id="monthSelect" class="bg-[#202226] border border-zinc-700 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:ring-2 focus:ring-[#ff8c00] focus:outline-none">
+                <select name="month" id="monthSelect" class="bg-[#202226] border border-zinc-700 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:ring-2 focus:ring-[#8B0000] focus:outline-none">
                     @foreach(range(1, 12) as $m)
                         @php
                             $isFuture = ($selectedYear == date('Y') && $m > date('n'));
@@ -28,14 +28,14 @@
 
             <div>
                 <label class="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Select Year</label>
-                <select name="year" id="yearSelect" onchange="updateMonthOptions()" class="bg-[#202226] border border-zinc-700 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:ring-2 focus:ring-[#ff8c00] focus:outline-none">
+                <select name="year" id="yearSelect" onchange="updateMonthOptions()" class="bg-[#202226] border border-zinc-700 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:ring-2 focus:ring-[#8B0000] focus:outline-none">
                     @foreach(range(date('Y') - 2, date('Y')) as $y)
                         <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endforeach
                 </select>
             </div>
 
-            <button type="submit" class="bg-[#ff8c00] hover:bg-[#e07b00] text-white font-bold px-5 py-2.5 rounded-lg text-xs uppercase tracking-wider transition">
+            <button type="submit" class="bg-[#8B0000] hover:bg-[#700000] text-white font-bold px-5 py-2.5 rounded-lg text-xs uppercase tracking-wider transition">
                 Filter Report
             </button>
         </form>
@@ -49,19 +49,19 @@
     <div class="border-b border-zinc-800">
         <nav class="-mb-px flex space-x-8">
             <a href="{{ route('reports.index', ['tab' => 'summary', 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
-               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'summary' ? 'border-[#ff8c00] text-[#ff8c00]' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
+               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'summary' ? 'border-[#8B0000] text-[#8B0000]' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
                Sales Summary
             </a>
             <a href="{{ route('reports.index', ['tab' => 'transactions', 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
-               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'transactions' ? 'border-[#ff8c00] text-[#ff8c00]' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
+               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'transactions' ? 'border-[#8B0000] text-[#8B0000]' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
                Monthly Orders
             </a>
             <a href="{{ route('reports.index', ['tab' => 'bestsellers', 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
-               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'bestsellers' ? 'border-[#ff8c00] text-[#ff8c00]' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
+               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'bestsellers' ? 'border-[#8B0000] text-[#8B0000]' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
                Best Sellers
             </a>
             <a href="{{ route('reports.index', ['tab' => 'payments', 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
-               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'payments' ? 'border-[#ff8c00] text-[#ff8c00]' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
+               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'payments' ? 'border-[#8B0000] text-[#8B0000]' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
                Payment Methods
             </a>
         </nav>
@@ -70,8 +70,8 @@
     <!-- TAB 1: Sales Summary Cards -->
     @if($activeTab === 'summary')
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="bg-[#ff8c00] text-white p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-            <p class="text-[11px] font-bold text-orange-100 uppercase tracking-wider">Total Monthly Income</p>
+        <div class="bg-[#8B0000] text-white p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+            <p class="text-[11px] font-bold text-red-100 uppercase tracking-wider">Total Monthly Income</p>
             <p class="text-3xl font-black mt-3">₱{{ number_format($totalSales, 2) }}</p>
         </div>
         
@@ -112,7 +112,7 @@
                 <tbody class="divide-y divide-zinc-800 text-sm">
                     @forelse($monthlySalesList as $sale)
                     <tr class="hover:bg-[#202226]/50 transition">
-                        <td class="py-4 px-6 font-bold text-[#ff8c00]">{{ $sale->order_number }}</td>
+                        <td class="py-4 px-6 font-bold text-[#8B0000]">{{ $sale->order_number }}</td>
                         <td class="py-4 px-6 text-zinc-400 font-medium">{{ \Carbon\Carbon::parse($sale->sale_date)->format('M d, Y — h:i A') }}</td>
                         <td class="py-4 px-6">
                             <span class="bg-[#202226] text-zinc-300 border border-zinc-700 text-[11px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">
@@ -161,7 +161,7 @@
                     <tr class="hover:bg-[#202226]/50 transition">
                         <td class="py-4 px-6 font-bold text-white">{{ $item->product_name }}</td>
                         <td class="py-4 px-6 text-zinc-300 font-bold">{{ $item->total_qty }} <span class="text-xs text-zinc-400 font-normal">units</span></td>
-                        <td class="py-4 px-6 text-right font-black text-[#ff8c00]">₱{{ number_format($item->total_revenue, 2) }}</td>
+                        <td class="py-4 px-6 text-right font-black text-[#8B0000]">₱{{ number_format($item->total_revenue, 2) }}</td>
                     </tr>
                     @empty
                     <tr>

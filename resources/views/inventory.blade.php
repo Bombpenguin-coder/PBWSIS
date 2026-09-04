@@ -182,9 +182,9 @@
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                             Required Ingredients
                         </label>
-                        <button type="button" onclick="addProductIngredientRow()" class="text-xs font-bold text-[#ff8c00] hover:underline">
-                            + Add Ingredient
-                        </button>
+                     <button type="button" onclick="addProductIngredientRow()" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline">
+    + Add Ingredient
+</button>
                     </div>
 
                     <div id="productIngredientsWrapper" class="space-y-2">
