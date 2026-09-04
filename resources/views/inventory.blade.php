@@ -32,7 +32,7 @@
                 <p class="text-xs text-zinc-400">Live product catalog and stock levels</p>
             </div>
             
-            <button type="button" onclick="openAddModal()" class="bg-[#ff8c00] hover:bg-[#e07b00] text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
+           <button type="button" onclick="openAddModal()" class="bg-rose-700 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>

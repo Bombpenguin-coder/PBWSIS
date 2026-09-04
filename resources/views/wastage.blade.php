@@ -146,6 +146,15 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_wastage_date">Date Wasted</label>
+                    <input type="date" name="wastage_date" id="modal_wastage_date" value="{{ old('wastage_date', date('Y-m-d')) }}" required 
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c00]">
+                    @error('wastage_date')
+                        <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_reason">Reason</label>
                     <input type="text" name="reason" id="modal_reason" value="{{ old('reason') }}" required placeholder="e.g., Expired, Spilled, Damaged" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c00]">

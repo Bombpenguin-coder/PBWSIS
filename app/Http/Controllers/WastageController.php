@@ -20,13 +20,14 @@ class WastageController extends Controller
         
         return view('wastage', compact('ingredients', 'wastages'));
     }
-    public function destroy($id)
-{
-    $wastage = Wastage::findOrFail($id); // Adjust model name if different (e.g. Spoilage)
-    $wastage->delete();
 
-    return redirect()->back()->with('success', 'Wastage record deleted successfully!');
-}
+    public function destroy($id)
+    {
+        $wastage = Wastage::findOrFail($id);
+        $wastage->delete();
+
+        return redirect()->back()->with('success', 'Wastage record deleted successfully!');
+    }
 
     public function store(Request $request)
     {
@@ -63,18 +64,19 @@ class WastageController extends Controller
             return redirect()->back()->with('error', 'Failed to log wastage. Please try again.');
         }
     }
- public function update(Request $request, $id)
-{
-    $wastage = Wastage::findOrFail($id);
 
-    $validated = $request->validate([
-        'quantity' => 'required|numeric|min:0.01',
-        'reason'   => 'required|string|max:255',
-        'remarks'  => 'nullable|string|max:500',
-    ]);
+    public function update(Request $request, $id)
+    {
+        $wastage = Wastage::findOrFail($id);
 
-    $wastage->update($validated);
+        $validated = $request->validate([
+            'quantity_wasted' => 'required|numeric|min:0.01',
+            'reason'          => 'required|string|max:255',
+            'remarks'         => 'nullable|string|max:500',
+        ]);
 
-    return redirect()->back()->with('success', 'Wastage record updated successfully.');
-}
+        $wastage->update($validated);
+
+        return redirect()->back()->with('success', 'Wastage record updated successfully.');
+    }
 }
