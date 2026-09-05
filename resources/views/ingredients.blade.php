@@ -102,11 +102,12 @@
 </button>
 
         <!-- Delete Button Form -->
-      <form action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
+    <form id="delete-ingredient-form-{{ $ingredient->ingredient_id }}" action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline">
     @csrf
     @method('DELETE')
-    <button type="submit" 
-        class="text-xs font-semibold text-red-500 hover:text-white bg-red-500/10 hover:bg-red-600 px-3 py-1.5 rounded-md transition duration-150">
+    <button type="button" 
+            onclick="triggerDelete('delete-ingredient-form-{{ $ingredient->ingredient_id }}', 'Are you sure you want to delete {{ addslashes($ingredient->ingredient_name) }}?')" 
+            class="text-xs font-semibold text-red-500 hover:text-white bg-red-500/10 hover:bg-red-600 px-3 py-1.5 rounded-md transition duration-150">
         Delete
     </button>
 </form>
@@ -200,6 +201,25 @@
         </div>
     </div>
 
+    <!-- Dark Custom Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all flex flex-col">
+        <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
+            <h3 class="text-base font-bold text-white">Confirm Deletion</h3>
+            <button type="button" onclick="closeDeleteModal()" class="text-zinc-400 hover:text-white text-xl font-bold leading-none">&times;</button>
+        </div>
+        <p class="text-xs text-zinc-300 mb-6" id="deleteModalMessage">Are you sure you want to perform this action?</p>
+        <div class="flex justify-end space-x-2 border-t border-zinc-800 pt-3">
+            <button type="button" onclick="closeDeleteModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
+                Cancel
+            </button>
+            <button type="button" id="confirmDeleteBtn" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
     <script>
         function openAddModal() {
             document.getElementById('addProductModal').classList.remove('hidden');
@@ -212,5 +232,24 @@
         @if ($errors->any())
             openAddModal();
         @endif
+        
+        let targetFormId = null;
+
+function triggerDelete(formId, message = 'Are you sure you want to delete this item?') {
+    targetFormId = formId;
+    document.getElementById('deleteModalMessage').textContent = message;
+    document.getElementById('deleteConfirmModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    targetFormId = null;
+    document.getElementById('deleteConfirmModal').classList.add('hidden');
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (targetFormId) {
+        document.getElementById(targetFormId).submit();
+    }
+});
     </script>
 @endsection

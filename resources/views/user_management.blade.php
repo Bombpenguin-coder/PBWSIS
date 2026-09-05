@@ -22,12 +22,13 @@
     @endif
 
     <!-- Action Bar -->
-   <div class="flex justify-between items-center mb-6">
-    <h2 class="text-xl font-bold text-white">Registered Users</h2>
-    <button onclick="openModal('addUserModal')" class="bg-red-900 hover:bg-red-800 text-white font-bold py-2 px-4 rounded shadow transition duration-200">
-        + Add New User
-    </button>
-</div>
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-white">Registered Users</h2>
+        <!-- FIXED FUNCTION NAME HERE -->
+        <button onclick="openUserModal('addUserModal')" class="bg-red-900 hover:bg-red-800 text-white font-bold py-2 px-4 rounded shadow transition duration-200">
+            + Add New User
+        </button>
+    </div>
 
     <!-- Users Table -->
     <div class="bg-white rounded-lg shadow-md border-t-4 border-red-900 overflow-hidden">
@@ -54,24 +55,22 @@
                             </td>
                             <td class="py-3 px-4 text-gray-600">{{ $user->contact_number ?? 'N/A' }}</td>
                             <td class="py-3 px-4 flex justify-center space-x-2">
-                                <!-- Edit Button triggers the JS function -->
-                                <!-- Safely store user data inside HTML attributes -->
-                                    <button type="button" 
-                                            data-id="{{ $user->users_id }}"
-                                            data-username="{{ $user->username }}"
-                                            data-role="{{ $user->role }}"
-                                            data-contact="{{ $user->contact_number }}"
-                                            onclick="openUserEditModal(this)" 
-                                            class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 py-1 px-3 rounded transition">
-                                        Edit
+                                <button type="button" 
+                                        data-id="{{ $user->users_id }}"
+                                        data-username="{{ $user->username }}"
+                                        data-role="{{ $user->role }}"
+                                        data-contact="{{ $user->contact_number }}"
+                                        onclick="openUserEditModal(this)" 
+                                        class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 py-1 px-3 rounded transition">
+                                    Edit
+                                </button>
+                                <form action="{{ route('admin.users.store') }}" method="POST" onsubmit="return confirm('Are you sure you want to disable this account?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-sm bg-red-100 hover:bg-red-200 text-red-800 py-1 px-3 rounded transition">
+                                        Disable
                                     </button>
-                              <form action="{{ route('admin.users.store') }}" method="POST" onsubmit="return confirm('Are you sure you want to disable this account?');">
-    @csrf
-    @method('DELETE')
-    <button type="submit" class="text-sm bg-red-100 hover:bg-red-200 text-red-800 py-1 px-3 rounded transition">
-        Disable
-    </button>
-</form>
+                                </form>
                             </td>
                         </tr>
                     @empty
@@ -84,82 +83,86 @@
         </div>
     </div>
 
-    <!-- Add User Modal (Light Transparent Backdrop) -->
-    <div id="addUserModal" class="hidden fixed inset-0 bg-gray-900/10 backdrop-blur-sm z-50 flex items-center justify-center transition-all">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md border-t-4 border-red-900 relative">
-            <button onclick="closeModal('addUserModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <h2 class="text-lg font-bold mb-4 text-black">Add New Staff</h2>
-            <form action="{{ route('users.store') }}" method="POST">
-                @csrf
-                <div class="mb-4">
-                    <label class="block text-sm font-bold mb-2">Username</label>
-                    <input type="text" name="username" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-red-900">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-bold mb-2">Password</label>
-                    <input type="password" name="password" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-red-900">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-bold mb-2">Role</label>
-                    <select name="role" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-red-900">
-                        <option value="Cashier">Cashier</option>
-                        <option value="Kitchen Staff">Kitchen Staff</option>
-                        <option value="Owner">Owner</option>
-                    </select>
-                </div>
-                <div class="mb-6">
-                    <label class="block text-sm font-bold mb-2">Contact Number</label>
-                    <input type="text" name="contact_number" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-red-900">
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" onclick="closeUserModal('addUserModal')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
-                    <button type="submit" class="bg-red-900 hover:bg-red-800 text-white font-bold py-2 px-4 rounded transition duration-200">Save Account</button>
-                </div>
-            </form>
-        </div>
+  <!-- Add User Modal -->
+<div id="addUserModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all">
+    <div class="bg-zinc-900 text-white p-6 rounded-lg shadow-xl w-full max-w-md border-t-4 border-red-900 relative">
+        <h2 class="text-lg font-bold mb-4 text-white">Add New Staff</h2>
+        <form action="{{ route('users.store') }}" method="POST">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Username</label>
+                <input type="text" name="username" required class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-700">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Password</label>
+                <input type="password" name="password" required class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-700">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Role</label>
+                <select name="role" required class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-700">
+                    <option value="Cashier">Cashier</option>
+                    <option value="Kitchen Staff">Kitchen Staff</option>
+                    <option value="Owner">Owner</option>
+                </select>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Contact Number</label>
+                <input type="text" 
+                       name="contact_number" 
+                       maxlength="11" 
+                       pattern="[0-9]{11}" 
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '');" 
+                       placeholder="09123456789" 
+                       class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-700">
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeUserModal('addUserModal')" class="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
+                <button type="submit" class="bg-red-900 hover:bg-red-800 text-white font-bold py-2 px-4 rounded transition duration-200">Save Account</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- Edit User Modal (Light Transparent Backdrop) -->
-    <div id="editUserModal" class="hidden fixed inset-0 bg-gray-900/10 backdrop-blur-sm z-50 flex items-center justify-center transition-all">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md border-t-4 border-blue-900 relative">
-            <button onclick="closeModal('editUserModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <h2 class="text-lg font-bold mb-4 text-black">Edit Staff Details</h2>
-            
-            <!-- Form Action URL is updated dynamically via JS -->
-            <form id="editUserForm" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="mb-4">
-                    <label class="block text-sm font-bold mb-2">Username</label>
-                    <input type="text" id="edit_username" name="username" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-900">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-bold mb-2">Role</label>
-                    <select id="edit_role" name="role" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-900">
-                        <option value="Cashier">Cashier</option>
-                        <option value="Kitchen Staff">Kitchen Staff</option>
-                        <option value="Owner">Owner</option>
-                    </select>
-                </div>
-                <div class="mb-6">
-                    <label class="block text-sm font-bold mb-2">Contact Number</label>
-                    <input type="text" id="edit_contact" name="contact_number" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-900">
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" onclick="closeUserModal('editUserModal')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
-                    <button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded transition duration-200">Update Account</button>
-                </div>
-            </form>
-        </div>
+<!-- Edit User Modal -->
+<div id="editUserModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all">
+    <div class="bg-zinc-900 text-white p-6 rounded-lg shadow-xl w-full max-w-md border-t-4 border-blue-900 relative">
+        <h2 class="text-lg font-bold mb-4 text-white">Edit Staff Details</h2>
+        <form id="editUserForm" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Username</label>
+                <input type="text" id="edit_username" name="username" required class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-700">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Role</label>
+                <select id="edit_role" name="role" required class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-700">
+                    <option value="Cashier">Cashier</option>
+                    <option value="Kitchen Staff">Kitchen Staff</option>
+                    <option value="Owner">Owner</option>
+                </select>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Contact Number</label>
+                <input type="text" 
+                       id="edit_contact" 
+                       name="contact_number" 
+                       maxlength="11" 
+                       pattern="[0-9]{11}" 
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '');" 
+                       placeholder="09123456789" 
+                       class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-700">
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeUserModal('editUserModal')" class="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
+                <button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded transition duration-200">Update Account</button>
+            </div>
+        </form>
     </div>
-
-<!-- Dedicated Scripts for User Management -->
+</div>
+    
+    <!-- Dedicated Scripts for User Management -->
     <script>
-        // Use unique names to avoid conflicting with app.blade.php
         function openUserModal(modalId) {
             document.getElementById(modalId).classList.remove('hidden');
         }
@@ -168,7 +171,6 @@
             document.getElementById(modalId).classList.add('hidden');
         }
 
-        // Renamed to openUserEditModal
         function openUserEditModal(buttonElement) {
             const id = buttonElement.getAttribute('data-id');
             const username = buttonElement.getAttribute('data-username');
@@ -179,9 +181,8 @@
             document.getElementById('edit_role').value = role;
             document.getElementById('edit_contact').value = contact || '';
             
-          document.getElementById('editUserForm').action = '/admin/users/' + id;
+            document.getElementById('editUserForm').action = '/admin/users/' + id;
             
-            // Call our unique open function
             openUserModal('editUserModal');
         }
     </script>

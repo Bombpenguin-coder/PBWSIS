@@ -146,14 +146,21 @@ function updateItemDiscountType(index, selectElement) {
         item.discountedQty = 0;
     } else {
         const foundDiscount = window.availableDiscounts.find(d => String(d.id) === String(selectedValue));
-        const rate = foundDiscount ? foundDiscount.rate : 0;
+        let rate = foundDiscount ? parseFloat(foundDiscount.rate) : 0;
+
+        // Ensure rate is a decimal factor (e.g., convert 20 -> 0.20)
+        if (rate > 1) {
+            rate = rate / 100;
+        }
 
         item.discountType = selectedValue;
-        item.discountRate = rate / 100;
-        item.discountedQty = item.discountedQty > 0 ? item.discountedQty : 1; 
+        item.discountRate = rate;
+        
+        // Default discountedQty to full item quantity when selected
+        item.discountedQty = item.quantity; 
     }
 
-    updateCartUI();
+    updateCartUI(); // This should trigger updateTotals() internally
 }
 
 function updateItemDiscountQty(index, delta) {
@@ -224,35 +231,39 @@ function updateCartUI() {
         return;
     }
 
-    container.innerHTML = cart.map(item => `
-       <div class="bg-[#18191c] p-3 rounded-xl border border-zinc-800 shadow-sm space-y-2 text-white">
-    <div class="flex justify-between items-start">
-        <div>
-            <h4 class="font-bold text-sm text-white">${item.name}</h4>
-            <span class="text-xs text-zinc-400">₱${parseFloat(item.price).toFixed(2)} each</span>
-        </div>
-        <span class="font-bold text-sm text-red-500">₱${(item.price * item.quantity).toFixed(2)}</span>
-    </div>
-    
-    <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
-        <!-- Select / Discount Controls -->
-        <select onchange="updateItemDiscountType(${item.id}, this.value)" 
-                class="bg-[#202226] text-xs text-zinc-300 border border-zinc-700 rounded px-2 py-1 focus:ring-1 focus:ring-[#800000] focus:outline-none">
-            <option value="none">No Discount</option>
-                    ${(window.availableDiscounts || []).map(d => `<option value="${d.id}" ${item.discountId == d.id ? 'selected' : ''}>${d.name}</option>`).join('')}
-                </select>
-
-                <!-- Quantity Controls -->
-                <div class="flex items-center space-x-1 border border-zinc-700 rounded-lg bg-[#202226] p-0.5">
-                    <button onclick="updateQuantity(${item.id}, -1)" class="px-2 py-0.5 text-zinc-300 hover:text-white hover:bg-zinc-700 rounded text-xs">-</button>
-                    <span class="px-2 text-xs font-bold text-white">${item.quantity}</span>
-                    <button onclick="updateQuantity(${item.id}, 1)" class="px-2 py-0.5 text-zinc-300 hover:text-white hover:bg-zinc-700 rounded text-xs">+</button>
+    container.innerHTML = cart.map((item, index) => `
+        <div class="bg-[#18191c] p-3 rounded-xl border border-zinc-800 shadow-sm space-y-2 text-white">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h4 class="font-bold text-sm text-white">${item.name}</h4>
+                    <span class="text-xs text-zinc-400">₱${parseFloat(item.price).toFixed(2)} each</span>
                 </div>
+                <span class="font-bold text-sm text-red-500">₱${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
 
-                <!-- Remove Button -->
-                <button onclick="removeFromCart(${item.id})" class="text-zinc-500 hover:text-red-400 text-xs p-1">
-                    🗑️
+            <!-- QUANTITY STEPPER & DELETE BUTTON -->
+            <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+                <div class="flex items-center space-x-2">
+                    <button onclick="updateQuantity(${index}, -1)" class="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-white">-</button>
+                    <span class="text-sm font-bold px-1">${item.quantity}</span>
+                    <button onclick="updateQuantity(${index}, 1)" class="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-white">+</button>
+                </div>
+                <button onclick="removeFromCart(${index})" class="text-zinc-400 hover:text-red-500 text-xs transition-colors">
+                    🗑️ Delete
                 </button>
+            </div>
+
+            <!-- DISCOUNT CONTROLS -->
+            <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+               <select onchange="updateItemDiscountType(${index}, this)"
+                        class="bg-[#202226] text-xs text-zinc-300 border border-zinc-700 rounded px-2 py-1 focus:outline-none">
+                    <option value="none">No Discount</option>
+                    ${(window.availableDiscounts || []).map(d => `
+                        <option value="${d.id}" ${item.discountType == d.id ? 'selected' : ''}>
+                            ${d.name} (${d.rate}%)
+                        </option>
+                    `).join('')}
+                </select>
             </div>
         </div>
     `).join('');
@@ -261,33 +272,40 @@ function updateCartUI() {
 }
 
 function updateTotals() {
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const vatRate = parseFloat(vatConfig.rate ?? 12.00) / 100;
+
     // 1. Calculate subtotal
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     // 2. Calculate item discounts
     const discount = cart.reduce((sum, item) => {
         if (!item.discountType || item.discountType === 'none') return sum;
-        const discountedUnits = item.discountedQty || 0;
-        return sum + (discountedUnits * (item.price * (item.discountRate || 0)));
+
+        // Cap discountedQty so it never exceeds available item quantity
+        const discountedUnits = Math.min(item.discountedQty || item.quantity, item.quantity);
+        const discountRate = item.discountRate || 0;
+
+        if (isInclusive && isEnabled) {
+            // Remove VAT first to get net price, then calculate discount amount
+            const netPrice = item.price / (1 + vatRate);
+            return sum + (discountedUnits * (netPrice * discountRate));
+        } else {
+            return sum + (discountedUnits * (item.price * discountRate));
+        }
     }, 0);
 
     const discountedSubtotal = subtotal - discount;
 
-    // 3. Fetch VAT config from window.vatConfig
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    // 3. Fetch VAT amount
     let vatAmount = 0;
-
-    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
-    const isInclusive = vatConfig.is_inclusive ?? true;
-    const rate = parseFloat(vatConfig.rate ?? 12.00);
-
     if (isEnabled && discountedSubtotal > 0) {
         if (isInclusive) {
-            // Extract tax component from inclusive price
-            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
+            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + vatRate));
         } else {
-            // Calculate tax on top for exclusive price
-            vatAmount = discountedSubtotal * (rate / 100);
+            vatAmount = discountedSubtotal * vatRate;
         }
     }
 
@@ -533,60 +551,77 @@ function closeReviewModal() {
 }
 
 function calculateChange() {
+    // 1. Declare DOM references at the top
+    const changeDisplay = document.getElementById('changeDisplay');
+    const confirmBtn = document.getElementById('confirmSubmitBtn');
+    const amountInput = document.getElementById('amountTendered');
+
+    // 2. Fetch VAT & Discount config
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const vatRate = parseFloat(vatConfig.rate ?? 12.00) / 100;
+
+    // 3. Calculate Totals (net price used for VAT-inclusive discounts)
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = cart.reduce((sum, item) => {
         if (!item.discountType || item.discountType === 'none') return sum;
-        return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
+        const discountedUnits = Math.min(item.discountedQty || item.quantity, item.quantity);
+        const discountRate = item.discountRate || 0;
+
+        if (isInclusive && isEnabled) {
+            const netPrice = item.price / (1 + vatRate);
+            return sum + (discountedUnits * (netPrice * discountRate));
+        } else {
+            return sum + (discountedUnits * (item.price * discountRate));
+        }
     }, 0);
-    
+
     const discountedSubtotal = subtotal - discount;
 
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
     let vatAmount = 0;
-    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
-    const isInclusive = vatConfig.is_inclusive ?? true;
-    const rate = parseFloat(vatConfig.rate ?? 12.00);
-
     if (isEnabled && discountedSubtotal > 0) {
         if (isInclusive) {
-            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
+            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + vatRate));
         } else {
-            vatAmount = discountedSubtotal * (rate / 100);
+            vatAmount = discountedSubtotal * vatRate;
         }
     }
 
     const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
 
-    const amountInput = document.getElementById('amountTendered');
-    if (!amountInput) return;
+    // 4. Parse Cash Input safely
+    let amountTendered = 0;
 
-    let rawVal = amountInput.value.trim();
+    if (amountInput) {
+        let rawVal = amountInput.value.trim();
 
-    if (rawVal.startsWith('.') || rawVal.startsWith('0')) {
-        rawVal = rawVal.replace(/^[0.]+/g, '');
-        amountInput.value = rawVal;
-    }
-
-    if (rawVal.includes('.')) {
-        const parts = rawVal.split('.');
-        if (parts[1] && parts[1].length > 2) {
-            rawVal = `${parts[0]}.${parts[1].slice(0, 2)}`;
+        if (rawVal.startsWith('.') || rawVal.startsWith('0')) {
+            rawVal = rawVal.replace(/^[0.]+/g, '');
             amountInput.value = rawVal;
+        }
+
+        if (rawVal.includes('.')) {
+            const parts = rawVal.split('.');
+            if (parts[1] && parts[1].length > 2) {
+                rawVal = `${parts[0]}.${parts[1].slice(0, 2)}`;
+                amountInput.value = rawVal;
+            }
+        }
+
+        amountTendered = parseFloat(rawVal) || 0;
+
+        const MAX_CASH_LIMIT = 100000;
+        if (amountTendered > MAX_CASH_LIMIT) {
+            amountTendered = MAX_CASH_LIMIT;
+            amountInput.value = MAX_CASH_LIMIT;
         }
     }
 
-    let amountTendered = parseFloat(rawVal) || 0;
-
-    const MAX_CASH_LIMIT = 100000;
-    if (amountTendered > MAX_CASH_LIMIT) {
-        amountTendered = MAX_CASH_LIMIT;
-        amountInput.value = MAX_CASH_LIMIT;
-    }
-
+    // 5. Calculate Change
     const change = amountTendered - grandTotal;
-    const changeDisplay = document.getElementById('changeDisplay');
-    const confirmBtn = document.getElementById('confirmSubmitBtn');
 
+    // 6. Update UI Displays
     if (changeDisplay) {
         if (change >= 0 && amountTendered > 0) {
             const formattedChange = change.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -608,7 +643,6 @@ function calculateChange() {
         }
     }
 }
-
 function setExactAmount() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = cart.reduce((sum, item) => {
@@ -663,15 +697,44 @@ function clearCash() {
 async function confirmAndSubmitOrder() {
     if (cart.length === 0) return;
 
+    // 1. Get VAT configuration
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const vatRate = parseFloat(vatConfig.rate ?? 12.00) / 100;
+
     const selectedChannel = document.getElementById('orderChannel')?.value || 'Walk-in';
-    
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // 2. Calculate Discount Amount (VAT-inclusive aware)
     const discountAmount = cart.reduce((sum, item) => {
         if (!item.discountType || item.discountType === 'none') return sum;
-        return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
+        const discountedUnits = Math.min(item.discountedQty || item.quantity, item.quantity);
+        const discountRate = item.discountRate || 0;
+
+        if (isInclusive && isEnabled) {
+            const netPrice = item.price / (1 + vatRate);
+            return sum + (discountedUnits * (netPrice * discountRate));
+        } else {
+            return sum + (discountedUnits * (item.price * discountRate));
+        }
     }, 0);
 
-    const finalTotal = subtotal - discountAmount;
+    // 3. Declare discountedSubtotal
+    const discountedSubtotal = subtotal - discountAmount;
+
+    // 4. Calculate VAT Amount
+    let vatAmount = 0;
+    if (isEnabled && discountedSubtotal > 0) {
+        if (isInclusive) {
+            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + vatRate));
+        } else {
+            vatAmount = discountedSubtotal * vatRate;
+        }
+    }
+
+    // 5. Determine Final Total & Check Cash
+    const finalTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
     const amountTendered = parseFloat(document.getElementById('amountTendered')?.value) || 0;
 
     if (amountTendered < finalTotal) {
@@ -679,9 +742,7 @@ async function confirmAndSubmitOrder() {
         return;
     }
 
-    const vatExclusiveSubtotal = subtotal / 1.12;
-    const vatAmount = subtotal - vatExclusiveSubtotal;
-
+    // 6. Assemble POST Payload
     const orderPayload = {
         subtotal: subtotal,
         vat_amount: vatAmount,

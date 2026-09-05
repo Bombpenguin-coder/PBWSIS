@@ -127,11 +127,14 @@ Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'dest
         Route::post('/bills/{id}/pay', [OperationController::class, 'checkoutBill'])->name('pay');
     });
 
-    // ---------------------------------------------------------
+   // ---------------------------------------------------------
     // File Maintenance (Suppliers, Discounts, VAT)
     // ---------------------------------------------------------
     Route::resource('suppliers', SupplierController::class);
+    
+    // Resource route MUST be declared outside of route closures
     Route::resource('discounts', DiscountController::class);
+
     Route::get('/discounts/active', function () {
         try {
             return response()->json(\App\Models\Discount::all());
@@ -139,9 +142,9 @@ Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'dest
             return response()->json([]);
         }
     });
+
     Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
     Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
-
     // ---------------------------------------------------------
     // Reports & Receipts
     // ---------------------------------------------------------
