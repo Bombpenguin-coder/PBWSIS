@@ -225,20 +225,20 @@ function updateCartUI() {
     }
 
     container.innerHTML = cart.map(item => `
-        <div class="bg-[#18191c] p-3 rounded-xl border border-zinc-800 shadow-sm space-y-2 text-white">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h4 class="font-bold text-sm text-white">${item.name}</h4>
-                    <span class="text-xs text-zinc-400">₱${parseFloat(item.price).toFixed(2)} each</span>
-                </div>
-                <span class="font-bold text-sm text-[#ff8c00]">₱${(item.price * item.quantity).toFixed(2)}</span>
-            </div>
-            
-            <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
-                <!-- Select / Discount Controls -->
-                <select onchange="updateItemDiscountType(${item.id}, this.value)" 
-                        class="bg-[#202226] text-xs text-zinc-300 border border-zinc-700 rounded px-2 py-1 focus:ring-1 focus:ring-[#ff8c00] focus:outline-none">
-                    <option value="none">No Discount</option>
+       <div class="bg-[#18191c] p-3 rounded-xl border border-zinc-800 shadow-sm space-y-2 text-white">
+    <div class="flex justify-between items-start">
+        <div>
+            <h4 class="font-bold text-sm text-white">${item.name}</h4>
+            <span class="text-xs text-zinc-400">₱${parseFloat(item.price).toFixed(2)} each</span>
+        </div>
+        <span class="font-bold text-sm text-red-500">₱${(item.price * item.quantity).toFixed(2)}</span>
+    </div>
+    
+    <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+        <!-- Select / Discount Controls -->
+        <select onchange="updateItemDiscountType(${item.id}, this.value)" 
+                class="bg-[#202226] text-xs text-zinc-300 border border-zinc-700 rounded px-2 py-1 focus:ring-1 focus:ring-[#800000] focus:outline-none">
+            <option value="none">No Discount</option>
                     ${(window.availableDiscounts || []).map(d => `<option value="${d.id}" ${item.discountId == d.id ? 'selected' : ''}>${d.name}</option>`).join('')}
                 </select>
 
@@ -474,7 +474,7 @@ function openReviewModal() {
             ? `<span class="text-[10px] bg-red-100 text-red-900 font-bold px-1.5 py-0.5 rounded ml-1">${discountedUnits}x ${discountLabel}</span>` 
             : '';
 
-        // Inside openReviewModal() in pos.js
+       // Inside openReviewModal()
 const itemHTML = `
     <div class="flex justify-between items-center text-xs py-1.5 border-b border-zinc-800/80 last:border-0 text-white">
         <div>
@@ -482,7 +482,7 @@ const itemHTML = `
             <span class="text-zinc-400"> (x${item.quantity})</span>
             ${discountBadge}
         </div>
-        <div class="font-bold text-[#ff8c00]">
+        <div class="font-bold text-red-500"> <!-- CHANGE THIS LINE -->
             ₱${itemFinalPrice.toFixed(2)}
         </div>
     </div>

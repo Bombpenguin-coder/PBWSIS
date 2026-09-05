@@ -66,7 +66,7 @@
                     <svg id="inventoryArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('ingredients.*', 'wastage.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="inventoryMenu" class="{{ request()->routeIs('ingredients.*', 'wastage.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-rose-500 ml-2">
-                    <a href="{{ route('ingredients.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
+                   <a href="{{ route('inventory.ingredients.index') ?? '#' }}"class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
                     <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Wastage Logs</a>
                 </div>
             </div>

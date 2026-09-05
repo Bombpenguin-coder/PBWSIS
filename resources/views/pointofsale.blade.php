@@ -45,10 +45,10 @@
     <!-- POS Top Navigation -->
     <nav class="bg-[#111214] border-b border-zinc-800 text-white p-4 shadow-md shrink-0 no-print">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-wider">PBWSIS <span class="text-[#ff8c00]">|</span> POS Terminal</h1>
+            <h1 class="text-xl font-bold tracking-wider">PBWSIS <span class="text-[#800000]">|</span> POS Terminal</h1>
             <div class="flex space-x-4 items-center">
                 <span class="text-zinc-400 text-sm">Cashier on Duty</span>
-                <a href="{{ route('dashboard') }}" class="bg-[#ff8c00] hover:bg-[#e07b00] text-black font-bold py-1 px-4 rounded transition duration-200 text-sm">
+                <a href="{{ route('dashboard') }}" class="bg-[#800000] hover:bg-[#600000] text-white font-bold py-1 px-4 rounded transition duration-200 text-sm">
                     Back to Dashboard
                 </a>
             </div>
@@ -69,12 +69,12 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </span>
                     <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Search menu items (e.g. Taro, Pearl, Fried Chicken)..." 
-                           class="w-full pl-9 pr-4 py-2 bg-[#202226] border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#ff8c00] shadow-sm">
+                           class="w-full pl-9 pr-4 py-2 bg-[#202226] border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#800000] shadow-sm">
                 </div>
 
                 <!-- Category Pills Filter -->
                 <div class="flex gap-2 overflow-x-auto pb-1">
-                    <button type="button" onclick="setCategory('all', this)" class="cat-btn bg-[#ff8c00] text-black font-bold text-xs py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
+                    <button type="button" onclick="setCategory('all', this)" class="cat-btn bg-[#800000] text-white font-bold text-xs py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
                         All Items
                     </button>
                     <button type="button" onclick="setCategory('milktea', this)" class="cat-btn bg-[#202226] text-zinc-300 border border-zinc-700 hover:bg-zinc-800 text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
@@ -92,7 +92,7 @@
                     @forelse($products as $product)
                         <!-- Product Card -->
                         <div id="product-card-{{ $product->product_id }}"
-                             class="product-card bg-[#202226] rounded-xl shadow-md border border-zinc-800 p-4 cursor-pointer hover:border-[#ff8c00] hover:shadow-xl transition duration-200 select-none flex flex-col justify-between group" 
+                             class="product-card bg-[#202226] rounded-xl shadow-md border border-zinc-800 p-4 cursor-pointer hover:border-[#800000] hover:shadow-xl transition duration-200 select-none flex flex-col justify-between group" 
                              data-id="{{ $product->product_id }}" 
                              data-name="{{ $product->product_name }}" 
                              data-category="{{ strtolower($product->category_name ?? $product->category ?? '') }}"
@@ -116,12 +116,12 @@
                             <div>
                                 <h3 class="text-sm font-bold text-white truncate">{{ $product->product_name }}</h3>
                                 <div class="flex justify-between items-center mt-2">
-                                    <span class="text-[#ff8c00] font-black">₱{{ number_format($product->price, 2) }}</span>
+                                    <span class="text-red-500 font-black">₱{{ number_format($product->price, 2) }}</span>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="col-span-full p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-sm">
+                        <div class="col-span-full p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">
                             No available products found. Please add stock via File Maintenance.
                         </div>
                     @endforelse
@@ -135,12 +135,12 @@
                 <h2 class="font-bold text-lg">Current Order</h2>
                 
                 <div class="flex items-center space-x-2">
-                    <button type="button" onclick="holdCurrentOrder()" class="bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold py-1 px-3 rounded transition shadow">
+                    <button type="button" onclick="holdCurrentOrder()" class="bg-[#800000] hover:bg-[#600000] text-white text-xs font-bold py-1 px-3 rounded transition shadow">
                         Hold
                     </button>
                     <button type="button" onclick="openHeldOrdersModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold py-1 px-3 rounded border border-zinc-700 transition flex items-center space-x-1.5">
                         <span>Hold Ordered</span>
-                        <span id="heldCountBadge" class="bg-[#ff8c00] text-black text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">0</span>
+                        <span id="heldCountBadge" class="bg-[#800000] text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">0</span>
                     </button>
                 </div>
             </div>
@@ -156,7 +156,7 @@
                     <!-- Order Type Selector -->
                     <div class="flex items-center justify-between bg-[#18191c] p-2 rounded-lg border border-zinc-800">
                         <span class="text-xs font-bold text-zinc-400 uppercase px-1">Order Type:</span>
-                        <select id="orderChannel" onchange="updateOrderChannel(this.value)" class="text-xs font-bold bg-[#202226] text-white border border-zinc-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#ff8c00] cursor-pointer">
+                        <select id="orderChannel" onchange="updateOrderChannel(this.value)" class="text-xs font-bold bg-[#202226] text-white border border-zinc-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#800000] cursor-pointer">
                             <option value="Dine-in">Dine-in</option>
                             <option value="Take-out">Take-out</option>
                         </select>
@@ -168,7 +168,7 @@
                             <span id="subtotalDisplay" class="font-semibold text-white">₱0.00</span>
                         </div>
 
-                        <div class="flex justify-between text-[#ff8c00] font-medium">
+                        <div class="flex justify-between text-red-500 font-medium">
                             <span>Discount</span>
                             <span id="discountDisplay">-₱0.00</span>
                         </div>
@@ -178,14 +178,14 @@
                             <span id="vatDisplay">₱0.00</span>
                         </div>
 
-                        <div class="flex justify-between text-lg font-bold text-[#ff8c00] border-t border-zinc-800 pt-2 mt-1">
+                        <div class="flex justify-between text-lg font-bold text-red-500 border-t border-zinc-800 pt-2 mt-1">
                             <span>Grand Total:</span>
                             <span id="grandTotalDisplay">₱0.00</span>
                         </div>
                     </div>
 
                     <button type="button" onclick="openReviewModal()" 
-                            class="w-full bg-[#ff8c00] hover:bg-[#e07b00] text-black font-extrabold py-3 px-4 rounded-xl transition text-sm shadow-md flex items-center justify-center gap-2">
+                            class="w-full bg-[#800000] hover:bg-[#600000] text-white font-extrabold py-3 px-4 rounded-xl transition text-sm shadow-md flex items-center justify-center gap-2">
                         <span>Review & Process Order</span>
                     </button>
                 </div>
@@ -196,18 +196,18 @@
     <!-- HOLD ORDER REFERENCE MODAL -->
     <div id="holdOrderModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#202226] border border-zinc-700 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
-            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-xl">
+            <div class="w-12 h-12 bg-red-900/40 text-red-400 rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-xl">
                 🏷️
             </div>
             <h3 class="text-lg font-black text-white mb-1">Hold Order</h3>
             <p class="text-xs text-zinc-400 mb-4">Enter a Table Number or Customer Name to identify this order.</p>
             <input type="text" id="holdReferenceInput" placeholder="e.g., Table 4 or Juan" 
-                   class="w-full text-sm p-3 border border-zinc-700 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-[#ff8c00] bg-[#18191c] text-white placeholder-zinc-500 font-medium">
+                   class="w-full text-sm p-3 border border-zinc-700 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-[#800000] bg-[#18191c] text-white placeholder-zinc-500 font-medium">
             <div class="flex gap-2">
                 <button type="button" onclick="closeHoldModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2.5 px-4 rounded-xl text-xs transition">
                     Cancel
                 </button>
-                <button type="button" onclick="confirmHoldOrder()" class="flex-1 bg-[#ff8c00] hover:bg-[#e07b00] text-black font-bold py-2.5 px-4 rounded-xl text-xs transition shadow">
+                <button type="button" onclick="confirmHoldOrder()" class="flex-1 bg-[#800000] hover:bg-[#600000] text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow">
                     Save & Hold
                 </button>
             </div>
@@ -236,14 +236,14 @@
     <!-- EMPTY CART WARNING MODAL -->
     <div id="emptyCartModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-[#202226] border border-zinc-700 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
-            <div class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-14 h-14 bg-red-900/40 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                 </svg>
             </div>
             <h3 class="text-xl font-bold text-white mb-2">Cart is Empty</h3>
             <p class="text-zinc-400 text-sm mb-6">Please select at least one menu item before performing this action.</p>
-            <button onclick="closeEmptyCartModal()" class="w-full bg-[#ff8c00] hover:bg-[#e07b00] text-black font-bold py-2.5 px-4 rounded-xl transition text-sm shadow">
+            <button onclick="closeEmptyCartModal()" class="w-full bg-[#800000] hover:bg-[#600000] text-white font-bold py-2.5 px-4 rounded-xl transition text-sm shadow">
                 Got it
             </button>
         </div>
@@ -257,7 +257,7 @@
                     <h3 class="text-lg font-bold">Order Confirmation</h3>
                     <p class="text-xs text-zinc-400">Please review items and enter cash details</p>
                 </div>
-                <span id="modalChannel" class="bg-[#ff8c00] text-black text-xs font-bold px-3 py-1 rounded-full uppercase">Walk-in</span>
+                <span id="modalChannel" class="bg-[#800000] text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Walk-in</span>
             </div>
 
             <div class="p-6 overflow-y-auto space-y-4">
@@ -271,8 +271,8 @@
                     </div>
 
                     <div class="flex justify-between text-xs py-1">
-                        <span class="text-[#ff8c00]">Discount:</span>
-                        <span id="modalDiscount" class="font-bold text-[#ff8c00]">-₱0.00</span>
+                        <span class="text-red-500">Discount:</span>
+                        <span id="modalDiscount" class="font-bold text-red-500">-₱0.00</span>
                     </div>
 
                     <div class="flex justify-between text-xs py-1">
@@ -282,7 +282,7 @@
 
                     <div class="flex justify-between text-sm font-bold border-t border-zinc-800 pt-2 mt-1">
                         <span class="text-white">Grand Total:</span>
-                        <span id="modalTotal" class="text-[#ff8c00]">₱0.00</span>
+                        <span id="modalTotal" class="text-red-500">₱0.00</span>
                     </div>
                 </div>
 
@@ -292,7 +292,7 @@
                     <div class="flex space-x-2">
                         <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-zinc-700 bg-zinc-800 text-zinc-300 text-sm font-bold">₱</span>
                         <input type="number" id="amountTendered" oninput="calculateChange()" placeholder="0.00" step="0.01" min="0" max="100000" autofocus
-                               class="w-full text-lg font-bold p-2 border border-zinc-700 rounded-r focus:outline-none focus:ring-2 focus:ring-[#ff8c00] bg-[#202226] text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                               class="w-full text-lg font-bold p-2 border border-zinc-700 rounded-r focus:outline-none focus:ring-2 focus:ring-[#800000] bg-[#202226] text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                     </div>
 
                     <div class="flex justify-between items-center pt-2 border-t border-zinc-800">
@@ -307,7 +307,7 @@
                     ← Back / Edit
                 </button>
                 <button type="button" id="confirmSubmitBtn" onclick="processOrder()" 
-                        class="w-full py-2.5 bg-[#ff8c00] hover:bg-[#e07b00] text-black font-extrabold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="w-full py-2.5 bg-[#800000] hover:bg-[#600000] text-white font-extrabold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
                     Confirm & Pay
                 </button>
             </div>
@@ -361,7 +361,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z"></path></svg>
                     Print Receipt
                 </button>
-                <button type="button" onclick="finishPrinting()" class="flex-1 bg-[#ff8c00] hover:bg-[#e07b00] text-black font-extrabold py-2.5 px-3 rounded-xl transition text-xs shadow">
+                <button type="button" onclick="finishPrinting()" class="flex-1 bg-[#800000] hover:bg-[#600000] text-white font-extrabold py-2.5 px-3 rounded-xl transition text-xs shadow">
                     Done / Next →
                 </button>
             </div>
@@ -395,7 +395,7 @@
                 </div>
             </div>
 
-            <button onclick="closeThankYouModal()" class="w-full bg-[#ff8c00] hover:bg-[#e07b00] text-black font-extrabold py-3 px-4 rounded-xl transition text-base shadow-lg">
+            <button onclick="closeThankYouModal()" class="w-full bg-[#800000] hover:bg-[#600000] text-white font-extrabold py-3 px-4 rounded-xl transition text-base shadow-lg">
                 Start Next Order
             </button>
         </div>
@@ -449,8 +449,8 @@
     </script>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast-error" class="hidden fixed top-5 right-5 z-50 flex items-center w-full max-w-sm p-4 text-zinc-100 bg-[#202226] rounded-xl shadow-2xl border-l-4 border-amber-500 transition-all duration-300 ease-in-out">
-        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-amber-400 bg-amber-500/20 rounded-lg">
+    <div id="toast-error" class="hidden fixed top-5 right-5 z-50 flex items-center w-full max-w-sm p-4 text-zinc-100 bg-[#202226] rounded-xl shadow-2xl border-l-4 border-red-600 transition-all duration-300 ease-in-out">
+        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-400 bg-red-900/40 rounded-lg">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
             </svg>

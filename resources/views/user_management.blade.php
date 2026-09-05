@@ -22,12 +22,12 @@
     @endif
 
     <!-- Action Bar -->
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold text-gray-800">Registered Users</h2>
-        <button onclick="openModal('addUserModal')" class="bg-red-900 hover:bg-red-800 text-white font-bold py-2 px-4 rounded shadow transition duration-200">
-            + Add New User
-        </button>
-    </div>
+   <div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-bold text-white">Registered Users</h2>
+    <button onclick="openModal('addUserModal')" class="bg-red-900 hover:bg-red-800 text-white font-bold py-2 px-4 rounded shadow transition duration-200">
+        + Add New User
+    </button>
+</div>
 
     <!-- Users Table -->
     <div class="bg-white rounded-lg shadow-md border-t-4 border-red-900 overflow-hidden">
@@ -65,13 +65,13 @@
                                             class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 py-1 px-3 rounded transition">
                                         Edit
                                     </button>
-                                <form action="{{ route('users.destroy', $user->users_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to disable this account?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-sm bg-red-100 hover:bg-red-200 text-red-800 py-1 px-3 rounded transition">
-                                        Disable
-                                    </button>
-                                </form>
+                              <form action="{{ route('admin.users.store') }}" method="POST" onsubmit="return confirm('Are you sure you want to disable this account?');">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="text-sm bg-red-100 hover:bg-red-200 text-red-800 py-1 px-3 rounded transition">
+        Disable
+    </button>
+</form>
                             </td>
                         </tr>
                     @empty
@@ -179,7 +179,7 @@
             document.getElementById('edit_role').value = role;
             document.getElementById('edit_contact').value = contact || '';
             
-            document.getElementById('editUserForm').action = '/admin/users/' + id;
+          document.getElementById('editUserForm').action = '/admin/users/' + id;
             
             // Call our unique open function
             openUserModal('editUserModal');
