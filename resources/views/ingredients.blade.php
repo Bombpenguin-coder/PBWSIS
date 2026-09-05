@@ -102,7 +102,7 @@
 </button>
 
         <!-- Delete Button Form -->
-      <form action="{{ route('inventory.ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this ingredient?');">
+      <form action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
     @csrf
     @method('DELETE')
     <button type="submit" 
@@ -138,7 +138,7 @@
             </div>
 
             <!-- Modal Body Form -->
-          <form action="{{ route('inventory.ingredients.store') }}" method="POST">
+          <form action="{{ route('ingredients.store') }}" method="POST">
                 @csrf
                 
                 <div>
