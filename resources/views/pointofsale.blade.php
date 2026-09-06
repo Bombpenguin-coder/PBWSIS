@@ -90,25 +90,43 @@
             <div class="flex-1 overflow-y-auto pr-1">
                 <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4">
                     @forelse($products as $product)
+                        @php
+                            // Fetch stock level calculated by model accessor or custom stock field
+                            $stock = $product->available_stock ?? $product->calculated_stock ?? 0;
+                            $isAvailable = $stock > 0;
+                        @endphp
+
                         <!-- Product Card -->
                         <div id="product-card-{{ $product->product_id }}"
-                             class="product-card bg-[#202226] rounded-xl shadow-md border border-zinc-800 p-4 cursor-pointer hover:border-[#800000] hover:shadow-xl transition duration-200 select-none flex flex-col justify-between group" 
+                             class="product-card relative bg-[#202226] rounded-xl shadow-md border border-zinc-800 p-4 transition duration-200 select-none flex flex-col justify-between group 
+                                    {{ !$isAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#800000] hover:shadow-xl' }}" 
                              data-id="{{ $product->product_id }}" 
                              data-name="{{ $product->product_name }}" 
                              data-category="{{ strtolower($product->category_name ?? $product->category ?? '') }}"
                              data-price="{{ $product->price }}"
-                             onclick="addToCart(this)">
+                             data-stock="{{ $stock }}"
+                             @if($isAvailable) onclick="addToCart(this)" @endif>
                              
                             <!-- Product Image Container -->
-                            <div class="h-28 bg-[#18191c] rounded-lg mb-3 flex items-center justify-center overflow-hidden border border-zinc-800">
+                            <div class="relative h-28 bg-[#18191c] rounded-lg mb-3 flex items-center justify-center overflow-hidden border border-zinc-800">
                                 @if(!empty($product->image) || !empty($product->image_path))
                                     <img src="{{ asset('storage/' . ($product->image ?? $product->image_path)) }}" 
                                          alt="{{ $product->product_name }}" 
-                                         class="w-full h-full object-cover rounded-lg group-hover:scale-105 transition duration-200"
+                                         class="w-full h-full object-cover rounded-lg {{ $isAvailable ? 'group-hover:scale-105' : '' }} transition duration-200"
                                          onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'flex items-center justify-center w-full h-full text-zinc-600\'><svg class=\'w-8 h-8\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'></path></svg></div>';">
                                 @else
                                     <div class="flex items-center justify-center w-full h-full text-zinc-600">
                                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                @endif
+
+                                <!-- Red UNAVAILABLE Badge Overlay -->
+                                @if(!$isAvailable)
+                                    <div class="absolute inset-0 bg-black/75 flex flex-col items-center justify-center p-2 text-center">
+                                        <span class="bg-red-600/90 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow">
+                                            UNAVAILABLE
+                                        </span>
+                                        <span class="text-[9px] text-zinc-300 mt-1 font-semibold">Out of Stock</span>
                                     </div>
                                 @endif
                             </div>
@@ -117,6 +135,13 @@
                                 <h3 class="text-sm font-bold text-white truncate">{{ $product->product_name }}</h3>
                                 <div class="flex justify-between items-center mt-2">
                                     <span class="text-red-500 font-black">₱{{ number_format($product->price, 2) }}</span>
+                                    
+                                    <!-- Stock Counter Badge -->
+                                    @if($isAvailable)
+                                        <span class="text-[10px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded font-mono">
+                                            {{ floor($stock) }} left
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>

@@ -16,12 +16,14 @@ use Illuminate\Support\Facades\Log;
 
 class SalesController extends Controller
 {
-    public function index()
+        public function index()
     {
-        // Eager load ingredients for dynamic portion calculations
-        $products = Product::with('ingredients')
-                           ->where('status', 'Available')
-                           ->get();
+        // Fetch products along with their ingredient relationships
+        $products = Product::with('ingredients')->get()->map(function ($product) {
+            // Explicitly append calculated portion count for frontend JS access
+            $product->calculated_stock = $product->available_stock;
+            return $product;
+        });
 
         // Fetch VAT configuration safely
         $rawVat = null;
