@@ -122,21 +122,22 @@
     </div>
 
     <div class="border-t border-b border-black py-2 mb-2 border-dashed">
-        <div class="flex justify-between text-xs font-bold mb-1">
+        <div class="flex justify-between w-full text-xs font-bold mb-1">
             <span>Item</span>
             <span>Total</span>
         </div>
         
         <!-- Loop through the actual items from the database -->
         @foreach($sale->details as $item)
-            <div class="flex justify-between text-xs mb-1">
-                <span>{{ $item->quantity }}x {{ $item->product->name ?? 'Unknown Item' }}</span>
-                <span>₱ {{ number_format($item->subtotal, 2) }}</span>
+            <div class="flex justify-between w-full text-xs mb-1">
+                <!-- Changed 'name' to 'product_name' to match your database -->
+                <span class="text-left pr-2">{{ $item->quantity }}x {{ $item->product->product_name ?? 'Unknown Item' }}</span>
+                <span class="text-right whitespace-nowrap">₱ {{ number_format($item->subtotal, 2) }}</span>
             </div>
         @endforeach
     </div>
 
-    <div class="flex justify-between font-bold text-sm mb-4">
+    <div class="flex justify-between w-full font-bold text-sm mb-4">
         <span>Total Amount:</span>
         <span>₱ {{ number_format($sale->total_amount, 2) }}</span>
     </div>

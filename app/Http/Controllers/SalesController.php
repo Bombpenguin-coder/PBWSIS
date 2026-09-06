@@ -121,11 +121,13 @@ class SalesController extends Controller
                     }
                 }
 
+                // Instead of a direct redirect, return the ID so JavaScript can handle it
                 return response()->json([
-                    'message'      => 'Transaction successful!',
-                    'sale_id'      => $sale->sale_id ?? $sale->id,
-                    'order_number' => $sale->order_number,
-                ], 200);
+                    'success' => true,
+                    // Look for sale_id first, and fall back to id just in case
+                    'sale_id' => $sale->sale_id ?? $sale->id, 
+                    'message' => 'Transaction complete!'
+                ]);
             });
 
         } catch (\Exception $e) {

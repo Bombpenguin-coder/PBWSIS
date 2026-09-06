@@ -723,24 +723,10 @@ async function confirmAndSubmitOrder() {
         const result = await response.json();
 
         if (response.ok) {
-            closeReviewModal();
+            // SUCCESS! Redirect the browser directly to the new receipt page
+            // We use result.sale_id which comes from your Laravel SalesController
+            window.location.href = '/receipt/' + result.sale_id;
             
-            cart.forEach(item => {
-                const card = document.getElementById(`product-card-${item.id}`);
-                if (card) {
-                    const currentMax = parseInt(card.getAttribute('data-stock')) || 0;
-                    const newMax = Math.max(0, currentMax - item.quantity);
-                    card.setAttribute('data-stock', newMax);
-                }
-            });
-
-            const soldItems = [...cart];
-            showPrintingModal(subtotal, discountAmount, finalTotal, amountTendered, amountTendered - finalTotal, soldItems);
-
-            cart = [];
-            updateCartUI();
-            soldItems.forEach(item => updateStockDisplay(item.id));
-
         } else {
             showErrorToast(result.error || result.message || "Failed to process order");
         }
@@ -815,7 +801,6 @@ function showPrintingModal(subtotal, discount, total, tendered, change, items) {
 }
 
 function printReceipt() {
-    window.print();
 }
 
 function finishPrinting() {

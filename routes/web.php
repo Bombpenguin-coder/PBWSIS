@@ -149,8 +149,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/test-receipt', function () { return view('receipt'); });
 
     Route::get('/receipt/{sale_id}', function ($sale_id) {
-        // Fetch the sale, the cashier, the items, and the product details
-        $sale = \App\Models\Sale::with(['user', 'details.product'])->findOrFail($sale_id);
+        // Removed 'user' so Eloquent doesn't crash trying to find the cashier
+        $sale = \App\Models\Sale::with(['details.product'])->findOrFail($sale_id);
         
         return view('receipt', compact('sale'));
     })->name('receipt.show');
