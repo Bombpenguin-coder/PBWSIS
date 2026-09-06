@@ -21,7 +21,9 @@ class UserManagementController extends Controller
             'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|string|min:4',
             'role' => 'required|string|in:Owner,Cashier,Kitchen Staff',
-            'contact_number' => 'nullable|string|max:20',
+            'contact_number' => 'nullable|digits:11', // Restricts input to exactly 11 numeric digits
+        ], [
+            'contact_number.digits' => 'The contact number must be exactly 11 digits.',
         ]);
 
         // 2. Save the new user to the database
@@ -37,11 +39,13 @@ class UserManagementController extends Controller
 
     public function update(Request $request, $id)
     {
-        // 1. Validate the changes. We tell the 'unique' rule to ignore the current user's ID so they don't trigger a duplicate error on their own username.
+        // 1. Validate the changes
         $request->validate([
             'username' => 'required|string|max:255|unique:users,username,' . $id . ',users_id',
             'role' => 'required|string|in:Owner,Cashier,Kitchen Staff',
-            'contact_number' => 'nullable|string|max:20',
+            'contact_number' => 'nullable|digits:11', // Restricts input to exactly 11 numeric digits
+        ], [
+            'contact_number.digits' => 'The contact number must be exactly 11 digits.',
         ]);
 
         // 2. Find and update the user

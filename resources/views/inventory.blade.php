@@ -32,7 +32,7 @@
                 <p class="text-xs text-zinc-400">Live product catalog and stock levels</p>
             </div>
             
-           <button type="button" onclick="openAddModal()" class="bg-rose-700 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
+            <button type="button" onclick="openAddModal()" class="bg-rose-700 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -108,10 +108,12 @@
                                     Edit
                                 </button>
 
-                                <form action="{{ route('products.destroy', $product->product_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');" class="inline"> 
+                                <form id="delete-product-form-{{ $product->product_id }}" action="{{ route('products.destroy', $product->product_id) }}" method="POST" class="inline"> 
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1 rounded-md transition duration-150">
+                                    <button type="button" 
+                                            onclick="triggerDelete('delete-product-form-{{ $product->product_id }}', 'Are you sure you want to delete {{ addslashes($product->product_name) }}?')" 
+                                            class="text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1 rounded-md transition duration-150">
                                         Delete
                                     </button>
                                 </form>
@@ -129,17 +131,16 @@
         </div>
     </div>
 
-    <!-- ================= DARK MODAL POPUP FORM ================= -->
+    <!-- ================= ADD PRODUCT DARK MODAL POPUP FORM ================= -->
     <div id="addProductModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all max-h-[90vh] flex flex-col">
+        <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all max-h-[90vh] flex flex-col overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b border-zinc-800 mb-4">
                 <h3 class="text-base font-bold text-white">Add New Product</h3>
                 <button type="button" onclick="closeAddModal()" class="text-zinc-400 hover:text-white font-bold text-lg">&times;</button>
             </div>
 
-            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="overflow-y-auto pr-1 space-y-3">
+            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
-
                 <div>
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_product_name">Product Name</label>
                     <input type="text" name="product_name" id="modal_product_name" value="{{ old('product_name') }}" required placeholder="e.g., Iced Caramel Macchiato" class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c00]">
@@ -182,9 +183,9 @@
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                             Required Ingredients
                         </label>
-                     <button type="button" onclick="addProductIngredientRow()" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline">
-    + Add Ingredient
-</button>
+                        <button type="button" onclick="addProductIngredientRow()" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline">
+                            + Add Ingredient
+                        </button>
                     </div>
 
                     <div id="productIngredientsWrapper" class="space-y-2">
@@ -213,6 +214,25 @@
                     <button type="submit" class="px-4 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">+ Save Product</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Dark Custom Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all flex flex-col">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
+                <h3 class="text-base font-bold text-white">Confirm Deletion</h3>
+                <button type="button" onclick="closeDeleteModal()" class="text-zinc-400 hover:text-white text-xl font-bold leading-none">&times;</button>
+            </div>
+            <p class="text-xs text-zinc-300 mb-6" id="deleteModalMessage">Are you sure you want to perform this action?</p>
+            <div class="flex justify-end space-x-2 border-t border-zinc-800 pt-3">
+                <button type="button" onclick="closeDeleteModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
+                    Cancel
+                </button>
+                <button type="button" id="confirmDeleteBtn" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
+                    Delete
+                </button>
+            </div>
         </div>
     </div>
 
@@ -263,8 +283,10 @@
             }
         }
 
-        // --- CUSTOM EDIT MODAL LOADER (DARK THEMED DYNAMIC FORM) ---
+        // --- CUSTOM EDIT MODAL LOADER ---
         function openEditModalWithData(product) {
+            const productId = product.product_id || product.id;
+
             const fields = [
                 { label: 'Product Name', name: 'product_name', value: product.product_name || '', required: true },
                 { label: 'Price (₱)', name: 'price', type: 'number', value: product.price || '', required: true },
@@ -272,7 +294,7 @@
             ];
 
             if (typeof window.openEditModal === 'function') {
-                window.openEditModal('/inventory/' + product.product_id, 'Edit Product', fields);
+                window.openEditModal('/inventory/products/' + productId, 'Edit Product', fields);
             }
 
             setTimeout(() => {
@@ -280,14 +302,24 @@
                 let editForm = null;
 
                 forms.forEach(f => {
-                    if (f.action.includes('/inventory/')) editForm = f;
+                    if (f.action.includes('/inventory/products/')) editForm = f;
                 });
 
                 if (!editForm) return;
 
                 editForm.setAttribute('enctype', 'multipart/form-data');
 
-                // --- INJECT DARK STATUS SELECT ---
+                // --- INJECT METHOD SPOOFING ---
+                let methodInput = editForm.querySelector('input[name="_method"]');
+                if (!methodInput) {
+                    methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'PUT';
+                    editForm.appendChild(methodInput);
+                }
+
+                // --- INJECT STATUS SELECT ---
                 let statusContainer = editForm.querySelector('#editStatusContainer');
                 if (statusContainer) statusContainer.remove();
 
@@ -310,7 +342,7 @@
                     editForm.insertBefore(statusContainer, buttonContainer);
                 }
 
-                // Image Preview Handler
+                // --- IMAGE PREVIEW HANDLER ---
                 let oldPreview = editForm.querySelector('#editImagePreview');
                 if (oldPreview) oldPreview.remove();
 
@@ -357,7 +389,7 @@
                 } else {
                     addEditIngredientRow();
                 }
-            }, 10);
+            }, 50);
         }
 
         function addEditIngredientRow(selectedId = '', qty = '') {
@@ -387,5 +419,25 @@
         @if ($errors->any())
             openAddModal();
         @endif
+
+        // --- CUSTOM MODAL DELETE CONTROLLER ---
+        let targetFormId = null;
+
+        function triggerDelete(formId, message = 'Are you sure you want to delete this item?') {
+            targetFormId = formId;
+            document.getElementById('deleteModalMessage').textContent = message;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            targetFormId = null;
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (targetFormId) {
+                document.getElementById(targetFormId).submit();
+            }
+        });
     </script>
 @endsection

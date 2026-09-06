@@ -102,10 +102,11 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/inventory/products/{id}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/inventory/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
 
-    Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
-    Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
-    Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
-    Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
+  
+Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
+Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
+Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
+Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('/inventory/categories', [CategoryController::class, 'store'])->name('categories.store');
@@ -126,11 +127,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/bills/{id}/pay', [OperationController::class, 'checkoutBill'])->name('pay');
     });
 
-    // ---------------------------------------------------------
+   // ---------------------------------------------------------
     // File Maintenance (Suppliers, Discounts, VAT)
     // ---------------------------------------------------------
     Route::resource('suppliers', SupplierController::class);
+    
+    // Resource route MUST be declared outside of route closures
     Route::resource('discounts', DiscountController::class);
+
     Route::get('/discounts/active', function () {
         try {
             return response()->json(\App\Models\Discount::all());
@@ -138,9 +142,9 @@ Route::middleware(['auth'])->group(function () {
             return response()->json([]);
         }
     });
+
     Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
     Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
-
     // ---------------------------------------------------------
     // Reports & Receipts
     // ---------------------------------------------------------
@@ -158,11 +162,11 @@ Route::middleware(['auth'])->group(function () {
     // ---------------------------------------------------------
     // Owner Only Administration
     // ---------------------------------------------------------
-    Route::middleware(['role:Owner'])->group(function () {
-        Route::get('/admin/users', [UserManagementController::class, 'index'])->name('users.index');
-        Route::post('/admin/users', [UserManagementController::class, 'store'])->name('users.store');
-        Route::put('/admin/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
-        Route::delete('/admin/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+    Route::middleware(['role:Owner'])->prefix('admin')->group(function () {
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+    Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
         
         Route::prefix('admin')->name('admin.')->group(function () {
             Route::prefix('users')->name('users.')->group(function () {
