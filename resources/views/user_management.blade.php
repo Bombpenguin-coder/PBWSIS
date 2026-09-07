@@ -64,7 +64,7 @@
                                         class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 py-1 px-3 rounded transition">
                                     Edit
                                 </button>
-                                <form action="{{ route('admin.users.store') }}" method="POST" onsubmit="return confirm('Are you sure you want to disable this account?');">
+                                <form action="{{ route('admin.users.destroy', $user->users_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to disable this account?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-sm bg-red-100 hover:bg-red-200 text-red-800 py-1 px-3 rounded transition">
@@ -87,7 +87,7 @@
 <div id="addUserModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all">
     <div class="bg-zinc-900 text-white p-6 rounded-lg shadow-xl w-full max-w-md border-t-4 border-red-900 relative">
         <h2 class="text-lg font-bold mb-4 text-white">Add New Staff</h2>
-        <form action="{{ route('users.store') }}" method="POST">
+        <form action="{{ route('admin.users.store') }}" method="POST">
             @csrf
             <div class="mb-4">
                 <label class="block text-sm font-bold mb-2 text-gray-200">Username</label>

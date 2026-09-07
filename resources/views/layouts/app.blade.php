@@ -127,6 +127,37 @@
             </div>
         </header>
 
+        <!-- Flash Notification Alerts -->
+@if(session('error'))
+    <!-- Added 'auto-dismiss' and 'transition-opacity duration-500' -->
+    <div class="auto-dismiss transition-opacity duration-500 mb-4 mx-4 p-4 rounded-lg bg-red-950/80 border border-red-700 text-red-200 flex items-center justify-between shadow-md">
+        <div class="flex items-center space-x-3">
+            <svg class="w-5 h-5 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <span class="text-sm font-medium">{{ session('error') }}</span>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-100 text-sm font-bold ml-4">
+            ✕
+        </button>
+    </div>
+@endif
+
+@if(session('success'))
+    <!-- Added 'auto-dismiss' and 'transition-opacity duration-500' -->
+    <div class="auto-dismiss transition-opacity duration-500 mb-4 mx-4 p-4 rounded-lg bg-emerald-950/80 border border-emerald-700 text-emerald-200 flex items-center justify-between shadow-md">
+        <div class="flex items-center space-x-3">
+            <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span class="text-sm font-medium">{{ session('success') }}</span>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-emerald-100 text-sm font-bold ml-4">
+            ✕
+        </button>
+    </div>
+@endif
+
         <!-- Dynamic Content Area -->
         <main class="p-6 container mx-auto">
             @yield('content')
@@ -227,5 +258,25 @@
             document.getElementById('editModal')?.classList.add('hidden');
         }
     </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Find all alert banners with the 'auto-dismiss' class
+        const alerts = document.querySelectorAll('.auto-dismiss');
+        
+        alerts.forEach(alert => {
+            // 2. Set a timer for 4000 milliseconds (4 seconds)
+            setTimeout(() => {
+                // 3. Fade the alert out by dropping its opacity to 0
+                alert.classList.add('opacity-0');
+                
+                // 4. Wait 500ms for the CSS fade transition to finish, then remove the element
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            }, 4000);
+        });
+    });
+</script>
 </body>
 </html>

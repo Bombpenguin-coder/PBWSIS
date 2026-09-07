@@ -4,19 +4,32 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
 {
-    public function handle(Request $request, Closure $next, string $requiredRole): Response
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        // Check if the user is logged in and if their role matches the requirement
-        if (!$request->user() || strtolower($request->user()->role) !== strtolower($requiredRole)) {
-            // If they are unauthorized, redirect them to the POS with an error message
-            return redirect()->route('dashboard')->withErrors('You do not have permission to access that page.');
+        // 1. Ensure the user is authenticated
+        if (!Auth::check()) {
+            return redirect('/login');
         }
 
-        // If they pass the check, allow the request to proceed
-        return $next($request);
+        // 2. Fetch the authenticated user's role
+        $userRole = Auth::user()->role;
+
+        // 3. Allow request to proceed if user has an authorized role
+        if (in_array($userRole, $roles)) {
+            return $next($request);
+        }
+
+        // 4. Redirect unauthorized users to dashboard with an error notice
+        return redirect('/dashboard')->with('error', "You don't have permission to access this section.");
     }
 }

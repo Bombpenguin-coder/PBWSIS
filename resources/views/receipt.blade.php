@@ -111,7 +111,7 @@
     <!-- Action Bar -->
     <div class="no-print">
         <button onclick="window.print()" class="btn-print">Print Receipt</button>
-        <a href="{{ route('sales.store') }}" class="btn-back">Back to POS</a>
+        <a href="/pos" class="btn-back">Back to POS</a>
     </div>
 
     <!-- Receipt Content -->
@@ -149,5 +149,16 @@
         <p class="mt-2 font-bold">Thank you for your order!</p>
     </div>
 
+    <script>
+        // Automatically open the print dialog when the receipt loads
+        window.onload = function() {
+            window.print();
+        };
+
+        // Redirect back to the POS dashboard after printing (or cancelling)
+        window.onafterprint = function() {
+            window.location.href = "/pos"; 
+        };
+    </script>
 </body>
 </html>

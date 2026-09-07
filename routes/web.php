@@ -13,7 +13,7 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\OperationController;
-use App\Http\Controllers\PosController;
+
 
 // =========================================================
 // 1. PUBLIC & AUTHENTICATION ROUTES
@@ -35,13 +35,31 @@ Route::post('/register', [AuthController::class, 'storeOwner']);
 // =========================================================
 Route::middleware(['auth'])->group(function () {
 
+
+// --- ROUTES FOR EVERYONE (Cashiers, Admins, Owners) ---
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pos', [\App\Http\Controllers\SalesController::class, 'index'])->name('pos.index');
+    Route::post('/sales', [\App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
+    Route::get('/receipt/{sale_id}', function ($sale_id) {
+        $sale = \App\Models\Sale::with(['details.product'])->findOrFail($sale_id);
+        return view('receipt', compact('sale'));
+    })->name('receipt.show');
+});
+
+// --- ROUTES STRICTLY FOR MANAGEMENT ---
+// This assumes your roles are saved as 'Admin' or 'Owner' in the database
+Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/user_management', [\App\Http\Controllers\UserManagementController::class, 'index'])->name('users.index');
+    // Add inventory, wastage, and reports routes here!
+});
+
     // ---------------------------------------------------------
     // Dashboard & POS Core
     // ---------------------------------------------------------
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/pos', [SalesController::class, 'index'])->name('pos');
     Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.checkout');
-    Route::post('/pos/order', [PosController::class, 'storeOrder'])->name('pos.order.store');
 
     // ---------------------------------------------------------
     // Sales Management (Grouped + Prefixed)
@@ -162,20 +180,15 @@ Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'dest
     // ---------------------------------------------------------
     // Owner Only Administration
     // ---------------------------------------------------------
-    Route::middleware(['role:Owner'])->prefix('admin')->group(function () {
-    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
-    Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
-    Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+    Route::middleware(['auth', 'role:Owner'])->prefix('admin')->name('admin.')->group(function () {
         
-        Route::prefix('admin')->name('admin.')->group(function () {
-            Route::prefix('users')->name('users.')->group(function () {
-                Route::get('/', [UserManagementController::class, 'index'])->name('index');
-                Route::post('/', [UserManagementController::class, 'store'])->name('store');
-                Route::put('{user}', [UserManagementController::class, 'update'])->name('update');
-                Route::delete('{user}', [UserManagementController::class, 'destroy'])->name('destroy');
-            });
+        // This creates exact routes like '/admin/users' and 'admin.users.destroy'
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\UserManagementController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\UserManagementController::class, 'store'])->name('store');
+            Route::put('/{user}', [\App\Http\Controllers\UserManagementController::class, 'update'])->name('update');
+            Route::delete('/{user}', [\App\Http\Controllers\UserManagementController::class, 'destroy'])->name('destroy');
         });
+        
     });
-
-});
+    });
