@@ -738,7 +738,7 @@ async function confirmAndSubmitOrder() {
     const amountTendered = parseFloat(document.getElementById('amountTendered')?.value) || 0;
 
     if (amountTendered < finalTotal) {
-        alert('Insufficient cash tendered!');
+        showErrorToast('Insufficient cash tendered!');
         return;
     }
 
@@ -784,10 +784,19 @@ async function confirmAndSubmitOrder() {
         const result = await response.json();
 
         if (response.ok) {
-            // SUCCESS! Redirect the browser directly to the new receipt page
-            // We use result.sale_id which comes from your Laravel SalesController
-            window.location.href = '/receipt/' + result.sale_id;
-            
+            // 1. Hide the Review Modal
+            document.getElementById('reviewModal')?.classList.add('hidden');
+
+            // 2. Open the Receipt Preview Modal directly in POS
+            showPrintingModal(
+                subtotal,
+                discountAmount,
+                finalTotal,
+                amountTendered,
+                amountTendered - finalTotal,
+                cart
+            );
+
         } else {
             showErrorToast(result.error || result.message || "Failed to process order");
         }
@@ -862,6 +871,7 @@ function showPrintingModal(subtotal, discount, total, tendered, change, items) {
 }
 
 function printReceipt() {
+    window.print();
 }
 
 function finishPrinting() {
@@ -891,20 +901,26 @@ function showThankYouModal(total, tendered, change) {
 
 function closeThankYouModal() {
     document.getElementById('thankYouModal')?.classList.add('hidden');
+    
+    // Clear cart & reset fields for the next order
+    cart = [];
+    if (typeof updateCartUI === 'function') updateCartUI();
+    
+    const amountInput = document.getElementById('amountTendered');
+    if (amountInput) amountInput.value = '';
+    
+    const changeDisplay = document.getElementById('changeDisplay');
+    if (changeDisplay) changeDisplay.innerText = '₱0.00';
 }
-// Access the global variable set by Blade
 
 function calculateTotals(subtotal) {
-    // Read window.vatConfig directly whenever totals are calculated
     const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
     let vatAmount = 0;
 
     if (vatConfig.is_enabled) {
         if (vatConfig.is_inclusive) {
-            // Formula for VAT Inclusive (e.g., 275 - (275 / 1.12))
             vatAmount = subtotal - (subtotal / (1 + (vatConfig.rate / 100)));
         } else {
-            // Formula for VAT Exclusive
             vatAmount = subtotal * (vatConfig.rate / 100);
         }
     }

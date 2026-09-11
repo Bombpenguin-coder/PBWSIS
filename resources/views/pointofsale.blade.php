@@ -339,59 +339,69 @@
         </div>
     </div>
 
-    <!-- PRINTING RECEIPT MODAL -->
-    <div id="printingModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-[#202226] border border-zinc-700 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center overflow-hidden flex flex-col items-center">
-            <h3 class="text-lg font-black text-white mb-1 no-print">Receipt Preview</h3>
-            <p class="text-xs text-zinc-400 mb-4 no-print">Review official receipt before printing</p>
+    
+ <!-- PRINTING RECEIPT MODAL -->
+<div id="printingModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-[#202226] border border-zinc-700 rounded-2xl shadow-2xl max-w-md w-full p-6 text-center overflow-hidden flex flex-col items-center">
+        <h3 class="text-lg font-black text-white mb-1 no-print">Receipt Preview</h3>
+        <p class="text-xs text-zinc-400 mb-4 no-print">Review official receipt before printing</p>
 
-            <div id="printableReceipt" class="w-full bg-slate-50 border border-zinc-300 rounded-lg p-4 text-left font-mono text-xs text-zinc-800 space-y-2 shadow-inner max-h-72 overflow-y-auto">
-                <div class="text-center border-b border-zinc-300 pb-2">
-                    <p class="font-bold text-sm text-black uppercase tracking-wider">PBWSIS POS</p>
-                    <p class="text-[10px] text-zinc-500">Official Receipt Preview</p>
-                    <p id="receiptDate" class="text-[10px] text-zinc-400 mt-1"></p>
+        <!-- Printable Receipt Container -->
+        <div id="printableReceipt" class="w-full bg-white rounded-lg p-4 text-left font-mono text-xs text-black space-y-2 shadow-inner max-h-[28rem] overflow-y-auto">
+            <div class="text-center border-b border-zinc-300 pb-2">
+                <p class="font-bold text-sm text-black uppercase tracking-wider">PBWSIS POS</p>
+                <p class="text-[10px] text-zinc-600">Official Receipt Preview</p>
+                <p id="receiptDate" class="text-[10px] text-zinc-500 mt-0.5"></p>
+            </div>
+
+            <!-- Items List -->
+            <div id="receiptItemsList" class="space-y-1 py-1 border-b border-dashed border-zinc-300 text-xs">
+                <!-- Javascript will inject items here formatted like: -->
+                <!-- <div class="flex justify-between items-start">
+                        <span class="pr-2">1x Buffalo Wings</span>
+                        <span class="font-semibold">₱167.00</span>
+                     </div> -->
+            </div>
+
+            <!-- Totals Section -->
+            <div class="space-y-1 text-xs pt-1">
+                <div class="flex justify-between py-0.5">
+                    <span>Subtotal:</span>
+                    <span id="receiptSubtotal">₱0.00</span>
                 </div>
 
-                <div id="receiptItemsList" class="space-y-1 py-1 border-b border-dashed border-zinc-300"></div>
-
-                <div class="space-y-1 text-[11px] pt-1">
-                    <div class="flex justify-between text-xs py-0.5">
-                        <span>Subtotal:</span>
-                        <span id="receiptSubtotal">₱0.00</span>
-                    </div>
-
-                    <div class="flex justify-between text-xs text-red-600 py-0.5">
-                        <span>Discount:</span>
-                        <span id="receiptDiscount">-₱0.00</span>
-                    </div>
-
-                    <div class="flex justify-between text-xs text-zinc-500 py-0.5">
-                        <span>VAT (12% Incl.):</span>
-                        <span id="receiptVat">₱0.00</span>
-                    </div>
-
-                    <div class="flex justify-between text-xs font-bold border-t border-dashed border-zinc-300 pt-1 mt-1">
-                        <span>TOTAL:</span>
-                        <span id="receiptTotal">₱0.00</span>
-                    </div>
+                <div class="flex justify-between text-red-600 py-0.5">
+                    <span>Discount:</span>
+                    <span id="receiptDiscount">-₱0.00</span>
                 </div>
 
-                <div class="text-center border-t border-zinc-300 pt-2 text-[10px] text-zinc-400">
-                    Thank you for your purchase!
+                <div class="flex justify-between text-zinc-600 py-0.5">
+                    <span>VAT (12% Incl.):</span>
+                    <span id="receiptVat">₱0.00</span>
+                </div>
+
+                <div class="flex justify-between text-sm font-bold border-t border-dashed border-zinc-300 pt-1.5 mt-1 text-black">
+                    <span>TOTAL:</span>
+                    <span id="receiptTotal">₱0.00</span>
                 </div>
             </div>
 
-            <div class="w-full mt-4 flex gap-2 no-print">
-                <button type="button" onclick="printReceipt()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z"></path></svg>
-                    Print Receipt
-                </button>
-                <button type="button" onclick="finishPrinting()" class="flex-1 bg-[#800000] hover:bg-[#600000] text-white font-extrabold py-2.5 px-3 rounded-xl transition text-xs shadow">
-                    Done / Next →
-                </button>
+            <div class="text-center border-t border-zinc-300 pt-2 text-[10px] text-zinc-500">
+                Thank you for your purchase!
             </div>
         </div>
+
+        <div class="w-full mt-4 flex gap-2 no-print">
+            <button type="button" onclick="printReceipt()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h14z"></path></svg>
+                Print Receipt
+            </button>
+            <button type="button" onclick="finishPrinting()" class="flex-1 bg-[#800000] hover:bg-[#600000] text-white font-extrabold py-2.5 px-3 rounded-xl transition text-xs shadow">
+                Done / Next →
+            </button>
+        </div>
     </div>
+</div>
 
     <!-- THANK YOU / SUCCESS MODAL -->
     <div id="thankYouModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
@@ -488,6 +498,7 @@
             &times;
         </button>
     </div>
+    
 
 </body>
 </html>

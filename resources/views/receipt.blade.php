@@ -1,164 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt - Prince Buffalo Wings</title>
-    <style>
-        /* Base styles for web viewing */
-        body {
-            font-family: monospace;
-            background-color: #f3f4f6;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #000000;
-        }
+@extends('layouts.app')
 
-        .no-print {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
+@section('title', 'Receipt #' . $sale->sale_id)
 
-        .btn-print {
-            background-color: #7f1d1d;
-            color: #ffffff;
-            border: none;
-            padding: 8px 16px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+@section('content')
+<style>
+    /* Screen View */
+    .receipt-container {
+        max-width: 380px;
+        margin: 0 auto;
+        background: #ffffff;
+        color: #000000;
+        font-family: 'Courier New', Courier, monospace;
+    }
 
-        .btn-back {
-            color: #2563eb;
-            text-decoration: underline;
-            font-weight: bold;
-            font-size: 14px;
+    /* Print View Rules */
+    @media print {
+        body * {
+            visibility: hidden;
         }
-
-        .receipt {
-            width: 260px;
-            background: #ffffff;
-            padding: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        .receipt-container, .receipt-container * {
+            visibility: visible;
         }
-
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .font-bold { font-weight: bold; }
-        
-        .divider {
-            border-bottom: 1px dashed #000000;
-            margin: 8px 0;
-        }
-
-        table {
+        .receipt-container {
+            position: absolute;
+            left: 0;
+            top: 0;
             width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
+            max-width: 100%;
+            box-shadow: none !important;
+            padding: 0 !important;
         }
-
-        td, th {
-            padding: 2px 0;
+        .no-print {
+            display: none !important;
         }
+    }
+</style>
 
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            font-weight: bold;
-            margin: 6px 0;
-        }
+<!-- Action Buttons -->
+<div class="mb-6 flex items-center justify-between max-w-[380px] mx-auto no-print">
+    <a href="{{ route('pos') }}" class="px-3 py-1.5 bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold rounded-lg transition border border-zinc-700">
+        ← Back to POS
+    </a>
+    <button onclick="window.print()" class="px-4 py-1.5 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition shadow-sm">
+        Print Receipt
+    </button>
+</div>
 
-        .footer-text {
-            font-size: 11px;
-            margin-top: 12px;
-        }
-
-        /* Thermal Printer Styles */
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            html, body {
-                background: #ffffff !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                display: block !important;
-                width: 100% !important;
-            }
-            @page {
-                size: 58mm auto;
-                margin: 0mm;
-            }
-            .receipt {
-                width: 58mm !important;
-                max-width: 58mm !important;
-                padding: 2mm !important;
-                box-shadow: none !important;
-                margin: 0 !important;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Action Bar -->
-    <div class="no-print">
-        <button onclick="window.print()" class="btn-print">Print Receipt</button>
-        <a href="/pos" class="btn-back">Back to POS</a>
-    </div>
-
-    <!-- Receipt Content -->
+<!-- Receipt Content Container -->
+<div class="receipt-container p-6 rounded-xl shadow-lg border border-zinc-200">
     <div class="text-center mb-4">
-        <h1 class="font-bold text-xl">Prince Buffalo Wings</h1>
-        <p class="text-xs">123 Flavor Street, Taguig City</p>
-        <p class="text-xs">Order #: {{ $sale->order_number }}</p>
+        <h2 class="text-lg font-bold tracking-tight uppercase">Prince Buffalo Wings</h2>
+        <p class="text-xs text-gray-600">123 Flavor Street, Taguig City</p>
+        <p class="text-xs text-gray-600 mt-1">Order #: ORD-{{ \Carbon\Carbon::parse($sale->sale_date)->format('Ymd') }}-{{ sprintf('%04d', $sale->sale_id) }}</p>
     </div>
 
-    <div class="border-t border-b border-black py-2 mb-2 border-dashed">
-        <div class="flex justify-between w-full text-xs font-bold mb-1">
-            <span>Item</span>
-            <span>Total</span>
-        </div>
-        
-        <!-- Loop through the actual items from the database -->
-        @foreach($sale->details as $item)
-            <div class="flex justify-between w-full text-xs mb-1">
-                <!-- Changed 'name' to 'product_name' to match your database -->
-                <span class="text-left pr-2">{{ $item->quantity }}x {{ $item->product->product_name ?? 'Unknown Item' }}</span>
-                <span class="text-right whitespace-nowrap">₱ {{ number_format($item->subtotal, 2) }}</span>
+    <div class="border-b border-dashed border-gray-400 my-3"></div>
+
+    <!-- Items List -->
+    <div class="space-y-1.5 text-xs">
+        @foreach($sale->details as $detail)
+            <div class="flex justify-between items-start">
+                <span>{{ $detail->quantity }}x {{ $detail->product->product_name ?? 'Item' }}</span>
+                <span class="font-semibold">₱{{ number_format($detail->subtotal, 2) }}</span>
             </div>
         @endforeach
     </div>
 
-    <div class="flex justify-between w-full font-bold text-sm mb-4">
-        <span>Total Amount:</span>
-        <span>₱ {{ number_format($sale->total_amount, 2) }}</span>
+    <div class="border-b border-dashed border-gray-400 my-3"></div>
+
+    <!-- Totals Breakdown -->
+    <div class="space-y-1 text-xs">
+        <div class="flex justify-between text-gray-600">
+            <span>Subtotal:</span>
+            <span>₱{{ number_format($sale->subtotal ?? $sale->total_amount, 2) }}</span>
+        </div>
+        
+        @if(($sale->discount_amount ?? 0) > 0)
+            <div class="flex justify-between text-gray-600">
+                <span>Discount:</span>
+                <span>-₱{{ number_format($sale->discount_amount, 2) }}</span>
+            </div>
+        @endif
+
+        <div class="flex justify-between font-bold text-sm text-black pt-1">
+            <span>Total Amount:</span>
+            <span>₱{{ number_format($sale->total_amount, 2) }}</span>
+        </div>
     </div>
 
-    <div class="text-center text-xs">
-        <!-- Display the actual cashier name and transaction date -->
-        <p>Cashier: {{ $sale->user->username ?? 'Staff' }}</p>
-        <p>Date: {{ $sale->created_at->format('Y-m-d h:i A') }}</p>
-        <p class="mt-2 font-bold">Thank you for your order!</p>
+    <div class="border-b border-dashed border-gray-400 my-3"></div>
+
+    <!-- Footer -->
+    <div class="text-center text-[11px] text-gray-600 space-y-1">
+        <p>Cashier: {{ $sale->user->name ?? 'Staff' }}</p>
+        <p>Date: {{ \Carbon\Carbon::parse($sale->sale_date)->format('Y-m-d h:i A') }}</p>
+        <p class="pt-2 font-semibold text-black">Thank you for your order!</p>
     </div>
-
-    <script>
-        // Automatically open the print dialog when the receipt loads
-        window.onload = function() {
-            window.print();
-        };
-
-        // Redirect back to the POS dashboard after printing (or cancelling)
-        window.onafterprint = function() {
-            window.location.href = "/pos"; 
-        };
-    </script>
-</body>
-</html>
+</div>
+@endsection
