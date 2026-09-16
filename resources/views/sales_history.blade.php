@@ -33,12 +33,12 @@
                     @forelse($todaySalesList as $sale)
                         <tr class="hover:bg-[#202226]/60 transition">
                             <!-- Order ID -->
-                            <td class="p-4 font-bold text-white">
+                            <td class="p-4 font-bold text-brand-orange">
                                 #{{ $sale->sale_id }}
                             </td>
 
                             <!-- Time Formatted -->
-                            <td class="p-4 text-zinc-400 text-xs">
+                            <td class="p-4 text-zinc-400 text-xs font-medium">
                                 {{ \Carbon\Carbon::parse($sale->sale_date)->format('h:i A') }}
                             </td>
 

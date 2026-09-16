@@ -2,48 +2,84 @@ let cart = [];
 let heldOrders = JSON.parse(localStorage.getItem('pbwsis_held_orders')) || [];
 let currentCategory = 'all';
 
-// Default fallback discounts in case API is not yet configured
+// Default fallback discounts
 window.availableDiscounts = window.availableDiscounts || [
     { id: 'sc_pwd', name: 'SC/PWD', rate: 20 },
     { id: 'employee', name: 'Employee', rate: 15 },
     { id: 'promo', name: 'Promo', rate: 10 }
 ];
-window.addToCart = addToCart;
-window.updateQuantity = updateQuantity;
-window.removeFromCart = removeFromCart;
-// Initialize on page load
+
 document.addEventListener("DOMContentLoaded", () => {
     updateHeldCount();
     fetchActiveDiscounts();
 });
 
+// --- HELPER FUNCTIONS (Eliminating Repetition) ---
+
+function toggleModal(modalId, show = true) {
+    document.getElementById(modalId)?.classList[show ? 'remove' : 'add']('hidden');
+}
+
+function getTextOrValue(id, value = null) {
+    const el = document.getElementById(id);
+    if (!el) return '';
+    if (value !== null) el.innerText = value;
+    return el.value || el.innerText;
+}
+
+// Single source of truth for POS calculations
+function getCartTotals() {
+    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
+    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
+    const isInclusive = vatConfig.is_inclusive ?? true;
+    const vatRate = parseFloat(vatConfig.rate ?? 12.00) / 100;
+
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    const discount = cart.reduce((sum, item) => {
+        if (!item.discountType || item.discountType === 'none') return sum;
+        const discountedUnits = Math.min(item.discountedQty || item.quantity, item.quantity);
+        const rate = item.discountRate || 0;
+        const basePrice = (isInclusive && isEnabled) ? (item.price / (1 + vatRate)) : item.price;
+        return sum + (discountedUnits * (basePrice * rate));
+    }, 0);
+
+    const discountedSubtotal = subtotal - discount;
+    let vatAmount = 0;
+
+    if (isEnabled && discountedSubtotal > 0) {
+        vatAmount = isInclusive 
+            ? discountedSubtotal - (discountedSubtotal / (1 + vatRate))
+            : discountedSubtotal * vatRate;
+    }
+
+    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
+
+    return { subtotal, discount, discountedSubtotal, vatAmount, grandTotal };
+}
+
 // --- FETCH DISCOUNTS FROM BACKEND ---
 
 async function fetchActiveDiscounts() {
     try {
-        const response = await fetch('/discounts/active', {
-            headers: { 'Accept': 'application/json' }
-        });
+        const response = await fetch('/discounts/active', { headers: { 'Accept': 'application/json' } });
         if (response.ok) {
             const data = await response.json();
             if (Array.isArray(data) && data.length > 0) {
-                // Map database fields (e.g. name, percentage) to standardized format
                 window.availableDiscounts = data.map(d => ({
                     id: d.id || d.slug || d.name.toLowerCase().replace(/\s+/g, '_'),
                     name: d.name,
                     rate: parseFloat(d.percentage || d.value || d.rate || 0)
                 }));
-                
-                populateGlobalDiscountDropdown(); // Populate static/global UI dropdowns
-                updateCartUI(); // Re-render cart with new dynamic discount options
+                populateGlobalDiscountDropdown();
+                updateCartUI();
             }
         }
     } catch (err) {
-        console.warn("Could not load dynamic discounts, using current options:", err);
+        console.warn("Could not load dynamic discounts, using fallback options:", err);
     }
 }
 
-// Populate global/static select elements (like #discountSelect in pointofsale.blade.php)
 function populateGlobalDiscountDropdown() {
     const globalSelect = document.getElementById('discountSelect');
     if (!globalSelect) return;
@@ -60,46 +96,35 @@ function populateGlobalDiscountDropdown() {
 function setCategory(category, btnElement) {
     currentCategory = category;
 
+    // Reset all buttons to default inactive state
     document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.className = "cat-btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap";
+        btn.classList.remove('bg-brand-orange', 'bg-[#800000]', 'text-white');
+        btn.classList.add('bg-brand-panel', 'text-zinc-300');
     });
-    btnElement.className = "cat-btn bg-red-900 text-white text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap";
+
+    // Apply active state to clicked button
+    if (btnElement) {
+        btnElement.classList.remove('bg-brand-panel', 'text-zinc-300');
+        btnElement.classList.add('bg-brand-orange', 'text-white'); // or your active class
+    }
 
     filterProducts();
 }
 
 function filterProducts() {
     const query = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
-    const cards = document.querySelectorAll('.product-card');
+    const sanitize = str => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-    const sanitize = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-
-    cards.forEach(card => {
-        const rawName = card.getAttribute('data-name') || '';
-        const rawCategory = card.getAttribute('data-category') || '';
-
-        const cleanName = sanitize(rawName);
-        const cleanCategory = sanitize(rawCategory);
+    document.querySelectorAll('.product-card').forEach(card => {
+        const cleanName = sanitize(card.getAttribute('data-name'));
+        const cleanCategory = sanitize(card.getAttribute('data-category'));
         const cleanSelectedCat = sanitize(currentCategory);
 
-        let matchesCategory = false;
+        const matchesCategory = (currentCategory === 'all') ||
+            (cleanSelectedCat === 'chicken' ? (cleanCategory.includes('chicken') || cleanName.includes('chicken') || cleanName.includes('wings')) : (cleanCategory.includes(cleanSelectedCat) || cleanName.includes(cleanSelectedCat)));
 
-        if (currentCategory === 'all') {
-            matchesCategory = true;
-        } else if (cleanSelectedCat === 'chicken') {
-            matchesCategory = cleanCategory.includes('chicken') || cleanName.includes('chicken') || cleanName.includes('wings');
-        } else {
-            matchesCategory = cleanCategory.includes(cleanSelectedCat) || cleanName.includes(cleanSelectedCat);
-        }
-
-        const cleanQuery = sanitize(query);
-        const matchesSearch = cleanName.includes(cleanQuery);
-
-        if (matchesCategory && matchesSearch) {
-            card.classList.remove('hidden');
-        } else {
-            card.classList.add('hidden');
-        }
+        const matchesSearch = cleanName.includes(sanitize(query));
+        card.classList.toggle('hidden', !(matchesCategory && matchesSearch));
     });
 }
 
@@ -107,7 +132,6 @@ function filterProducts() {
 
 function addToCart(element) {
     if (!element) return;
-
     const id = element.getAttribute('data-id');
     const name = element.getAttribute('data-name');
     const price = parseFloat(element.getAttribute('data-price'));
@@ -115,19 +139,10 @@ function addToCart(element) {
     if (!id || isNaN(price)) return;
 
     const existingItem = cart.find(item => item.id === id);
-
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        cart.push({
-            id: id,
-            name: name,
-            price: price,
-            quantity: 1,
-            discountType: 'none',
-            discountRate: 0,
-            discountedQty: 0
-        });
+        cart.push({ id, name, price, quantity: 1, discountType: 'none', discountRate: 0, discountedQty: 0 });
     }
 
     updateStockDisplay(id);
@@ -139,41 +154,24 @@ function updateItemDiscountType(index, selectElement) {
     if (!item) return;
 
     const selectedValue = selectElement.value;
-
     if (selectedValue === 'none') {
         item.discountType = 'none';
         item.discountRate = 0;
         item.discountedQty = 0;
     } else {
-        const foundDiscount = window.availableDiscounts.find(d => String(d.id) === String(selectedValue));
-        let rate = foundDiscount ? parseFloat(foundDiscount.rate) : 0;
-
-        // Ensure rate is a decimal factor (e.g., convert 20 -> 0.20)
-        if (rate > 1) {
-            rate = rate / 100;
-        }
-
+        const found = window.availableDiscounts.find(d => String(d.id) === String(selectedValue));
+        let rate = found ? parseFloat(found.rate) : 0;
         item.discountType = selectedValue;
-        item.discountRate = rate;
-        
-        // Default discountedQty to full item quantity when selected
-        item.discountedQty = item.quantity; 
+        item.discountRate = rate > 1 ? rate / 100 : rate;
+        item.discountedQty = item.quantity;
     }
-
-    updateCartUI(); // This should trigger updateTotals() internally
+    updateCartUI();
 }
 
 function updateItemDiscountQty(index, delta) {
     const item = cart[index];
     if (!item) return;
-
-    let currentDiscounted = item.discountedQty || 0;
-    let newDiscounted = currentDiscounted + delta;
-
-    if (newDiscounted < 0) newDiscounted = 0;
-    if (newDiscounted > item.quantity) newDiscounted = item.quantity;
-
-    item.discountedQty = newDiscounted;
+    item.discountedQty = Math.min(Math.max(0, (item.discountedQty || 0) + delta), item.quantity);
     updateCartUI();
 }
 
@@ -181,17 +179,12 @@ function updateQuantity(index, delta) {
     const item = cart[index];
     if (!item) return;
 
-    const newQty = item.quantity + delta;
-
-    
-
-    if (newQty <= 0) {
+    item.quantity += delta;
+    if (item.quantity <= 0) {
         removeFromCart(index);
         return;
     }
 
-    item.quantity = newQty;
-    
     if ((item.discountedQty || 0) > item.quantity) {
         item.discountedQty = item.quantity;
     }
@@ -204,22 +197,14 @@ function removeFromCart(index) {
     const item = cart[index];
     if (!item) return;
     const productId = item.id;
-    
     cart.splice(index, 1);
-    
     updateStockDisplay(productId);
     updateCartUI();
 }
 
 function updateStockDisplay(productId) {
-    if (!productId) return;
-
-    const card = document.getElementById(`product-card-${productId}`);
-    if (card) {
-        card.classList.remove('opacity-50', 'pointer-events-none', 'cursor-not-allowed');
-    }
+    document.getElementById(`product-card-${productId}`)?.classList.remove('opacity-50', 'pointer-events-none', 'cursor-not-allowed');
 }
-
 
 function updateCartUI() {
     const container = document.getElementById('cartItemsContainer');
@@ -231,147 +216,84 @@ function updateCartUI() {
         return;
     }
 
-    container.innerHTML = cart.map((item, index) => `
-        <div class="bg-[#18191c] p-3 rounded-xl border border-zinc-800 shadow-sm space-y-2 text-white">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h4 class="font-bold text-sm text-white">${item.name}</h4>
-                    <span class="text-xs text-zinc-400">₱${parseFloat(item.price).toFixed(2)} each</span>
+    container.innerHTML = cart.map((item, index) => {
+        const itemSubtotal = (parseFloat(item.price) * item.quantity).toFixed(2);
+        
+        return `
+            <div class="bg-[#18191c] p-3 rounded-xl border border-zinc-800 shadow-sm space-y-2 text-white">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-bold text-sm text-white">${item.name}</h4>
+                        <span class="text-xs text-zinc-400">₱${parseFloat(item.price).toFixed(2)} each</span>
+                    </div>
+                 <span class="font-bold text-sm text-white">₱${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
-                <span class="font-bold text-sm text-red-500">₱${(item.price * item.quantity).toFixed(2)}</span>
-            </div>
-
-            <!-- QUANTITY STEPPER & DELETE BUTTON -->
-            <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
-                <div class="flex items-center space-x-2">
-                    <button onclick="updateQuantity(${index}, -1)" class="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-white">-</button>
-                    <span class="text-sm font-bold px-1">${item.quantity}</span>
-                    <button onclick="updateQuantity(${index}, 1)" class="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-white">+</button>
+                <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="updateQuantity(${index}, -1)" class="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-white">-</button>
+                        <span class="text-sm font-bold px-1">${item.quantity}</span>
+                        <button type="button" onclick="updateQuantity(${index}, 1)" class="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-white">+</button>
+                    </div>
+                    <button type="button" onclick="removeFromCart(${index})" class="text-zinc-400 hover:text-red-500 text-xs transition-colors">🗑️ Delete</button>
                 </div>
-                <button onclick="removeFromCart(${index})" class="text-zinc-400 hover:text-red-500 text-xs transition-colors">
-                    🗑️ Delete
-                </button>
+                <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+                    <select onchange="updateItemDiscountType(${index}, this)" class="bg-[#202226] text-xs text-zinc-300 border border-zinc-700 rounded px-2 py-1 focus:outline-none">
+                        <option value="none">No Discount</option>
+                        ${(window.availableDiscounts || []).map(d => `
+                            <option value="${d.id}" ${item.discountType == d.id ? 'selected' : ''}>${d.name} (${d.rate}%)</option>
+                        `).join('')}
+                    </select>
+                </div>
             </div>
-
-            <!-- DISCOUNT CONTROLS -->
-            <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80">
-               <select onchange="updateItemDiscountType(${index}, this)"
-                        class="bg-[#202226] text-xs text-zinc-300 border border-zinc-700 rounded px-2 py-1 focus:outline-none">
-                    <option value="none">No Discount</option>
-                    ${(window.availableDiscounts || []).map(d => `
-                        <option value="${d.id}" ${item.discountType == d.id ? 'selected' : ''}>
-                            ${d.name} (${d.rate}%)
-                        </option>
-                    `).join('')}
-                </select>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     updateTotals();
 }
 
 function updateTotals() {
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
-    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
-    const isInclusive = vatConfig.is_inclusive ?? true;
-    const vatRate = parseFloat(vatConfig.rate ?? 12.00) / 100;
+    const { subtotal, discount, vatAmount, grandTotal } = getCartTotals();
 
-    // 1. Calculate subtotal
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    // 2. Calculate item discounts
-    const discount = cart.reduce((sum, item) => {
-        if (!item.discountType || item.discountType === 'none') return sum;
-
-        // Cap discountedQty so it never exceeds available item quantity
-        const discountedUnits = Math.min(item.discountedQty || item.quantity, item.quantity);
-        const discountRate = item.discountRate || 0;
-
-        if (isInclusive && isEnabled) {
-            // Remove VAT first to get net price, then calculate discount amount
-            const netPrice = item.price / (1 + vatRate);
-            return sum + (discountedUnits * (netPrice * discountRate));
-        } else {
-            return sum + (discountedUnits * (item.price * discountRate));
-        }
-    }, 0);
-
-    const discountedSubtotal = subtotal - discount;
-
-    // 3. Fetch VAT amount
-    let vatAmount = 0;
-    if (isEnabled && discountedSubtotal > 0) {
-        if (isInclusive) {
-            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + vatRate));
-        } else {
-            vatAmount = discountedSubtotal * vatRate;
-        }
-    }
-
-    // 4. Calculate Grand Total
-    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
-
-    // 5. Update DOM elements
-    const subtotalEl = document.getElementById('subtotalDisplay');
-    const discountEl = document.getElementById('discountDisplay');
-    const vatEl = document.getElementById('vatDisplay');
+    getTextOrValue('subtotalDisplay', '₱' + subtotal.toFixed(2));
+    getTextOrValue('discountDisplay', '-₱' + discount.toFixed(2));
+    getTextOrValue('vatDisplay', '₱' + vatAmount.toFixed(2));
+    
     const totalEl = document.getElementById('grandTotalDisplay') || document.getElementById('totalDisplay');
-
-    if (subtotalEl) subtotalEl.innerText = '₱' + subtotal.toFixed(2);
-    if (discountEl) discountEl.innerText = '-₱' + discount.toFixed(2);
-    if (vatEl) vatEl.innerText = '₱' + vatAmount.toFixed(2);
     if (totalEl) totalEl.innerText = '₱' + grandTotal.toFixed(2);
 }
+
 // --- PARKED / HOLD ORDER MODAL LOGIC ---
 
 function updateHeldCount() {
-    const badge = document.getElementById('heldCountBadge');
-    if (badge) badge.innerText = heldOrders.length;
+    getTextOrValue('heldCountBadge', heldOrders.length);
 }
 
 function holdCurrentOrder() {
-    if (cart.length === 0) {
-        showEmptyCartModal();
-        return;
-    }
-
+    if (cart.length === 0) return showEmptyCartModal();
     const holdRef = document.getElementById('holdReferenceInput');
     if (holdRef) holdRef.value = '';
-    document.getElementById('holdOrderModal')?.classList.remove('hidden');
-    setTimeout(() => document.getElementById('holdReferenceInput')?.focus(), 100);
+    toggleModal('holdOrderModal', true);
+    setTimeout(() => holdRef?.focus(), 100);
 }
 
-function closeHoldModal() {
-    document.getElementById('holdOrderModal')?.classList.add('hidden');
-}
+const closeHoldModal = () => toggleModal('holdOrderModal', false);
 
 function confirmHoldOrder() {
     const referenceInput = document.getElementById('holdReferenceInput')?.value;
-    if (!referenceInput || referenceInput.trim() === "") {
-        alert("Please enter a Table Number or Customer Name.");
-        return;
-    }
+    if (!referenceInput?.trim()) return alert("Please enter a Table Number or Customer Name.");
 
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discount = cart.reduce((sum, item) => {
-        if (!item.discountType || item.discountType === 'none') return sum;
-        return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
-    }, 0);
-    const total = subtotal - discount;
+    const { grandTotal } = getCartTotals();
 
-    const heldSale = {
+    heldOrders.push({
         id: 'HOLD-' + Date.now().toString().slice(-4),
         reference: referenceInput.trim(),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         items: [...cart],
         channel: document.getElementById('orderChannel')?.value || 'Walk-in',
-        total: total
-    };
+        total: grandTotal
+    });
 
-    heldOrders.push(heldSale);
     localStorage.setItem('pbwsis_held_orders', JSON.stringify(heldOrders));
-
     cart = [];
     updateCartUI();
     updateHeldCount();
@@ -381,59 +303,42 @@ function confirmHoldOrder() {
 function openHeldOrdersModal() {
     const container = document.getElementById('heldOrdersContainer');
     if (!container) return;
-    container.innerHTML = '';
 
-    if (heldOrders.length === 0) {
-        container.innerHTML = '<p class="text-gray-400 text-center py-8 text-sm">No orders found.</p>';
-    } else {
-        heldOrders.forEach((order, index) => {
-            const itemsSummary = order.items.map(i => `${i.quantity}x ${i.name}`).join(', ');
-            container.innerHTML += `
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 flex items-center justify-between gap-3 shadow-sm">
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center space-x-2">
-                            <span class="bg-red-900 text-white font-bold text-[10px] px-2 py-0.5 rounded-full uppercase">
-                                ${order.reference || order.id}
-                            </span>
-                            <span class="text-[10px] text-gray-400">${order.timestamp}</span>
-                            <span class="bg-gray-200 text-gray-700 text-[10px] px-1.5 py-0.5 rounded uppercase font-semibold">${order.channel}</span>
-                        </div>
-                        <p class="text-xs text-gray-600 truncate mt-1">${itemsSummary}</p>
-                        <p class="text-xs font-bold text-red-900 mt-0.5">₱${order.total.toFixed(2)}</p>
+    container.innerHTML = heldOrders.length === 0 
+        ? '<p class="text-gray-400 text-center py-8 text-sm">No orders found.</p>'
+        : heldOrders.map((order, index) => `
+            <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 flex items-center justify-between gap-3 shadow-sm">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-red-900 text-white font-bold text-[10px] px-2 py-0.5 rounded-full uppercase">${order.reference || order.id}</span>
+                        <span class="text-[10px] text-gray-400">${order.timestamp}</span>
+                        <span class="bg-gray-200 text-gray-700 text-[10px] px-1.5 py-0.5 rounded uppercase font-semibold">${order.channel}</span>
                     </div>
-                    <div class="flex items-center space-x-1.5 shrink-0">
-                        <button onclick="recallOrder(${index})" class="bg-red-900 hover:bg-red-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">Recall</button>
-                        <button onclick="deleteHeldOrder(${index})" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold w-7 h-7 rounded-lg transition flex items-center justify-center">✕</button>
-                    </div>
+                    <p class="text-xs text-gray-600 truncate mt-1">${order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</p>
+                    <p class="text-xs font-bold text-red-900 mt-0.5">₱${order.total.toFixed(2)}</p>
                 </div>
-            `;
-        });
-    }
+                <div class="flex items-center space-x-1.5 shrink-0">
+                    <button onclick="recallOrder(${index})" class="bg-red-900 hover:bg-red-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">Recall</button>
+                    <button onclick="deleteHeldOrder(${index})" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold w-7 h-7 rounded-lg transition flex items-center justify-center">✕</button>
+                </div>
+            </div>
+        `).join('');
 
-    document.getElementById('heldOrdersModal')?.classList.remove('hidden');
+    toggleModal('heldOrdersModal', true);
 }
 
 function recallOrder(index) {
-    if (cart.length > 0) {
-        if (!confirm("Recalling this order will replace your current active cart. Continue?")) {
-            return;
-        }
-    }
+    if (cart.length > 0 && !confirm("Recalling this order will replace your current active cart. Continue?")) return;
 
-    const selectedOrder = heldOrders[index];
+    const selectedOrder = heldOrders.splice(index, 1)[0];
     cart = [...selectedOrder.items];
 
     const channelEl = document.getElementById('orderChannel');
     if (channelEl) channelEl.value = selectedOrder.channel || 'Walk-in';
 
-    heldOrders.splice(index, 1);
     localStorage.setItem('pbwsis_held_orders', JSON.stringify(heldOrders));
     updateHeldCount();
-
-    document.querySelectorAll('.product-card').forEach(card => {
-        updateStockDisplay(card.getAttribute('data-id'));
-    });
-
+    document.querySelectorAll('.product-card').forEach(card => updateStockDisplay(card.getAttribute('data-id')));
     updateCartUI();
     closeHeldOrdersModal();
 }
@@ -445,229 +350,100 @@ function deleteHeldOrder(index) {
     openHeldOrdersModal();
 }
 
-function closeHeldOrdersModal() {
-    document.getElementById('heldOrdersModal')?.classList.add('hidden');
-}
-
-// --- EMPTY CART MODAL ---
-
-function showEmptyCartModal() {
-    document.getElementById('emptyCartModal')?.classList.remove('hidden');
-}
-
-function closeEmptyCartModal() {
-    document.getElementById('emptyCartModal')?.classList.add('hidden');
-}
+const closeHeldOrdersModal = () => toggleModal('heldOrdersModal', false);
+const showEmptyCartModal = () => toggleModal('emptyCartModal', true);
+const closeEmptyCartModal = () => toggleModal('emptyCartModal', false);
 
 // --- MODAL CONTROLLERS & CASH CALCULATOR ---
 
 function openReviewModal() {
-    if (cart.length === 0) {
-        showEmptyCartModal();
-        return;
-    }
+    if (cart.length === 0) return showEmptyCartModal();
 
     const modalCartItems = document.getElementById('modalCartItems');
     if (!modalCartItems) return;
-    document.getElementById('modalChannel').innerText = document.getElementById('orderChannel').value;
-
+    
+    getTextOrValue('modalChannel', document.getElementById('orderChannel')?.value || 'Walk-in');
     modalCartItems.innerHTML = '';
-
-    let subtotal = 0;
-    let totalDiscount = 0;
 
     cart.forEach(item => {
         const itemSubtotal = item.price * item.quantity;
         const discountedUnits = item.discountedQty || 0;
         const itemDiscount = discountedUnits * (item.price * (item.discountRate || 0));
-        const itemFinalPrice = itemSubtotal - itemDiscount;
-
-        subtotal += itemSubtotal;
-        totalDiscount += itemDiscount;
-
         const foundDiscount = (window.availableDiscounts || []).find(d => String(d.id) === String(item.discountType));
         const discountLabel = foundDiscount ? foundDiscount.name : (item.discountType || '').toUpperCase();
 
         const discountBadge = (discountedUnits > 0 && item.discountType !== 'none')
-            ? `<span class="text-[10px] bg-red-100 text-red-900 font-bold px-1.5 py-0.5 rounded ml-1">${discountedUnits}x ${discountLabel}</span>` 
+          ? `<span class="text-[10px] bg-red-100 text-red-900 font-bold px-1.5 py-0.5 rounded ml-1">${discountedUnits}x ${discountLabel}</span>`
             : '';
 
-       // Inside openReviewModal()
-const itemHTML = `
-    <div class="flex justify-between items-center text-xs py-1.5 border-b border-zinc-800/80 last:border-0 text-white">
-        <div>
-            <span class="font-bold text-white">${item.name}</span>
-            <span class="text-zinc-400"> (x${item.quantity})</span>
-            ${discountBadge}
-        </div>
-        <div class="font-bold text-red-500"> <!-- CHANGE THIS LINE -->
-            ₱${itemFinalPrice.toFixed(2)}
-        </div>
-    </div>
-`;
-        modalCartItems.innerHTML += itemHTML;
+        modalCartItems.innerHTML += `
+            <div class="flex justify-between items-center text-xs py-1.5 border-b border-zinc-800/80 last:border-0 text-white">
+                <div>
+                    <span class="font-bold text-white">${item.name}</span>
+                    <span class="text-zinc-400"> (x${item.quantity})</span>
+                    ${discountBadge}
+                </div>
+             <div class="font-bold text-white">₱${(itemSubtotal - itemDiscount).toFixed(2)}</div>
+            </div>
+        `;
     });
 
-    const discountedSubtotal = subtotal - totalDiscount;
+    const { subtotal, discount, vatAmount, grandTotal } = getCartTotals();
 
-    // --- VAT CALCULATION ---
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
-    let vatAmount = 0;
-
-    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
-    const isInclusive = vatConfig.is_inclusive ?? true;
-    const rate = parseFloat(vatConfig.rate ?? 12.00);
-
-    if (isEnabled && discountedSubtotal > 0) {
-        if (isInclusive) {
-            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
-        } else {
-            vatAmount = discountedSubtotal * (rate / 100);
-        }
-    }
-
-    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
-
-    // --- DOM UPDATES ---
-    const modalSubtotal = document.getElementById('modalSubtotal');
-    const modalDiscount = document.getElementById('modalDiscount');
-    const modalVatDisplay = document.getElementById('modalVatDisplay');
-    const modalTotal = document.getElementById('modalTotal');
-
-    if (modalSubtotal) modalSubtotal.innerText = '₱' + subtotal.toFixed(2);
-    if (modalDiscount) modalDiscount.innerText = '-₱' + totalDiscount.toFixed(2);
-    if (modalVatDisplay) modalVatDisplay.innerText = '₱' + vatAmount.toFixed(2);
-    if (modalTotal) modalTotal.innerText = '₱' + grandTotal.toFixed(2);
+    getTextOrValue('modalSubtotal', '₱' + subtotal.toFixed(2));
+    getTextOrValue('modalDiscount', '-₱' + discount.toFixed(2));
+    getTextOrValue('modalVatDisplay', '₱' + vatAmount.toFixed(2));
+    getTextOrValue('modalTotal', '₱' + grandTotal.toFixed(2));
 
     const amountTendered = document.getElementById('amountTendered');
     if (amountTendered) amountTendered.value = '';
     calculateChange();
-
-    document.getElementById('reviewModal')?.classList.remove('hidden');
+    toggleModal('reviewModal', true);
 }
 
-function closeReviewModal() {
-    document.getElementById('reviewModal')?.classList.add('hidden');
-}
+const closeReviewModal = () => toggleModal('reviewModal', false);
 
 function calculateChange() {
-    // 1. Declare DOM references at the top
     const changeDisplay = document.getElementById('changeDisplay');
     const confirmBtn = document.getElementById('confirmSubmitBtn');
     const amountInput = document.getElementById('amountTendered');
 
-    // 2. Fetch VAT & Discount config
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
-    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
-    const isInclusive = vatConfig.is_inclusive ?? true;
-    const vatRate = parseFloat(vatConfig.rate ?? 12.00) / 100;
-
-    // 3. Calculate Totals (net price used for VAT-inclusive discounts)
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discount = cart.reduce((sum, item) => {
-        if (!item.discountType || item.discountType === 'none') return sum;
-        const discountedUnits = Math.min(item.discountedQty || item.quantity, item.quantity);
-        const discountRate = item.discountRate || 0;
-
-        if (isInclusive && isEnabled) {
-            const netPrice = item.price / (1 + vatRate);
-            return sum + (discountedUnits * (netPrice * discountRate));
-        } else {
-            return sum + (discountedUnits * (item.price * discountRate));
-        }
-    }, 0);
-
-    const discountedSubtotal = subtotal - discount;
-
-    let vatAmount = 0;
-    if (isEnabled && discountedSubtotal > 0) {
-        if (isInclusive) {
-            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + vatRate));
-        } else {
-            vatAmount = discountedSubtotal * vatRate;
-        }
-    }
-
-    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
-
-    // 4. Parse Cash Input safely
+    const { grandTotal } = getCartTotals();
     let amountTendered = 0;
 
     if (amountInput) {
-        let rawVal = amountInput.value.trim();
-
-        if (rawVal.startsWith('.') || rawVal.startsWith('0')) {
-            rawVal = rawVal.replace(/^[0.]+/g, '');
-            amountInput.value = rawVal;
-        }
-
+        let rawVal = amountInput.value.trim().replace(/^[0.]+/g, '');
         if (rawVal.includes('.')) {
             const parts = rawVal.split('.');
-            if (parts[1] && parts[1].length > 2) {
-                rawVal = `${parts[0]}.${parts[1].slice(0, 2)}`;
-                amountInput.value = rawVal;
-            }
+            if (parts[1]?.length > 2) rawVal = `${parts[0]}.${parts[1].slice(0, 2)}`;
         }
-
+        amountInput.value = rawVal;
         amountTendered = parseFloat(rawVal) || 0;
 
-        const MAX_CASH_LIMIT = 100000;
-        if (amountTendered > MAX_CASH_LIMIT) {
-            amountTendered = MAX_CASH_LIMIT;
-            amountInput.value = MAX_CASH_LIMIT;
+        if (amountTendered > 100000) {
+            amountTendered = 100000;
+            amountInput.value = 100000;
         }
     }
 
-    // 5. Calculate Change
     const change = amountTendered - grandTotal;
 
-    // 6. Update UI Displays
     if (changeDisplay) {
-        if (change >= 0 && amountTendered > 0) {
-            const formattedChange = change.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            changeDisplay.innerText = '₱' + formattedChange;
-            changeDisplay.className = 'text-lg font-bold text-green-600 truncate';
-        } else {
-            changeDisplay.innerText = '₱0.00';
-            changeDisplay.className = 'text-lg font-bold text-gray-400';
-        }
+        const isValid = change >= 0 && amountTendered > 0;
+        changeDisplay.innerText = '₱' + (isValid ? change.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00');
+        changeDisplay.className = isValid ? 'text-lg font-bold text-green-600 truncate' : 'text-lg font-bold text-gray-400';
     }
 
     if (confirmBtn) {
-        if (amountTendered >= grandTotal && grandTotal > 0) {
-            confirmBtn.disabled = false;
-            confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        } else {
-            confirmBtn.disabled = true;
-            confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        }
+        const canSubmit = amountTendered >= grandTotal && grandTotal > 0;
+        confirmBtn.disabled = !canSubmit;
+        confirmBtn.classList.toggle('opacity-50', !canSubmit);
+        confirmBtn.classList.toggle('cursor-not-allowed', !canSubmit);
     }
 }
+
 function setExactAmount() {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discount = cart.reduce((sum, item) => {
-        if (!item.discountType || item.discountType === 'none') return sum;
-        return sum + ((item.discountedQty || 0) * (item.price * (item.discountRate || 0)));
-    }, 0);
-    
-    const discountedSubtotal = subtotal - discount;
-
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
-    let vatAmount = 0;
-    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
-    const isInclusive = vatConfig.is_inclusive ?? true;
-    const rate = parseFloat(vatConfig.rate ?? 12.00);
-
-    if (isEnabled && discountedSubtotal > 0) {
-        if (isInclusive) {
-            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
-        } else {
-            vatAmount = discountedSubtotal * (rate / 100);
-        }
-    }
-
-    const grandTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
-
+    const { grandTotal } = getCartTotals();
     const amountInput = document.getElementById('amountTendered');
     if (amountInput) {
         amountInput.value = grandTotal.toFixed(2);
@@ -678,8 +454,7 @@ function setExactAmount() {
 function addQuickCash(amount) {
     const amountInput = document.getElementById('amountTendered');
     if (amountInput) {
-        const current = parseFloat(amountInput.value) || 0;
-        amountInput.value = (current + amount).toFixed(2);
+        amountInput.value = ((parseFloat(amountInput.value) || 0) + amount).toFixed(2);
         calculateChange();
     }
 }
@@ -697,54 +472,16 @@ function clearCash() {
 async function confirmAndSubmitOrder() {
     if (cart.length === 0) return;
 
-    // 1. Get VAT configuration
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
-    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
-    const isInclusive = vatConfig.is_inclusive ?? true;
-    const vatRate = parseFloat(vatConfig.rate ?? 12.00) / 100;
-
+    const { subtotal, discount: discountAmount, vatAmount, grandTotal: finalTotal } = getCartTotals();
     const selectedChannel = document.getElementById('orderChannel')?.value || 'Walk-in';
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    // 2. Calculate Discount Amount (VAT-inclusive aware)
-    const discountAmount = cart.reduce((sum, item) => {
-        if (!item.discountType || item.discountType === 'none') return sum;
-        const discountedUnits = Math.min(item.discountedQty || item.quantity, item.quantity);
-        const discountRate = item.discountRate || 0;
-
-        if (isInclusive && isEnabled) {
-            const netPrice = item.price / (1 + vatRate);
-            return sum + (discountedUnits * (netPrice * discountRate));
-        } else {
-            return sum + (discountedUnits * (item.price * discountRate));
-        }
-    }, 0);
-
-    // 3. Declare discountedSubtotal
-    const discountedSubtotal = subtotal - discountAmount;
-
-    // 4. Calculate VAT Amount
-    let vatAmount = 0;
-    if (isEnabled && discountedSubtotal > 0) {
-        if (isInclusive) {
-            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + vatRate));
-        } else {
-            vatAmount = discountedSubtotal * vatRate;
-        }
-    }
-
-    // 5. Determine Final Total & Check Cash
-    const finalTotal = isInclusive ? discountedSubtotal : (discountedSubtotal + vatAmount);
     const amountTendered = parseFloat(document.getElementById('amountTendered')?.value) || 0;
 
     if (amountTendered < finalTotal) {
-        showErrorToast('Insufficient cash tendered!');
-        return;
+        return typeof showErrorToast === 'function' ? showErrorToast('Insufficient cash tendered!') : alert('Insufficient cash tendered!');
     }
 
-    // 6. Assemble POST Payload
     const orderPayload = {
-        subtotal: subtotal,
+        subtotal,
         vat_amount: vatAmount,
         channel: selectedChannel,
         discount_amount: discountAmount,
@@ -784,25 +521,15 @@ async function confirmAndSubmitOrder() {
         const result = await response.json();
 
         if (response.ok) {
-            // 1. Hide the Review Modal
-            document.getElementById('reviewModal')?.classList.add('hidden');
-
-            // 2. Open the Receipt Preview Modal directly in POS
-            showPrintingModal(
-                subtotal,
-                discountAmount,
-                finalTotal,
-                amountTendered,
-                amountTendered - finalTotal,
-                cart
-            );
-
+            toggleModal('reviewModal', false);
+            showPrintingModal(subtotal, discountAmount, finalTotal, amountTendered, amountTendered - finalTotal, cart);
         } else {
-            showErrorToast(result.error || result.message || "Failed to process order");
+            const msg = result.error || result.message || "Failed to process order";
+            typeof showErrorToast === 'function' ? showErrorToast(msg) : alert(msg);
         }
     } catch (error) {
         console.error("Fetch error:", error);
-        showErrorToast("A network error occurred. Please try again.");
+        typeof showErrorToast === 'function' ? showErrorToast("A network error occurred. Please try again.") : alert("Network error");
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
@@ -816,166 +543,106 @@ const processOrder = confirmAndSubmitOrder;
 // --- PRINTING RECEIPT MODAL LOGIC ---
 
 function showPrintingModal(subtotal, discount, total, tendered, change, items) {
-    const receiptDate = document.getElementById('receiptDate');
-    if (receiptDate) receiptDate.innerText = new Date().toLocaleString();
+    getTextOrValue('receiptDate', new Date().toLocaleString());
 
     const listContainer = document.getElementById('receiptItemsList');
     if (listContainer) {
-        listContainer.innerHTML = '';
-        items.forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            listContainer.innerHTML += `
-                <div class="flex justify-between">
-                    <span>${item.quantity}x ${item.name}</span>
-                    <span>₱${itemTotal.toFixed(2)}</span>
-                </div>
-            `;
-        });
+        listContainer.innerHTML = items.map(item => `
+            <div class="flex justify-between">
+                <span>${item.quantity}x ${item.name}</span>
+                <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+        `).join('');
     }
 
-    // --- VAT CALCULATION ---
-    const discountedSubtotal = subtotal - discount;
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
-    let vatAmount = 0;
+    const { vatAmount } = getCartTotals();
 
-    const isEnabled = vatConfig.is_enabled ?? vatConfig.is_active ?? true;
-    const isInclusive = vatConfig.is_inclusive ?? true;
-    const rate = parseFloat(vatConfig.rate ?? 12.00);
-
-    if (isEnabled && discountedSubtotal > 0) {
-        if (isInclusive) {
-            vatAmount = discountedSubtotal - (discountedSubtotal / (1 + (rate / 100)));
-        } else {
-            vatAmount = discountedSubtotal * (rate / 100);
-        }
-    }
-
-    // --- DOM UPDATES ---
-    const rSub = document.getElementById('receiptSubtotal');
-    const rDisc = document.getElementById('receiptDiscount');
-    const rVat = document.getElementById('receiptVat');
-    const rTot = document.getElementById('receiptTotal');
-    const rTen = document.getElementById('receiptTendered');
-    const rCha = document.getElementById('receiptChange');
-
-    if (rSub) rSub.innerText = '₱' + subtotal.toFixed(2);
-    if (rDisc) rDisc.innerText = '-₱' + discount.toFixed(2);
-    if (rVat) rVat.innerText = '₱' + vatAmount.toFixed(2);
-    if (rTot) rTot.innerText = '₱' + total.toFixed(2);
-    if (rTen) rTen.innerText = '₱' + tendered.toFixed(2);
-    if (rCha) rCha.innerText = '₱' + change.toFixed(2);
+    getTextOrValue('receiptSubtotal', '₱' + subtotal.toFixed(2));
+    getTextOrValue('receiptDiscount', '-₱' + discount.toFixed(2));
+    getTextOrValue('receiptVat', '₱' + vatAmount.toFixed(2));
+    getTextOrValue('receiptTotal', '₱' + total.toFixed(2));
+    getTextOrValue('receiptTendered', '₱' + tendered.toFixed(2));
+    getTextOrValue('receiptChange', '₱' + change.toFixed(2));
 
     window.lastOrderTotals = { total, tendered, change };
-
-    document.getElementById('printingModal')?.classList.remove('hidden');
+    toggleModal('printingModal', true);
 }
 
-function printReceipt() {
-    window.print();
-}
+const printReceipt = () => window.print();
 
 function finishPrinting() {
-    document.getElementById('printingModal')?.classList.add('hidden');
+    toggleModal('printingModal', false);
     if (window.lastOrderTotals) {
-        showThankYouModal(
-            window.lastOrderTotals.total,
-            window.lastOrderTotals.tendered,
-            window.lastOrderTotals.change
-        );
+        showThankYouModal(window.lastOrderTotals.total, window.lastOrderTotals.tendered, window.lastOrderTotals.change);
     }
 }
 
 // --- THANK YOU / SUCCESS MODAL LOGIC ---
 
 function showThankYouModal(total, tendered, change) {
-    const tTot = document.getElementById('thankYouTotal');
-    const tTen = document.getElementById('thankYouTendered');
-    const tCha = document.getElementById('thankYouChange');
-
-    if (tTot) tTot.innerText = '₱' + total.toFixed(2);
-    if (tTen) tTen.innerText = '₱' + tendered.toFixed(2);
-    if (tCha) tCha.innerText = '₱' + change.toFixed(2);
-
-    document.getElementById('thankYouModal')?.classList.remove('hidden');
+    getTextOrValue('thankYouTotal', '₱' + total.toFixed(2));
+    getTextOrValue('thankYouTendered', '₱' + tendered.toFixed(2));
+    getTextOrValue('thankYouChange', '₱' + change.toFixed(2));
+    toggleModal('thankYouModal', true);
 }
 
 function closeThankYouModal() {
-    document.getElementById('thankYouModal')?.classList.add('hidden');
-    
-    // Clear cart & reset fields for the next order
+    toggleModal('thankYouModal', false);
     cart = [];
-    if (typeof updateCartUI === 'function') updateCartUI();
-    
+    updateCartUI();
+
     const amountInput = document.getElementById('amountTendered');
     if (amountInput) amountInput.value = '';
-    
-    const changeDisplay = document.getElementById('changeDisplay');
-    if (changeDisplay) changeDisplay.innerText = '₱0.00';
+    getTextOrValue('changeDisplay', '₱0.00');
 }
 
 function calculateTotals(subtotal) {
-    const vatConfig = window.vatConfig || { rate: 12.00, is_inclusive: true, is_enabled: true };
-    let vatAmount = 0;
-
-    if (vatConfig.is_enabled) {
-        if (vatConfig.is_inclusive) {
-            vatAmount = subtotal - (subtotal / (1 + (vatConfig.rate / 100)));
-        } else {
-            vatAmount = subtotal * (vatConfig.rate / 100);
-        }
-    }
-
-    return vatAmount;
+    return getCartTotals().vatAmount;
 }
 
-// Global Helper for Order Channel Updates
 window.updateOrderChannel = function(channelValue) {
     const channelSelect = document.getElementById('orderChannel');
-    if (channelSelect) {
-        channelSelect.value = channelValue;
-    }
-    
-    const modalBadge = document.getElementById('modalChannel');
-    if (modalBadge) {
-        modalBadge.innerText = channelValue;
-    }
+    if (channelSelect) channelSelect.value = channelValue;
+    getTextOrValue('modalChannel', channelValue);
 };
 
 // --- EXPOSE FUNCTIONS TO WINDOW ---
 
-window.fetchActiveDiscounts = fetchActiveDiscounts;
-window.populateGlobalDiscountDropdown = populateGlobalDiscountDropdown;
-window.setCategory = setCategory;
-window.filterProducts = filterProducts;
-window.addToCart = addToCart;
-window.updateItemDiscountType = updateItemDiscountType;
-window.updateItemDiscountQty = updateItemDiscountQty;
-window.updateQuantity = updateQuantity;
-window.removeFromCart = removeFromCart;
-window.updateStockDisplay = updateStockDisplay;
-window.updateCartUI = updateCartUI;
-window.updateTotals = updateTotals;
-window.calculateTotals = calculateTotals;
-window.updateHeldCount = updateHeldCount;
-window.holdCurrentOrder = holdCurrentOrder;
-window.closeHoldModal = closeHoldModal;
-window.confirmHoldOrder = confirmHoldOrder;
-window.openHeldOrdersModal = openHeldOrdersModal;
-window.recallOrder = recallOrder;
-window.deleteHeldOrder = deleteHeldOrder;
-window.closeHeldOrdersModal = closeHeldOrdersModal;
-window.showEmptyCartModal = showEmptyCartModal;
-window.closeEmptyCartModal = closeEmptyCartModal;
-window.openReviewModal = openReviewModal;
-window.closeReviewModal = closeReviewModal;
-window.calculateChange = calculateChange;
-window.setExactAmount = setExactAmount;
-window.addQuickCash = addQuickCash;
-window.clearCash = clearCash;
-window.confirmAndSubmitOrder = confirmAndSubmitOrder;
-window.processOrder = processOrder;
-window.showPrintingModal = showPrintingModal;
-window.printReceipt = printReceipt;
-window.finishPrinting = finishPrinting;
-window.showThankYouModal = showThankYouModal;
-window.closeThankYouModal = closeThankYouModal;
+Object.assign(window, {
+    fetchActiveDiscounts,
+    populateGlobalDiscountDropdown,
+    setCategory,
+    filterProducts,
+    addToCart,
+    updateItemDiscountType,
+    updateItemDiscountQty,
+    updateQuantity,
+    removeFromCart,
+    updateStockDisplay,
+    updateCartUI,
+    updateTotals,
+    calculateTotals,
+    updateHeldCount,
+    holdCurrentOrder,
+    closeHoldModal,
+    confirmHoldOrder,
+    openHeldOrdersModal,
+    recallOrder,
+    deleteHeldOrder,
+    closeHeldOrdersModal,
+    showEmptyCartModal,
+    closeEmptyCartModal,
+    openReviewModal,
+    closeReviewModal,
+    calculateChange,
+    setExactAmount,
+    addQuickCash,
+    clearCash,
+    confirmAndSubmitOrder,
+    processOrder,
+    showPrintingModal,
+    printReceipt,
+    finishPrinting,
+    showThankYouModal,
+    closeThankYouModal
+});

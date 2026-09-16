@@ -8,9 +8,9 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     
-    /* Prince Buffalo Wings Original Dark Maroon Branding */
-    --color-brand-orange: #8B0000;
-    --color-brand-orange-hover: #A00000;
+    /* Updated Branding to Final Orange Scheme */
+    --color-brand-orange: #EA580C;        /* Vibrant Orange */
+    --color-brand-orange-hover: #C2410C;  /* Darker Orange for hover */
     --color-brand-dark: #0f0f10;
     --color-brand-card: #1a1a1e;
     --color-brand-sidebar: #141417;
@@ -18,26 +18,29 @@
 }
 
 /* Printable Receipt Styles */
-<style>
 @media print {
     /* Hide everything on the page */
     body * {
         visibility: hidden !important;
     }
-    
-    /* Display ONLY the printable container */
-    #printableReceipt, #printableReceipt * {
+
+    /* Reset body background */
+    body {
+        background: #ffffff !important;
+    }
+
+    /* Make printable area visible and take full paper width */
+    #printableReceipt, 
+    #printableReceipt * {
         visibility: visible !important;
     }
 
-    /* Force the receipt to break free from modal centering */
     #printableReceipt {
         position: fixed !important;
         left: 0 !important;
         top: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
-        height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
         border: none !important;
@@ -46,13 +49,16 @@
         color: #000000 !important;
     }
 
-    /* Force page dimensions for thermal paper */
+    /* Hide modal buttons and background */
+    .no-print {
+        display: none !important;
+    }
+
     @page {
-        size: 58mm auto;
+        size: auto;
         margin: 0mm;
     }
-}
-</style>
+}   
 
 /* Hide number input spinners */
 input[type="number"]::-webkit-outer-spin-button,

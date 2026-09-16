@@ -15,7 +15,7 @@
     @endif
 
     @if(session('error'))
-        <div class="flex items-center bg-rose-500/10 border-l-4 border-rose-500 text-rose-400 p-4 mb-6 rounded shadow-sm">
+        <div class="flex items-center bg-brand-orange/10 border-l-4 border-brand-orange text-brand-orange p-4 mb-6 rounded shadow-sm">
             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
             </svg>
@@ -32,7 +32,7 @@
                 <p class="text-xs text-zinc-400">Manage raw material vendors and contact details</p>
             </div>
             
-            <button type="button" onclick="openAddSupplierModal()" class="bg-rose-700 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
+            <button type="button" onclick="openAddSupplierModal()" class="bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -61,12 +61,11 @@
                             <td class="p-3 text-zinc-400">{{ $supplier->phone ?? 'N/A' }}</td>
                             <td class="p-3 text-zinc-400">{{ $supplier->email ?? 'N/A' }}</td>
                             <td class="p-3 text-center">
-                                <span class="px-2.5 py-0.5 text-xs font-medium rounded-full {{ strtolower($supplier->status ?? 'active') == 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20' }}">
+                                <span class="px-2.5 py-0.5 text-xs font-medium rounded-full {{ strtolower($supplier->status ?? 'active') == 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-brand-orange/10 text-brand-orange border border-brand-orange/20' }}">
                                     {{ ucfirst($supplier->status ?? 'active') }}
                                 </span>
                             </td>
                             <td class="p-3 text-center space-x-1">
-                                <!-- Edit Button -->
                                 <button type="button" 
                                         data-id="{{ $supplier->id }}"
                                         data-name="{{ $supplier->name }}"
@@ -79,11 +78,10 @@
                                     Edit
                                 </button>
 
-                                <!-- Delete Form -->
                                 <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this supplier?');" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-2.5 py-1 rounded-md transition duration-150">
+                                    <button type="submit" class="text-xs font-semibold text-brand-orange bg-brand-orange/10 hover:bg-brand-orange/20 px-2.5 py-1 rounded-md transition duration-150">
                                         Delete
                                     </button>
                                 </form>
@@ -102,7 +100,7 @@
         </div>
     </div>
 
-    <!-- ================= ADD SUPPLIER MODAL ================= -->
+    <!-- Add Supplier Modal -->
     <div id="addSupplierModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative flex flex-col text-white">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4 shrink-0">
@@ -115,26 +113,24 @@
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Supplier Name</label>
                     <input type="text" name="name" value="{{ old('name') }}" required placeholder="e.g., Bean Craft Co." 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
-                    @error('name') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Contact Person</label>
                     <input type="text" name="contact_person" value="{{ old('contact_person') }}" placeholder="e.g., Jane Doe" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Phone</label>
                         <input type="text" name="phone" value="{{ old('phone') }}" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
-                               class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
-                        @error('phone') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                               class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Status</label>
-                        <select name="status" required class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        <select name="status" required class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                             <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                         </select>
@@ -144,18 +140,18 @@
                 <div class="mb-5">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Email Address</label>
                     <input type="email" name="email" value="{{ old('email') }}" placeholder="e.g., vendor@beancraft.com" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-3 border-t border-zinc-800">
                     <button type="button" onclick="closeAddSupplierModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition">Cancel</button>
-                    <button type="submit" class="bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">+ Add Supplier</button>
+                    <button type="submit" class="bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">+ Add Supplier</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ================= EDIT SUPPLIER MODAL ================= -->
+    <!-- Edit Supplier Modal -->
     <div id="editSupplierModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative flex flex-col text-white">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4 shrink-0">
@@ -169,25 +165,25 @@
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Supplier Name</label>
                     <input type="text" name="name" id="edit_supplier_name" required 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Contact Person</label>
                     <input type="text" name="contact_person" id="edit_supplier_contact_person" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Phone</label>
                         <input type="text" name="phone" id="edit_supplier_phone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
-                               class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                               class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Status</label>
                         <select name="status" id="edit_supplier_status" required 
-                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
@@ -197,12 +193,12 @@
                 <div class="mb-5">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Email Address</label>
                     <input type="email" name="email" id="edit_supplier_email" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-3 border-t border-zinc-800">
                     <button type="button" onclick="closeEditSupplierModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition">Cancel</button>
-                    <button type="submit" class="bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">Save Changes</button>
+                    <button type="submit" class="bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -247,9 +243,5 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
-
-        @if ($errors->any())
-            openAddSupplierModal();
-        @endif
     </script>
 @endsection

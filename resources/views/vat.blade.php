@@ -69,13 +69,12 @@
                     </label>
                 </div>
             </div>
-
-            <!-- Action Button -->
-            <div class="flex justify-end pt-3 border-t border-zinc-800">
-                <button type="submit" class="bg-rose-700 hover:bg-rose-600 text-white font-bold py-2 px-5 rounded-lg shadow-sm transition duration-150 text-xs">
-                    Save Changes
-                </button>
-            </div>
-        </form>
-    </div>
+<!-- Action Button -->
+<div class="flex justify-end pt-3 border-t border-zinc-800">
+    <button type="submit" class="bg-brand-orange hover:bg-brand-orange-hover text-white font-bold py-2 px-5 rounded-lg shadow-sm transition duration-150 text-xs">
+        Save Changes
+    </button>
+</div>
+</form>
+</div>
 @endsection

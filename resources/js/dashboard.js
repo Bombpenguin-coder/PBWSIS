@@ -15,12 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     label: 'Gross Revenue (₱)',
                     data: data,
                     
-                    /* --- BAR COLORS --- */
-                    backgroundColor: '#8B0000',        // Dark Maroon Bar
-                    borderColor: '#8B0000',            // Bar Border Color
+                    /* --- ORANGE BAR COLORS --- */
+                    backgroundColor: '#EA580C',        // Orange Bar
+                    borderColor: '#EA580C',            // Bar Border Color
                     borderWidth: 1.5,
                     borderRadius: 6,
-                    hoverBackgroundColor: '#700000'   // Hover State Color
+                    hoverBackgroundColor: '#C2410C'   // Hover State Color
                 }]
             },
             options: {
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         /* --- TOOLTIP BOX COLORS --- */
                         backgroundColor: '#111214',    // Tooltip Card Background
                         titleColor: '#ffffff',          // Header Text
-                        bodyColor: '#ef4444',           // Light Red Value Text
+                        bodyColor: '#f97316',           // Vibrant Orange Value Text
                         borderColor: '#27272a',        // Card Border
                         borderWidth: 1,
                         padding: 10,

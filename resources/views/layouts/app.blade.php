@@ -11,7 +11,7 @@
     <!-- Load CSS and JS files via Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard.js'])
 </head>
-<body class="bg-brand-dark text-white font-sans antialiased flex h-screen overflow-hidden selection:bg-brand-orange selection:text-white">
+<body class="bg-brand-dark text-white font-sans antialiased flex h-screen overflow-hidden selection:bg-[#EA580C] selection:text-white">
 
     <!-- Mobile Overlay -->
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-all duration-300" onclick="toggleSidebar()"></div>
@@ -23,7 +23,7 @@
         <div class="p-5 border-b border-zinc-800 flex justify-between items-center">
             <h1 class="text-xl font-black tracking-wider inline-flex items-center gap-1">
                 <span class="text-white">PBW</span>
-                <span class="bg-rose-700 text-white px-1.5 py-0.5 rounded font-extrabold text-lg">SIS</span>
+                <span class="bg-[#EA580C] text-white px-1.5 py-0.5 rounded font-extrabold text-lg">SIS</span>
             </h1>
             <button onclick="toggleSidebar()" class="md:hidden text-zinc-400 hover:text-white focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -39,11 +39,11 @@
                     <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">Operations</span>
                     <svg id="opsArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('pos', 'operations.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="opsMenu" class="{{ request()->routeIs('pos', 'operations.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-rose-500 ml-2">
-                    <a href="{{ route('pos') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">POS / Billing</a>
-                    <a href="{{ route('operations.held') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.held') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Held Orders</a>
-                    <a href="{{ route('operations.kot') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.kot') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">KOT / Counter Tickets</a>
-                    <a href="{{ route('operations.bills') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.bills') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Bills</a>
+                <div id="opsMenu" class="{{ request()->routeIs('pos', 'operations.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
+                    <a href="{{ route('pos') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">POS / Billing</a>
+                    <a href="{{ route('operations.held') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.held') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Held Orders</a>
+                    <a href="{{ route('operations.kot') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.kot') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">KOT / Counter Tickets</a>
+                    <a href="{{ route('operations.bills') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('operations.bills') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Bills</a>
                 </div>
             </div>
 
@@ -53,9 +53,9 @@
                     <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">Insights</span>
                     <svg id="insightsArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('dashboard', 'reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="insightsMenu" class="{{ request()->routeIs('dashboard', 'reports.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-rose-500 ml-2">
-                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Dashboard</a>
-                    <a href="{{ route('reports.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('reports.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Reports</a>
+                <div id="insightsMenu" class="{{ request()->routeIs('dashboard', 'reports.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Dashboard</a>
+                    <a href="{{ route('reports.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('reports.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Reports</a>
                 </div>
             </div>
 
@@ -65,9 +65,9 @@
                     <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">Inventory</span>
                     <svg id="inventoryArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('ingredients.*', 'wastage.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="inventoryMenu" class="{{ request()->routeIs('ingredients.*', 'wastage.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-rose-500 ml-2">
-                   <a href="{{ route('inventory.ingredients.index') ?? '#' }}"class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
-                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Wastage Logs</a>
+                <div id="inventoryMenu" class="{{ request()->routeIs('ingredients.*', 'wastage.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
+                   <a href="{{ route('inventory.ingredients.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
+                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Wastage Logs</a>
                 </div>
             </div>
 
@@ -77,13 +77,13 @@
                     <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">File Maintenance</span>
                     <svg id="fileArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-             <div id="fileMenu" class="{{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-rose-500 ml-2">
-                    <a href="/categories" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Categories</a>
-                    <a href="/inventory" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Products Catalog</a>
-                    <a href="/discounts" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Discounts</a>
-                    <a href="/vat" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">VAT</a>
-                    <a href="/purchases" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('purchases.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Purchases</a>
-                    <a href="/suppliers" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Suppliers</a>
+             <div id="fileMenu" class="{{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
+                    <a href="/categories" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Categories</a>
+                    <a href="/inventory" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Products Catalog</a>
+                    <a href="/discounts" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Discounts</a>
+                    <a href="/vat" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">VAT</a>
+                    <a href="/purchases" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('purchases.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Purchases</a>
+                    <a href="/suppliers" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Suppliers</a>
                 </div>
             </div>
 
@@ -93,8 +93,8 @@
                     <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">Administration</span>
                     <svg id="adminArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('admin.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="adminMenu" class="{{ request()->routeIs('admin.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-rose-500 ml-2">
-                    <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('admin.users.*') ? 'text-white font-bold bg-rose-700 shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">User Management</a>
+                <div id="adminMenu" class="{{ request()->routeIs('admin.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
+                    <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('admin.users.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">User Management</a>
                 </div>
             </div>
         </nav>
@@ -104,7 +104,7 @@
             <div>Logged in as <span class="text-white font-bold">{{ Auth::user()->username ?? 'Owner' }}</span></div>
             <form action="{{ route('logout') }}" method="POST" class="inline">
                 @csrf
-                <button type="submit" class="text-xs font-bold text-rose-400 hover:text-rose-300 transition flex items-center space-x-1">
+                <button type="submit" class="text-xs font-bold text-orange-500 hover:text-orange-400 transition flex items-center space-x-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     <span>Logout</span>
                 </button>
@@ -129,7 +129,6 @@
 
         <!-- Flash Notification Alerts -->
 @if(session('error'))
-    <!-- Added 'auto-dismiss' and 'transition-opacity duration-500' -->
     <div class="auto-dismiss transition-opacity duration-500 mb-4 mx-4 p-4 rounded-lg bg-red-950/80 border border-red-700 text-red-200 flex items-center justify-between shadow-md">
         <div class="flex items-center space-x-3">
             <svg class="w-5 h-5 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +143,6 @@
 @endif
 
 @if(session('success'))
-    <!-- Added 'auto-dismiss' and 'transition-opacity duration-500' -->
     <div class="auto-dismiss transition-opacity duration-500 mb-4 mx-4 p-4 rounded-lg bg-emerald-950/80 border border-emerald-700 text-emerald-200 flex items-center justify-between shadow-md">
         <div class="flex items-center space-x-3">
             <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +178,7 @@
 
                 <div class="flex justify-end gap-2 mt-5 pt-3 border-t border-zinc-800">
                     <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 hover:bg-zinc-700 rounded-lg text-sm transition font-medium">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-rose-700 hover:bg-rose-600 text-white rounded-lg text-sm font-bold transition">Save Changes</button>
+                    <button type="submit" class="px-4 py-2 bg-[#EA580C] hover:bg-orange-600 text-white rounded-lg text-sm font-bold transition">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -224,7 +222,7 @@
                     inputHtml = `
                         <div>
                             <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">${field.label}</label>
-                            <textarea name="${field.name}" class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-rose-500" ${field.required ? 'required' : ''}>${field.value || ''}</textarea>
+                            <textarea name="${field.name}" class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#EA580C]" ${field.required ? 'required' : ''}>${field.value || ''}</textarea>
                         </div>
                     `;
                 } else if (field.type === 'select') {
@@ -235,7 +233,7 @@
                     inputHtml = `
                         <div>
                             <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">${field.label}</label>
-                            <select name="${field.name}" class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-rose-500">
+                            <select name="${field.name}" class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#EA580C]">
                                 ${optionsHtml}
                             </select>
                         </div>
@@ -244,7 +242,7 @@
                     inputHtml = `
                         <div>
                             <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">${field.label}</label>
-                            <input type="${field.type || 'text'}" name="${field.name}" value="${field.value ?? ''}" class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-rose-500" ${field.required ? 'required' : ''}>
+                            <input type="${field.type || 'text'}" name="${field.name}" value="${field.value ?? ''}" class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#EA580C]" ${field.required ? 'required' : ''}>
                         </div>
                     `;
                 }
@@ -261,22 +259,18 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. Find all alert banners with the 'auto-dismiss' class
         const alerts = document.querySelectorAll('.auto-dismiss');
         
         alerts.forEach(alert => {
-            // 2. Set a timer for 4000 milliseconds (4 seconds)
             setTimeout(() => {
-                // 3. Fade the alert out by dropping its opacity to 0
                 alert.classList.add('opacity-0');
                 
-                // 4. Wait 500ms for the CSS fade transition to finish, then remove the element
                 setTimeout(() => {
                     alert.remove();
                 }, 500);
             }, 4000);
         });
     });
-</script>
+    </script>
 </body>
 </html>

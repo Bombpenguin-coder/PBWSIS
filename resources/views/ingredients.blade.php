@@ -31,12 +31,12 @@
                 <h2 class="text-lg font-bold text-white">Current Raw Materials</h2>
                 <p class="text-xs text-zinc-400">Live inventory levels and health status</p>
             </div>
-          <button type="button" onclick="openAddModal()" class="bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-    </svg>
-    Add Ingredient
-</button>
+            <button type="button" onclick="openAddModal()" class="bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Ingredient
+            </button>
         </div>
 
         <!-- Ingredient List Table -->
@@ -87,32 +87,31 @@
                             </td>
 
                             <!-- Actions Column -->
-                          <!-- Actions Column -->
-<td class="py-3 px-4 text-center">
-    <div class="flex items-center justify-center gap-2">
-        <!-- Edit Button -->
-     <button type="button" 
-    onclick="openEditModal('{{ route('inventory.ingredients.update', $ingredient->ingredient_id) }}', 'Edit Ingredient', [
-        { label: 'Ingredient Name', name: 'ingredient_name', value: '{{ addslashes($ingredient->ingredient_name) }}', required: true },
-        { label: 'Stock Quantity', name: 'quantity', type: 'number', value: '{{ (float)$ingredient->quantity }}', required: true },
-        { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
-    ])" 
-    class="text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1.5 rounded-md transition duration-150">
+                            <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <!-- Edit Button -->
+                                  <button type="button" 
+        onclick="openEditModal('{{ route('inventory.ingredients.update', $ingredient->ingredient_id) }}', 'Edit Ingredient', [
+            { label: 'Ingredient Name', name: 'ingredient_name', value: '{{ addslashes($ingredient->ingredient_name) }}', required: true },
+            { label: 'Stock Quantity', name: 'quantity', type: 'number', value: '{{ (float)$ingredient->quantity }}', required: true },
+            { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
+        ])" 
+        class="text-xs font-semibold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1.5 rounded-md transition duration-150">
     Edit
 </button>
 
-        <!-- Delete Button Form -->
-    <form id="delete-ingredient-form-{{ $ingredient->ingredient_id }}" action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline">
-    @csrf
-    @method('DELETE')
-    <button type="button" 
-            onclick="triggerDelete('delete-ingredient-form-{{ $ingredient->ingredient_id }}', 'Are you sure you want to delete {{ addslashes($ingredient->ingredient_name) }}?')" 
-            class="text-xs font-semibold text-red-500 hover:text-white bg-red-500/10 hover:bg-red-600 px-3 py-1.5 rounded-md transition duration-150">
-        Delete
-    </button>
-</form>
-    </div>
-</td>
+                                    <!-- Delete Button Form -->
+                                    <form id="delete-ingredient-form-{{ $ingredient->ingredient_id }}" action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" 
+                                                onclick="triggerDelete('delete-ingredient-form-{{ $ingredient->ingredient_id }}', 'Are you sure you want to delete {{ addslashes($ingredient->ingredient_name) }}?')" 
+                                                class="text-xs font-semibold text-red-500 hover:text-white bg-red-500/10 hover:bg-red-600 px-3 py-1.5 rounded-md transition duration-150">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
@@ -139,23 +138,23 @@
             </div>
 
             <!-- Modal Body Form -->
-          <form action="{{ route('ingredients.store') }}" method="POST">
+            <form action="{{ route('ingredients.store') }}" method="POST">
                 @csrf
                 
-                <div>
+                <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_ingredient_name">Ingredient Name</label>
                     <input type="text" name="ingredient_name" id="modal_ingredient_name" value="{{ old('ingredient_name') }}" required placeholder="e.g., Espresso Beans" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c00]">
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                     @error('ingredient_name')
                         <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-2 mb-3">
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_quantity">Initial Qty</label>
                         <input type="number" step="0.01" name="quantity" id="modal_quantity" value="{{ old('quantity') }}" required placeholder="0.00" 
-                               class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c00]">
+                               class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                         @error('quantity')
                             <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -163,26 +162,26 @@
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_unit">Unit</label>
                         <input type="text" name="unit" id="modal_unit" value="{{ old('unit') }}" required placeholder="kg, L, pcs" 
-                               class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c00]">
+                               class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                         @error('unit')
                             <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
-                <div>
+                <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_max_capacity">Max Storage Capacity</label>
                     <input type="number" step="0.01" name="max_capacity" id="modal_max_capacity" value="{{ old('max_capacity') }}" required placeholder="100.00" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c00]">
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                     @error('max_capacity')
                         <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div>
+                <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_reorder_level">Reorder Threshold</label>
                     <input type="number" step="0.01" name="reorder_level" id="modal_reorder_level" value="{{ old('reorder_level') }}" required placeholder="10.00" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c00]">
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                     @error('reorder_level')
                         <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -193,32 +192,32 @@
                     <button type="button" onclick="closeAddModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
                         Cancel
                     </button>
-                  <button type="submit" class="bg-[#800000] hover:bg-[#660000] text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
-    + Add Ingredient
-</button>
+                    <button type="submit" class="bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
+                        + Add Ingredient
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Dark Custom Delete Confirmation Modal -->
-<div id="deleteConfirmModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all flex flex-col">
-        <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
-            <h3 class="text-base font-bold text-white">Confirm Deletion</h3>
-            <button type="button" onclick="closeDeleteModal()" class="text-zinc-400 hover:text-white text-xl font-bold leading-none">&times;</button>
-        </div>
-        <p class="text-xs text-zinc-300 mb-6" id="deleteModalMessage">Are you sure you want to perform this action?</p>
-        <div class="flex justify-end space-x-2 border-t border-zinc-800 pt-3">
-            <button type="button" onclick="closeDeleteModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
-                Cancel
-            </button>
-            <button type="button" id="confirmDeleteBtn" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
-                Delete
-            </button>
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all flex flex-col">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
+                <h3 class="text-base font-bold text-white">Confirm Deletion</h3>
+                <button type="button" onclick="closeDeleteModal()" class="text-zinc-400 hover:text-white text-xl font-bold leading-none">&times;</button>
+            </div>
+            <p class="text-xs text-zinc-300 mb-6" id="deleteModalMessage">Are you sure you want to perform this action?</p>
+            <div class="flex justify-end space-x-2 border-t border-zinc-800 pt-3">
+                <button type="button" onclick="closeDeleteModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
+                    Cancel
+                </button>
+                <button type="button" id="confirmDeleteBtn" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
+                    Delete
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
     <script>
         function openAddModal() {
@@ -235,21 +234,21 @@
         
         let targetFormId = null;
 
-function triggerDelete(formId, message = 'Are you sure you want to delete this item?') {
-    targetFormId = formId;
-    document.getElementById('deleteModalMessage').textContent = message;
-    document.getElementById('deleteConfirmModal').classList.remove('hidden');
-}
+        function triggerDelete(formId, message = 'Are you sure you want to delete this item?') {
+            targetFormId = formId;
+            document.getElementById('deleteModalMessage').textContent = message;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+        }
 
-function closeDeleteModal() {
-    targetFormId = null;
-    document.getElementById('deleteConfirmModal').classList.add('hidden');
-}
+        function closeDeleteModal() {
+            targetFormId = null;
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+        }
 
-document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-    if (targetFormId) {
-        document.getElementById(targetFormId).submit();
-    }
-});
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (targetFormId) {
+                document.getElementById(targetFormId).submit();
+            }
+        });
     </script>
 @endsection
