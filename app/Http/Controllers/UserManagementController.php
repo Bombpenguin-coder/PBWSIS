@@ -20,7 +20,7 @@ class UserManagementController extends Controller
         $request->validate([
             'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|string|min:4',
-            'role' => 'required|string|in:Owner,Cashier,Kitchen Staff',
+            'role' => 'required|string|in:Owner,Cashier,Staff',
             'contact_number' => 'nullable|digits:11',
         ], [
             'contact_number.digits' => 'The contact number must be exactly 11 digits.',
@@ -50,7 +50,7 @@ class UserManagementController extends Controller
         // 1. Validate the changes
         $request->validate([
             'username' => 'required|string|max:255|unique:users,username,' . $id . ',users_id',
-            'role' => 'required|string|in:Owner,Cashier,Kitchen Staff',
+            'role' => 'required|string|in:Owner,Cashier,Staff',
             'contact_number' => 'nullable|digits:11',
         ], [
             'contact_number.digits' => 'The contact number must be exactly 11 digits.',

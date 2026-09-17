@@ -33,7 +33,9 @@
                                 @if(strtolower($user->role) === 'owner')
                                     <span class="px-2.5 py-1 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-full">Owner</span>
                                 @else
-                                    <span class="px-2.5 py-1 bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-medium rounded-full">{{ $user->role }}</span>
+                                    <span class="px-2.5 py-1 bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-medium rounded-full">
+                                        {{ $user->role === 'Kitchen Staff' ? 'Staff' : $user->role }}
+                                    </span>
                                 @endif
                             </td>
                             <td class="py-4 px-5 text-zinc-400">{{ $user->contact_number ?? 'N/A' }}</td>
@@ -90,7 +92,7 @@
                     <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">Role</label>
                     <select name="role" required class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#EA580C]">
                         <option value="Cashier">Cashier</option>
-                        <option value="Kitchen Staff">Kitchen Staff</option>
+                        <option value="Staff">Staff</option>
                         <option value="Owner">Owner</option>
                     </select>
                 </div>
@@ -132,7 +134,7 @@
                     <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">Role</label>
                     <select id="edit_role" name="role" required class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#EA580C]">
                         <option value="Cashier">Cashier</option>
-                        <option value="Kitchen Staff">Kitchen Staff</option>
+                        <option value="Staff">Staff</option>
                         <option value="Owner">Owner</option>
                     </select>
                 </div>
@@ -168,8 +170,12 @@
         function openUserEditModal(buttonElement) {
             const id = buttonElement.getAttribute('data-id');
             const username = buttonElement.getAttribute('data-username');
-            const role = buttonElement.getAttribute('data-role');
+            let role = buttonElement.getAttribute('data-role');
             const contact = buttonElement.getAttribute('data-contact');
+
+            if (role === 'Kitchen Staff') {
+                role = 'Staff';
+            }
 
             document.getElementById('edit_username').value = username;
             document.getElementById('edit_role').value = role;
