@@ -110,6 +110,18 @@
 
             <form action="{{ route('suppliers.store') }}" method="POST">
                 @csrf
+
+                <!-- Add Form Validation Errors -->
+                @if($errors->any() && !old('_method'))
+                    <div class="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs">
+                        <ul class="list-disc pl-4 space-y-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Supplier Name</label>
                     <input type="text" name="name" value="{{ old('name') }}" required placeholder="e.g., Bean Craft Co." 
@@ -162,37 +174,49 @@
             <form id="editSupplierForm" action="" method="POST">
                 @csrf
                 @method('PUT')
+
+                <!-- Edit Form Validation Errors -->
+                @if($errors->any() && old('_method') === 'PUT')
+                    <div class="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs">
+                        <ul class="list-disc pl-4 space-y-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Supplier Name</label>
-                    <input type="text" name="name" id="edit_supplier_name" required 
+                    <input type="text" name="name" id="edit_supplier_name" value="{{ old('name') }}" required 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Contact Person</label>
-                    <input type="text" name="contact_person" id="edit_supplier_contact_person" 
+                    <input type="text" name="contact_person" id="edit_supplier_contact_person" value="{{ old('contact_person') }}" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Phone</label>
-                        <input type="text" name="phone" id="edit_supplier_phone" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                        <input type="text" name="phone" id="edit_supplier_phone" value="{{ old('phone') }}" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Status</label>
                         <select name="status" id="edit_supplier_status" required 
                                 class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="mb-5">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Email Address</label>
-                    <input type="email" name="email" id="edit_supplier_email" 
+                    <input type="email" name="email" id="edit_supplier_email" value="{{ old('email') }}" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:ring-2 focus:ring-brand-orange focus:outline-none">
                 </div>
 
@@ -243,5 +267,19 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        // Auto-reopen the appropriate modal if validation fails on form submit
+        @if ($errors->any())
+            document.addEventListener('DOMContentLoaded', function() {
+                @if(old('_method') === 'PUT')
+                    // For edit forms, ensure action is set if form was re-submitted
+                    const modal = document.getElementById('editSupplierModal');
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                @else
+                    openAddSupplierModal();
+                @endif
+            });
+        @endif
     </script>
 @endsection
