@@ -123,7 +123,7 @@
                     <button onclick="toggleSidebar()" class="text-zinc-300 focus:outline-none hover:text-white transition mr-4">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
-                    <h2 class="text-xl font-bold text-white tracking-wide">@yield('header_title', 'Dashboard')</h2>
+                    <h2 class="text-xl font-bold text-white tracking-wide">@yield('title', 'Dashboard')</h2>
                 </div>
             </div>
         </header>
