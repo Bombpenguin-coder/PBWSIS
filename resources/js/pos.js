@@ -389,7 +389,7 @@ function openReviewModal() {
     });
 
     const { subtotal, discount, vatAmount, grandTotal } = getCartTotals();
-
+    
     getTextOrValue('modalSubtotal', '₱' + subtotal.toFixed(2));
     getTextOrValue('modalDiscount', '-₱' + discount.toFixed(2));
     getTextOrValue('modalVatDisplay', '₱' + vatAmount.toFixed(2));

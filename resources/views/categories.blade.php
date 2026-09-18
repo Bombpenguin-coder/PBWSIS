@@ -5,21 +5,7 @@
 
 @section('content')
     <!-- Success/Error Messages -->
-    @if(session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm">
-            <ul class="list-disc pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+   
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         

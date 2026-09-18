@@ -4,12 +4,7 @@
 @section('header_title', 'Kitchen Order Tickets')
 
 @section('content')
-    @if(session('success'))
-        <div class="bg-emerald-500/10 border-l-4 border-emerald-500 text-emerald-400 p-4 mb-6 rounded-r text-xs font-semibold">
-            {{ session('success') }}
-        </div>
-    @endif
-
+   
     <div class="bg-[#18191c] p-6 rounded-xl shadow-sm border border-zinc-800">
         <h2 class="text-lg font-bold text-white mb-4">Live Kitchen Queue</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

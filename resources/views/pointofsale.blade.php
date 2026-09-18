@@ -7,32 +7,55 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Thermal Print Styles -->
-    <style>
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printableReceipt, #printableReceipt * {
-                visibility: visible;
-            }
-            #printableReceipt {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: none !important;
-                box-shadow: none !important;
-                padding: 0 !important;
-                background: white !important;
-                color: black !important;
-            }
-            .no-print {
-                display: none !important;
-            }
-        }
-    </style>
+   <!-- Thermal Print Styles -->
+<style>
+    /* CSS Print Rules specifically for 58mm Printers */
+    @page {
+        size: 58mm auto; /* Explicit thermal paper width */
+        margin: 0mm;      /* Strip default browser header/footer/margins */
+    }
 
+    @media print {
+        /* Hide full app UI cleanly */
+        html, body {
+            width: 58mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            overflow: visible !important;
+        }
+
+        body * {
+            visibility: hidden !important;
+        }
+
+        /* Show ONLY the receipt container */
+        #printableReceipt, #printableReceipt * {
+            visibility: visible !important;
+        }
+
+        #printableReceipt {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 58mm !important; /* Lock to thermal roll size */
+            max-width: 58mm !important;
+            padding: 4mm !important; /* Clean inner border spacing */
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-size: 11px !important;
+            line-height: 1.2 !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
     <!-- Expose Global Config Variables -->
     <script>
         window.vatConfig = @json($vat ?? null);
@@ -79,10 +102,10 @@
                         All Items
                     </button>
                     <button type="button" onclick="setCategory('milktea', this)" class="cat-btn bg-[#202226] text-zinc-300 border border-zinc-700 hover:bg-zinc-800 text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
-                        🧋 Milk Tea
+                         Milk Tea
                     </button>
                     <button type="button" onclick="setCategory('chicken', this)" class="cat-btn bg-[#202226] text-zinc-300 border border-zinc-700 hover:bg-zinc-800 text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
-                        🍗 Chicken
+                         Chicken
                     </button>
                 </div>
             </div>

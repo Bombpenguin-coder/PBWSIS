@@ -63,12 +63,6 @@
             </button>
         </form>
 
-        <!-- Create Account Link -->
-        <div class="mt-8 pt-6 border-t border-zinc-800 text-center">
-            <a href="{{ route('register') }}" class="text-xs text-zinc-400 hover:text-white transition duration-200 font-medium">
-                Don't have an account? <span class="text-[#EA580C] hover:underline underline-offset-4 font-bold">Create one here</span>
-            </a>
-        </div>
     </div>
 
 </body>
