@@ -51,6 +51,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/user_management', [\App\Http\Controllers\UserManagementController::class, 'index'])->name('users.index');
+    Route::get('/audit-trail', [DashboardController::class, 'auditTrail'])->name('audit.trail');
+    
     // Add inventory, wastage, and reports routes here!
 });
 
@@ -189,6 +191,7 @@ Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'dest
             Route::put('/{user}', [\App\Http\Controllers\UserManagementController::class, 'update'])->name('update');
             Route::delete('/{user}', [\App\Http\Controllers\UserManagementController::class, 'destroy'])->name('destroy');
         });
+        Route::get('/audit-trail', [DashboardController::class, 'auditTrail'])->name('audit-trail');
         
     });
     });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PBWSIS - @yield('title', 'System')</title>
+    <title>PBWSIS - @yield('title', 'Dashboard')</title>
     
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -95,6 +95,7 @@
                 </button>
                 <div id="adminMenu" class="{{ request()->routeIs('admin.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
                     <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('admin.users.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">User Management</a>
+                    <a href="{{ route('admin.audit-trail') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('admin.audit-trail') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Audit Trail</a>
                 </div>
             </div>
         </nav>

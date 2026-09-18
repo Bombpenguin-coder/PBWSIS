@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\Ingredient;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use OwenIt\Auditing\Models\Audit;
 
 class DashboardController extends Controller
 {
@@ -45,4 +46,12 @@ class DashboardController extends Controller
             'lowStockIngredients'
         ));
     }
+
+    public function auditTrail()
+{
+    // Fetch audits with the user who made the changes, newest first, 20 per page
+    $audits = Audit::with('user')->latest()->paginate(20);
+    
+    return view('audit_trail', compact('audits'));
+}
 }
