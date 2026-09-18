@@ -91,11 +91,11 @@
                     @foreach($lowStockIngredients as $ing)
                         <div class="flex items-center justify-between p-3 bg-[#0f0f10] border border-zinc-800 rounded-lg">
                             <div>
-                                <p class="font-bold text-white text-sm">{{ $ing->ingredient_name }}</p>
-                                <p class="text-xs text-zinc-400">Max Capacity: {{ $ing->max_capacity }} {{ $ing->unit ?? 'units' }}</p>
+                                <p class="font-bold text-white text-sm">{{ $ing->name }}</p>
+                                <p class="text-xs text-zinc-400">Max Capacity: {{ number_format($ing->max_capacity, 2) }} {{ $ing->unit ?? 'units' }}</p>
                             </div>
                             <span class="bg-orange-950/80 border border-orange-800 text-orange-400 text-xs font-bold px-2.5 py-1 rounded-full">
-                                {{ $ing->current_stock }} {{ $ing->unit ?? '' }} left
+                                {{ number_format($ing->quantity, 2) }} {{ $ing->unit ?? '' }} left
                             </span>
                         </div>
                     @endforeach

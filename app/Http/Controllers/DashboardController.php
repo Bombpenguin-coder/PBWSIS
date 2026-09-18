@@ -20,7 +20,7 @@ class DashboardController extends Controller
                               ->whereYear('sale_date', Carbon::now()->year)
                               ->sum('total_amount');
 
-        // 2. Fetch Low Stock Raw Ingredients ONLY (Uses 'quantity')
+        // 2. Fetch Low Stock Raw Ingredients (quantity <= 50% max_capacity)
         $lowStockIngredients = Ingredient::whereRaw('quantity <= (max_capacity * 0.50)')->get();
         $totalLowStock = $lowStockIngredients->count();
 
