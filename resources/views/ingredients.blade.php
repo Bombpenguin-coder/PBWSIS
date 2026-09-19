@@ -4,8 +4,6 @@
 @section('header_title', 'Ingredient Maintenance')
 
 @section('content')
-    <!-- Success/Error Messages -->
-   
     <!-- Main Container -->
     <div class="bg-[#18191c] p-6 rounded-xl shadow-sm border border-zinc-800">
         <!-- Header & Action Button -->
@@ -28,7 +26,8 @@
                 <thead class="bg-[#202226] text-zinc-400 text-xs uppercase tracking-wider">
                     <tr>
                         <th class="py-3 px-4 text-left font-semibold">Ingredient</th>
-                        <th class="py-3 px-4 text-left font-semibold">Current Stock</th>
+                        <th class="py-3 px-4 text-left font-semibold">Sealed Boxes</th>
+                        <th class="py-3 px-4 text-left font-semibold">Active Loose Pieces</th>
                         <th class="py-3 px-4 text-left font-semibold">Capacity Bar</th>
                         <th class="py-3 px-4 text-center font-semibold">Status</th>
                         <th class="py-3 px-4 text-center font-semibold">Actions</th>
@@ -37,15 +36,36 @@
                 <tbody class="divide-y divide-zinc-800 text-sm bg-[#18191c]">
                     @forelse($ingredients as $ingredient)
                         @php
-                            $percent = $ingredient->max_capacity > 0 
-                                ? min(100, round(($ingredient->quantity / $ingredient->max_capacity) * 100)) 
-                                : 0;
-                            $isLow = $ingredient->quantity <= ($ingredient->reorder_threshold ?? ($ingredient->max_capacity * 0.15));
+                            $ppb = $ingredient->pieces_per_box > 0 ? $ingredient->pieces_per_box : 1;
+                            $sealedBoxes = (float)$ingredient->quantity;
+                            $activePieces = (float)($ingredient->total_pieces ?? 0);
+
+                            // Automatically open next box if active loose pieces hit 0 or lower and sealed boxes remain
+                            if ($activePieces <= 0 && $sealedBoxes > 0) {
+                                $sealedBoxes -= 1;
+                                $activePieces = $ppb;
+                            }
+
+                            // Calculate overall total capacity and percentage
+                            $maxCapacityBoxes = $ingredient->max_capacity > 0 ? $ingredient->max_capacity : 1;
+                            $totalAvailableUnits = ($sealedBoxes * $ppb) + $activePieces;
+                            $maxUnits = $maxCapacityBoxes * $ppb;
+
+                            $percent = $maxUnits > 0 ? min(100, round(($totalAvailableUnits / $maxUnits) * 100)) : 0;
+                            $isLow = $sealedBoxes <= ($ingredient->reorder_level ?? ($maxCapacityBoxes * 0.15));
                         @endphp
                         <tr class="hover:bg-[#202226]/60 transition duration-150">
                             <td class="py-3 px-4 font-semibold text-white">{{ $ingredient->ingredient_name }}</td>
+                            
+                            <!-- Sealed Stock Boxes -->
                             <td class="py-3 px-4 font-bold {{ $isLow ? 'text-rose-400' : 'text-emerald-400' }}">
-                                {{ number_format($ingredient->quantity, 2) }} <span class="text-xs font-normal text-zinc-400">{{ $ingredient->unit }}</span>
+                                {{ number_format($sealedBoxes) }} <span class="text-xs font-normal text-zinc-400">Boxes</span>
+                            </td>
+
+                            <!-- Loose Pieces (Active Box) -->
+                            <td class="py-3 px-4 font-semibold text-amber-400">
+                                {{ number_format($activePieces) }} / {{ number_format($ppb) }} 
+                                <span class="text-xs font-normal text-zinc-400">{{ $ingredient->unit }}</span>
                             </td>
                             
                             <!-- Stock Progress Bar -->
@@ -53,7 +73,7 @@
                                 <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
                                     <div class="{{ $isLow ? 'bg-rose-500' : 'bg-emerald-500' }} h-2 rounded-full" style="width: {{ $percent }}%"></div>
                                 </div>
-                                <span class="text-[10px] text-zinc-400 font-mono">{{ $percent }}% of {{ $ingredient->max_capacity }} {{ $ingredient->unit }}</span>
+                                <span class="text-[10px] text-zinc-400 font-mono">{{ $percent }}% of {{ $ingredient->max_capacity }} Boxes</span>
                             </td>
 
                             <!-- Status Badge -->
@@ -73,15 +93,16 @@
                             <td class="py-3 px-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <!-- Edit Button -->
-                                  <button type="button" 
-        onclick="openEditModal('{{ route('inventory.ingredients.update', $ingredient->ingredient_id) }}', 'Edit Ingredient', [
-            { label: 'Ingredient Name', name: 'ingredient_name', value: '{{ addslashes($ingredient->ingredient_name) }}', required: true },
-            { label: 'Stock Quantity', name: 'quantity', type: 'number', value: '{{ (float)$ingredient->quantity }}', required: true },
-            { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
-        ])" 
-        class="text-xs font-semibold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1.5 rounded-md transition duration-150">
-    Edit
-</button>
+                                    <button type="button" 
+                                        onclick="openEditModal('{{ route('ingredients.update', $ingredient->ingredient_id) }}', 'Edit Ingredient', [
+                                            { label: 'Ingredient Name', name: 'ingredient_name', value: '{{ addslashes($ingredient->ingredient_name) }}', required: true },
+                                            { label: 'Sealed Boxes', name: 'quantity', type: 'number', value: '{{ (float)$ingredient->quantity }}', required: true },
+                                            { label: 'Pieces Per Box', name: 'pieces_per_box', type: 'number', value: '{{ (float)($ingredient->pieces_per_box ?? 1) }}', required: true },
+                                            { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
+                                        ])" 
+                                        class="text-xs font-semibold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1.5 rounded-md transition duration-150">
+                                        Edit
+                                    </button>
 
                                     <!-- Delete Button Form -->
                                     <form id="delete-ingredient-form-{{ $ingredient->ingredient_id }}" action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline">
@@ -98,7 +119,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-8 px-4 text-center text-zinc-500">
+                            <td colspan="6" class="py-8 px-4 text-center text-zinc-500">
                                 No raw ingredients found in the system.
                             </td>
                         </tr>
@@ -114,9 +135,7 @@
             
             <!-- Modal Header -->
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4 shrink-0">
-                <h3 class="text-base font-bold text-white">
-                    Add Raw Ingredient
-                </h3>
+                <h3 class="text-base font-bold text-white">Add Raw Ingredient</h3>
                 <button type="button" onclick="closeAddModal()" class="text-zinc-400 hover:text-white text-xl font-bold leading-none">&times;</button>
             </div>
 
@@ -135,26 +154,35 @@
 
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_quantity">Initial Qty</label>
-                        <input type="number" step="0.01" name="quantity" id="modal_quantity" value="{{ old('quantity') }}" required placeholder="0.00" 
+                        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_quantity">Sealed Boxes</label>
+                        <input type="number" step="1" name="quantity" id="modal_quantity" value="{{ old('quantity') }}" required placeholder="0" 
                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                         @error('quantity')
                             <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_unit">Unit</label>
-                        <input type="text" name="unit" id="modal_unit" value="{{ old('unit') }}" required placeholder="kg, L, pcs" 
+                        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_pieces_per_box">Pieces / Box</label>
+                        <input type="number" step="1" name="pieces_per_box" id="modal_pieces_per_box" value="{{ old('pieces_per_box') }}" required placeholder="e.g., 50" 
                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                        @error('unit')
+                        @error('pieces_per_box')
                             <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_max_capacity">Max Storage Capacity</label>
-                    <input type="number" step="0.01" name="max_capacity" id="modal_max_capacity" value="{{ old('max_capacity') }}" required placeholder="100.00" 
+                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_unit">Unit</label>
+                    <input type="text" name="unit" id="modal_unit" value="{{ old('unit') }}" required placeholder="g, ml, pcs" 
+                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
+                    @error('unit')
+                        <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_max_capacity">Max Storage (Boxes)</label>
+                    <input type="number" step="1" name="max_capacity" id="modal_max_capacity" value="{{ old('max_capacity') }}" required placeholder="100" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                     @error('max_capacity')
                         <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
@@ -162,8 +190,8 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_reorder_level">Reorder Threshold</label>
-                    <input type="number" step="0.01" name="reorder_level" id="modal_reorder_level" value="{{ old('reorder_level') }}" required placeholder="10.00" 
+                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_reorder_level">Reorder Threshold (Boxes)</label>
+                    <input type="number" step="1" name="reorder_level" id="modal_reorder_level" value="{{ old('reorder_level') }}" required placeholder="10" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                     @error('reorder_level')
                         <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>

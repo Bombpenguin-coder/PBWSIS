@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 
 class SalesController extends Controller
 {
-        public function index()
+    public function index()
     {
         // Fetch products along with their ingredient relationships
         $products = Product::with('ingredients')->get()->map(function ($product) {
@@ -50,54 +50,53 @@ class SalesController extends Controller
         return view($viewName, compact('products', 'vat', 'discounts'));
     }
 
-   public function store(Request $request)
-{
-    $request->validate([
-        'total_amount'     => 'required|numeric|min:0',
-        'subtotal'         => 'nullable|numeric|min:0',
-        'vat_amount'       => 'nullable|numeric|min:0',
-        'discount_amount'  => 'nullable|numeric|min:0',
-        'discount_type'    => 'nullable|string',
-        'channel'          => 'nullable|string',
-        'amount_tendered'  => 'nullable|numeric|min:0',
-        'change_amount'    => 'nullable|numeric|min:0',
-        'items'            => 'required|array|min:1',
-        'items.*.id'       => 'required|exists:products,product_id',
-        'items.*.quantity' => 'required|integer|min:1',
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'total_amount'     => 'required|numeric|min:0',
+            'subtotal'         => 'nullable|numeric|min:0',
+            'vat_amount'       => 'nullable|numeric|min:0',
+            'discount_amount'  => 'nullable|numeric|min:0',
+            'discount_type'    => 'nullable|string',
+            'channel'          => 'nullable|string',
+            'amount_tendered'  => 'nullable|numeric|min:0',
+            'change_amount'    => 'nullable|numeric|min:0',
+            'items'            => 'required|array|min:1',
+            'items.*.id'       => 'required|exists:products,product_id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
 
-    try {
-        return DB::transaction(function () use ($request) {
-            $subtotal = $request->subtotal ?? $request->total_amount;
-            
-            $vatAmount = $request->vat_amount;
-            if ($vatAmount === null || $vatAmount == 0) {
-                $vatAmount = $subtotal - ($subtotal / 1.12);
-            }
+        try {
+            return DB::transaction(function () use ($request) {
+                $subtotal = $request->subtotal ?? $request->total_amount;
+                
+                $vatAmount = $request->vat_amount;
+                if ($vatAmount === null || $vatAmount == 0) {
+                    $vatAmount = $subtotal - ($subtotal / 1.12);
+                }
 
-            // Generate Order Number
-            $saleDate = now();
-            $monthlyCount = Sale::whereYear('sale_date', $saleDate->year)
-                                ->whereMonth('sale_date', $saleDate->month)
-                                ->count() + 1;
-            $orderNumber = 'ORD-' . $saleDate->format('Ym') . '-' . str_pad($monthlyCount, 4, '0', STR_PAD_LEFT);
+                // Generate Order Number
+                $saleDate = now();
+                $monthlyCount = Sale::whereYear('sale_date', $saleDate->year)
+                                    ->whereMonth('sale_date', $saleDate->month)
+                                    ->count() + 1;
+                $orderNumber = 'ORD-' . $saleDate->format('Ym') . '-' . str_pad($monthlyCount, 4, '0', STR_PAD_LEFT);
 
-            // Create Sale Record
-            $sale = Sale::create([
-                'order_number'    => $orderNumber,
-                'sale_date'       => $saleDate,
-                'subtotal'        => $subtotal,
-                'vat_amount'      => round($vatAmount, 2),
-                'discount_type'   => $request->discount_type,
-                'discount_amount' => $request->discount_amount ?? 0,
-                'total_amount'    => $request->total_amount,
-                'amount_tendered' => $request->amount_tendered ?? 0,
-                'change_amount'   => $request->change_amount ?? 0,
-                'order_channel'   => $request->channel ?? 'Walk-in',
-                'payment_method'  => 'Cash',
-            ]);
+                // Create Sale Record
+                $sale = Sale::create([
+                    'order_number'    => $orderNumber,
+                    'sale_date'       => $saleDate,
+                    'subtotal'        => $subtotal,
+                    'vat_amount'      => round($vatAmount, 2),
+                    'discount_type'   => $request->discount_type,
+                    'discount_amount' => $request->discount_amount ?? 0,
+                    'total_amount'    => $request->total_amount,
+                    'amount_tendered' => $request->amount_tendered ?? 0,
+                    'change_amount'   => $request->change_amount ?? 0,
+                    'order_channel'   => $request->channel ?? 'Walk-in',
+                    'payment_method'  => 'Cash',
+                ]);
 
-            // ... rest of your product stock deduction & SaleDetail logic remains the same ...
                 foreach ($request->items as $item) {
                     $product = Product::with('ingredients')
                                        ->where('product_id', $item['id'])
@@ -116,7 +115,7 @@ class SalesController extends Controller
                         'subtotal'   => $product->price * $item['quantity'],
                     ]);
 
-                    // Deduct raw ingredients quantity
+                    // Deduct raw ingredients using the auto-unboxing method
                     foreach ($product->ingredients as $ingredient) {
                         $qtyNeeded = $ingredient->pivot->quantity_needed 
                                   ?? $ingredient->pivot->quantity_required 
@@ -124,14 +123,18 @@ class SalesController extends Controller
                                   ?? 1;
 
                         $deductAmount = $qtyNeeded * $item['quantity'];
-                        $ingredient->decrement('quantity', $deductAmount);
+
+                        // Deduct loose pieces and unbox sealed boxes as necessary
+                        $success = $ingredient->deductPieces($deductAmount);
+
+                        if (!$success) {
+                            throw new \Exception("Insufficient stock for ingredient: {$ingredient->ingredient_name}");
+                        }
                     }
                 }
 
-                // Instead of a direct redirect, return the ID so JavaScript can handle it
                 return response()->json([
                     'success' => true,
-                    // Look for sale_id first, and fall back to id just in case
                     'sale_id' => $sale->sale_id ?? $sale->id, 
                     'message' => 'Transaction complete!'
                 ]);
