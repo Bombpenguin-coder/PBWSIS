@@ -21,9 +21,13 @@ class DashboardController extends Controller
                               ->whereYear('sale_date', Carbon::now()->year)
                               ->sum('total_amount');
 
-        // 2. Fetch Low Stock Raw Ingredients (quantity <= 50% max_capacity)
-        $lowStockIngredients = Ingredient::whereRaw('quantity <= (max_capacity * 0.50)')->get();
-        $totalLowStock = $lowStockIngredients->count();
+        // 2. Fetch ALL ingredients, sorting low stock items to the top
+        $allIngredients = Ingredient::orderByRaw('(quantity <= (max_capacity * 0.50)) DESC')->get();
+
+        // Calculate count of low-stock ingredients for the KPI summary card
+        $totalLowStock = $allIngredients->filter(function ($ingredient) {
+            return $ingredient->max_capacity > 0 && ($ingredient->quantity <= ($ingredient->max_capacity * 0.50));
+        })->count();
 
         // 3. Calculate 7-Day Sales Trend for the Chart
         $chartLabels = [];
@@ -43,15 +47,14 @@ class DashboardController extends Controller
             'monthlyRevenue',
             'chartLabels',
             'chartData',
-            'lowStockIngredients'
+            'allIngredients'
         ));
     }
 
     public function auditTrail()
-{
-    // Fetch audits with the user who made the changes, newest first, 20 per page
-    $audits = Audit::with('user')->latest()->paginate(20);
-    
-    return view('audit_trail', compact('audits'));
-}
+    {
+        $audits = Audit::with('user')->latest()->paginate(20);
+        
+        return view('audit_trail', compact('audits'));
+    }
 }

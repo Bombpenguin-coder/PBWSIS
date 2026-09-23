@@ -28,7 +28,6 @@
                         <th class="py-3 px-4 text-left font-semibold">Ingredient</th>
                         <th class="py-3 px-4 text-left font-semibold">Sealed Boxes</th>
                         <th class="py-3 px-4 text-left font-semibold">Active Loose Pieces</th>
-                        <th class="py-3 px-4 text-left font-semibold">Capacity Bar</th>
                         <th class="py-3 px-4 text-center font-semibold">Status</th>
                         <th class="py-3 px-4 text-center font-semibold">Actions</th>
                     </tr>
@@ -46,12 +45,7 @@
                                 $activePieces = $ppb;
                             }
 
-                            // Calculate overall total capacity and percentage
                             $maxCapacityBoxes = $ingredient->max_capacity > 0 ? $ingredient->max_capacity : 1;
-                            $totalAvailableUnits = ($sealedBoxes * $ppb) + $activePieces;
-                            $maxUnits = $maxCapacityBoxes * $ppb;
-
-                            $percent = $maxUnits > 0 ? min(100, round(($totalAvailableUnits / $maxUnits) * 100)) : 0;
                             $isLow = $sealedBoxes <= ($ingredient->reorder_level ?? ($maxCapacityBoxes * 0.15));
                         @endphp
                         <tr class="hover:bg-[#202226]/60 transition duration-150">
@@ -66,14 +60,6 @@
                             <td class="py-3 px-4 font-semibold text-amber-400">
                                 {{ number_format($activePieces) }} / {{ number_format($ppb) }} 
                                 <span class="text-xs font-normal text-zinc-400">{{ $ingredient->unit }}</span>
-                            </td>
-                            
-                            <!-- Stock Progress Bar -->
-                            <td class="py-3 px-4 w-32">
-                                <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
-                                    <div class="{{ $isLow ? 'bg-rose-500' : 'bg-emerald-500' }} h-2 rounded-full" style="width: {{ $percent }}%"></div>
-                                </div>
-                                <span class="text-[10px] text-zinc-400 font-mono">{{ $percent }}% of {{ $ingredient->max_capacity }} Boxes</span>
                             </td>
 
                             <!-- Status Badge -->
@@ -119,7 +105,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 px-4 text-center text-zinc-500">
+                            <td colspan="5" class="py-8 px-4 text-center text-zinc-500">
                                 No raw ingredients found in the system.
                             </td>
                         </tr>

@@ -67,7 +67,7 @@
         </div>
     </div>
 
-    <!-- LOW STOCK QUICK VIEW MODAL -->
+    <!-- INVENTORY BREAKDOWN MODAL (READ-ONLY) -->
     <div id="lowStockModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-[#1a1a1e] rounded-xl max-w-lg w-full shadow-2xl overflow-hidden border border-zinc-800">
             
@@ -75,28 +75,50 @@
             <div class="bg-[#EA580C] text-white p-4 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    <h3 class="font-extrabold text-base">Low Stock Breakdown</h3>
+                    <h3 class="font-extrabold text-base">Inventory Status Breakdown</h3>
                 </div>
                 <button onclick="closeLowStockModal()" class="text-white/80 hover:text-white text-lg font-bold transition">✕</button>
             </div>
 
             <!-- Items List -->
             <div class="p-4 max-h-[60vh] overflow-y-auto space-y-3">
-                @if($lowStockIngredients->count() === 0)
-                    <div class="text-center py-6 text-emerald-400 font-medium text-sm">
-                        All raw ingredients are well stocked! 🎉
+                @if($allIngredients->count() === 0)
+                    <div class="text-center py-6 text-zinc-500 font-medium text-sm">
+                        No raw ingredients registered in inventory.
                     </div>
                 @else
-                    <p class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Raw Ingredients (≤ 50% Capacity)</p>
-                    @foreach($lowStockIngredients as $ing)
-                        <div class="flex items-center justify-between p-3 bg-[#0f0f10] border border-zinc-800 rounded-lg">
+                    <p class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">All Ingredients</p>
+                    @foreach($allIngredients as $ing)
+                        @php
+                            $isLow = $ing->max_capacity > 0 && ($ing->quantity <= ($ing->max_capacity * 0.50));
+                            $boxesLeft = (int) $ing->quantity;
+                            $maxBoxes = (int) $ing->max_capacity;
+                        @endphp
+                        <div class="flex items-center justify-between p-3 bg-[#0f0f10] border {{ $isLow ? 'border-orange-950/80 bg-orange-950/10' : 'border-zinc-800' }} rounded-lg">
                             <div>
-                                <p class="font-bold text-white text-sm">{{ $ing->ingredient_name }}</p>
-                                <p class="text-xs text-zinc-400">Max Capacity: {{ number_format($ing->max_capacity, 2) }} {{ $ing->unit ?? 'units' }}</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="font-bold text-white text-sm">{{ $ing->ingredient_name }}</p>
+                                    @if($isLow)
+                                        <span class="text-[10px] font-bold text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded-full border border-orange-800 uppercase tracking-wide">
+                                            Restock Warning
+                                        </span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-0.5">Max Capacity: {{ number_format($maxBoxes) }} Boxes</p>
                             </div>
-                            <span class="bg-orange-950/80 border border-orange-800 text-orange-400 text-xs font-bold px-2.5 py-1 rounded-full">
-                                {{ number_format($ing->quantity, 2) }} {{ $ing->unit ?? '' }} left
-                            </span>
+                            
+                            <!-- Box Count Badge -->
+                            <div>
+                                @if($isLow)
+                                    <span class="bg-orange-950/80 border border-orange-800 text-orange-400 text-xs font-bold px-2.5 py-1 rounded-full inline-block">
+                                        {{ number_format($boxesLeft) }} {{ Str::plural('Box', $boxesLeft) }} left
+                                    </span>
+                                @else
+                                    <span class="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-semibold px-2.5 py-1 rounded-full inline-block">
+                                        {{ number_format($boxesLeft) }} {{ Str::plural('Box', $boxesLeft) }}
+                                    </span>
+                                @endif
+                            </div>
                         </div>
                     @endforeach
                 @endif
