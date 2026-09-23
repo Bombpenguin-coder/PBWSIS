@@ -21,7 +21,30 @@ class DashboardController extends Controller
                               ->whereYear('sale_date', Carbon::now()->year)
                               ->sum('total_amount');
 
-        // 2. Fetch ALL ingredients, sorting low stock items to the top
+        // 2. Calculate Today's Food Cost (COGS) using the 'details' relationship
+        $todaySalesItems = Sale::whereDate('sale_date', Carbon::today())
+            ->with(['details.product.ingredients']) // Loads Sale -> SaleDetail -> Product -> Ingredients
+            ->get()
+            ->pluck('details')
+            ->flatten();
+
+        $todayFoodCost = $todaySalesItems->sum(function ($detail) {
+            if (!$detail->product) {
+                return 0;
+            }
+
+            // Calculate food cost per unit sold
+            $unitCost = $detail->product->ingredients->sum(function ($ingredient) {
+                $requiredQty = $ingredient->pivot->quantity_required ?? 0;
+                $costPerUnit = $ingredient->cost_per_unit ?? 0;
+                
+                return $requiredQty * $costPerUnit;
+            });
+
+            return $unitCost * $detail->quantity;
+        });
+
+        // 3. Fetch ALL ingredients, sorting low stock items to the top
         $allIngredients = Ingredient::orderByRaw('(quantity <= (max_capacity * 0.50)) DESC')->get();
 
         // Calculate count of low-stock ingredients for the KPI summary card
@@ -29,7 +52,7 @@ class DashboardController extends Controller
             return $ingredient->max_capacity > 0 && ($ingredient->quantity <= ($ingredient->max_capacity * 0.50));
         })->count();
 
-        // 3. Calculate 7-Day Sales Trend for the Chart
+        // 4. Calculate 7-Day Sales Trend for the Chart
         $chartLabels = [];
         $chartData = [];
 
@@ -40,9 +63,10 @@ class DashboardController extends Controller
             $chartData[] = $dailyTotal;
         }
 
-        // 4. Pass variables to view
+        // 5. Pass variables to view
         return view('dashboard', compact(
             'todaySales', 
+            'todayFoodCost',
             'totalLowStock', 
             'monthlyRevenue',
             'chartLabels',
