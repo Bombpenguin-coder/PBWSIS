@@ -106,14 +106,17 @@
                     </button>
 
                     @foreach($categories as $category)
+                        @php
+                            $catName = strtolower($category->category_name ?? $category->name ?? '');
+                        @endphp
                         <button type="button" 
-                                onclick="setCategory('{{ $category->category_id ?? $category->id }}', this)" 
+                                onclick="setCategory('{{ $catName }}', this)" 
                                 class="cat-btn bg-[#202226] text-zinc-300 border border-zinc-700 hover:bg-zinc-800 text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
                             {{ $category->category_name ?? $category->name }}
                         </button>
                     @endforeach
                 </div>
-            </div> <!-- Properly closed search & category controls wrapper -->
+            </div> <!-- Properly closed search & category section wrapper -->
 
             <!-- Scrollable Menu Grid -->
             <div class="flex-1 overflow-y-auto pr-1">
@@ -129,7 +132,7 @@
                              class="product-card relative bg-[#202226] rounded-xl shadow-md border border-zinc-800 p-4 transition duration-200 select-none flex flex-col justify-between group 
                                     {{ !$isAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#f97316] hover:shadow-xl' }}" 
                              data-id="{{ $product->product_id }}" 
-                             data-name="{{ $product->product_name }}" 
+                             data-name="{{ strtolower($product->product_name) }}" 
                              data-category="{{ strtolower($product->category_name ?? $product->category ?? '') }}"
                              data-price="{{ $product->price }}"
                              data-stock="{{ $stock }}"
@@ -148,7 +151,6 @@
                                     </div>
                                 @endif
 
-                                <!-- Orange UNAVAILABLE Badge Overlay -->
                                 @if(!$isAvailable)
                                     <div class="absolute inset-0 bg-black/75 flex flex-col items-center justify-center p-2 text-center">
                                         <span class="bg-orange-600/90 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow">
@@ -164,7 +166,6 @@
                                 <div class="flex justify-between items-center mt-2">
                                     <span class="text-orange-500 font-black">₱{{ number_format($product->price, 2) }}</span>
                                     
-                                    <!-- Stock Counter Badge -->
                                     @if($isAvailable)
                                         <span class="text-[10px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded font-mono">
                                             {{ floor($stock) }} left
@@ -180,7 +181,7 @@
                     @endforelse
                 </div>
             </div>
-        </div>
+        </div> <!-- Properly closed left column wrapper -->
 
         <!-- Right Side: Order Summary / Cart -->
         <div class="w-2/5 bg-[#202226] border-l border-zinc-800 shadow-2xl flex flex-col h-full shrink-0">
@@ -245,6 +246,7 @@
             </div>
         </div>
     </div>
+</body>
 
     <!-- HOLD ORDER REFERENCE MODAL -->
     <div id="holdOrderModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">

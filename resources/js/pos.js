@@ -606,6 +606,39 @@ window.updateOrderChannel = function(channelValue) {
     getTextOrValue('modalChannel', channelValue);
 };
 
+/**
+ * Filter products by category or matching product name
+ * @param {string} categoryQuery - Category name or 'all'
+ * @param {HTMLElement} btnElement - Clicked button reference
+ */
+window.setCategory = function(categoryQuery, btnElement) {
+    const target = (categoryQuery || '').toLowerCase().trim();
+
+    // 1. Update Active Button Styling (.cat-btn)
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-[#f97316]', 'text-white');
+        btn.classList.add('bg-[#202226]', 'text-zinc-300', 'border', 'border-zinc-700');
+    });
+
+    if (btnElement) {
+        btnElement.classList.remove('bg-[#202226]', 'text-zinc-300', 'border', 'border-zinc-700');
+        btnElement.classList.add('bg-[#f97316]', 'text-white');
+    }
+
+    // 2. Filter Product Cards
+    document.querySelectorAll('.product-card').forEach(card => {
+        const cardCategory = (card.dataset.category || '').toLowerCase();
+        const cardName = (card.dataset.name || card.innerText || '').toLowerCase();
+
+        // Show if 'all', or if target string matches category or item title
+        if (target === 'all' || cardCategory.includes(target) || cardName.includes(target)) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+};
+
 // --- EXPOSE FUNCTIONS TO WINDOW ---
 
 Object.assign(window, {
