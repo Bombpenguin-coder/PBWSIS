@@ -13,6 +13,10 @@ class Category extends Model
 
     protected $fillable = [
         'category_name',
-        'description',
+        'is_discountable',
+        'has_size_small',
+        'has_size_medium',
+        'has_size_large',
+        'has_sugar_level',
     ];
 }
