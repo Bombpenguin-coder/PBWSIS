@@ -16,15 +16,31 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'category_name' => 'required|string|max:255|unique:categories,category_name',
-            'description' => 'nullable|string|max:255',
+            'category_name' => 'required|max:255',
+            'description'   => 'nullable|string',
         ]);
 
-        Category::create([
-            'category_name' => $request->category_name,
-            'description' => $request->description,
+        Category::create($request->only('category_name', 'description'));
+
+        return redirect()->route('categories.index')->with('success', 'Category created successfully!');
+    }
+
+    public function update(Request $request, Category $category)
+    {
+        $request->validate([
+            'category_name' => 'required|max:255',
+            'description'   => 'nullable|string',
         ]);
 
-        return redirect()->back()->with('success', 'Category added successfully!');
+        $category->update($request->only('category_name', 'description'));
+
+        return redirect()->route('categories.index')->with('success', 'Category updated successfully!');
+    }
+
+    public function destroy(Category $category)
+    {
+        $category->delete();
+
+        return redirect()->route('categories.index')->with('success', 'Category deleted successfully!');
     }
 }

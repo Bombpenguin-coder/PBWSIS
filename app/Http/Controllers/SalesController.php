@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Discount;
 use App\Models\Product;
 use App\Models\Sale;
@@ -25,6 +26,11 @@ class SalesController extends Controller
             return $product;
         });
 
+        // Fetch categories from database to generate dynamic filter pills in POS
+        $categories = class_exists(Category::class) 
+            ? Category::all() 
+            : collect([]);
+
         // Fetch VAT configuration safely
         $rawVat = null;
         if (class_exists(Vat::class)) {
@@ -47,7 +53,7 @@ class SalesController extends Controller
 
         $viewName = view()->exists('pos') ? 'pos' : 'pointofsale';
 
-        return view($viewName, compact('products', 'vat', 'discounts'));
+        return view($viewName, compact('products', 'categories', 'vat', 'discounts'));
     }
 
     public function store(Request $request)

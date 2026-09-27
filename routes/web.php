@@ -102,6 +102,8 @@ Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
         Route::prefix('categories')->name('categories.')->group(function () {
             Route::get('/', [CategoryController::class, 'index'])->name('index');
             Route::post('/', [CategoryController::class, 'store'])->name('store');
+            Route::put('{id}', [CategoryController::class, 'update'])->name('update');
+            Route::delete('{id}', [CategoryController::class, 'destroy'])->name('destroy');
         });
 
         // Wastage
@@ -123,13 +125,15 @@ Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
     Route::delete('/inventory/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
 
   
-Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
-Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
-Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
-Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
+    Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
+    Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
+    Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
+    Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('/inventory/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
     Route::get('/wastage', [WastageController::class, 'index'])->name('wastage.index');
     Route::post('/inventory/wastage', [WastageController::class, 'store'])->name('wastage.store');
@@ -194,4 +198,4 @@ Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'dest
         Route::get('/audit-trail', [DashboardController::class, 'auditTrail'])->name('audit-trail');
         
     });
-    });
+});
