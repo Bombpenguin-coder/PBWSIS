@@ -155,7 +155,7 @@
                                         Edit
                                     </button>
 
-                                    <form action="{{ route('categories.destroy', $category->category_id ?? $category->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete category {{ $category->category_name }}?');">
+                                    <form action="{{ route('categories.destroy', $category->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete category {{ $category->category_name }}?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="bg-rose-700/80 hover:bg-rose-700 text-white font-bold py-1 px-3 rounded text-xs transition duration-150">

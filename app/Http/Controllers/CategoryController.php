@@ -36,7 +36,7 @@ class CategoryController extends Controller
         return redirect()->route('categories.index')->with('success', 'Category created successfully!');
     }
 
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $id)
     {
         $request->validate([
             'category_name'   => 'required|string|max:255',
@@ -46,6 +46,8 @@ class CategoryController extends Controller
             'has_size_large'  => 'nullable|boolean',
             'has_sugar_level' => 'nullable|boolean',
         ]);
+
+        $category = Category::findOrFail($id);
 
         $category->update([
             'category_name'   => $request->input('category_name'),
@@ -59,8 +61,9 @@ class CategoryController extends Controller
         return redirect()->route('categories.index')->with('success', 'Category updated successfully!');
     }
 
-    public function destroy(Category $category)
+    public function destroy($id)
     {
+        $category = Category::findOrFail($id);
         $category->delete();
 
         return redirect()->route('categories.index')->with('success', 'Category deleted successfully!');
