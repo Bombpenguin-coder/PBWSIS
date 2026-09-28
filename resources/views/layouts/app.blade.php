@@ -64,7 +64,7 @@
                 </button>
                 <div id="inventoryMenu" class="{{ request()->routeIs('ingredients.*', 'wastage.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
                    <a href="{{ route('inventory.ingredients.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
-                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Wastage Logs</a>
+                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Shrinkage</a>
                 </div>
             </div>
 
