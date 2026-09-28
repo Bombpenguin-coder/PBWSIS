@@ -20,4 +20,13 @@ class Category extends Model
         'has_size_large',
         'has_sugar_level',
     ];
+
+    /**
+     * Get the products associated with this category.
+     */
+    public function products()
+    {
+        // Assumes your products table has a 'category_id' column
+        return $this->hasMany(Product::class, 'category_id');
+    }
 }

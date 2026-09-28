@@ -136,7 +136,7 @@
                              data-category="{{ strtolower($product->category_name ?? $product->category ?? '') }}"
                              data-price="{{ $product->price }}"
                              data-stock="{{ $stock }}"
-                             @if($isAvailable) onclick="addToCart(this)" @endif>
+                             @if($isAvailable) onclick="handleProductClick(this)" @endif>
                              
                             <!-- Product Image Container -->
                             <div class="relative h-28 bg-[#18191c] rounded-lg mb-3 flex items-center justify-center overflow-hidden border border-zinc-800">
@@ -475,6 +475,37 @@
         </button>
     </div>
 
+    <!-- Beverage Options Modal -->
+<div id="optionsModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all">
+    <div class="bg-zinc-900 text-white p-6 rounded-lg shadow-xl w-full max-w-sm border-t-4 border-amber-600 relative">
+        <h2 class="text-xl font-bold mb-4 text-white" id="modalProductName">Select Options</h2>
+
+        <div class="mb-4">
+            <label class="block text-sm font-bold mb-2 text-gray-200">Size (Ounces)</label>
+            <select id="optionSize" class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-600">
+                <option value="16oz">16 oz</option>
+                <option value="22oz">22 oz</option>
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-bold mb-2 text-gray-200">Sugar Level</label>
+            <select id="optionSugar" class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-600">
+                <option value="100%">100% (Normal Sugar)</option>
+                <option value="75%">75% (Less Sugar)</option>
+                <option value="50%">50% (Half Sugar)</option>
+                <option value="25%">25% (Quarter Sugar)</option>
+                <option value="0%">0% (No Sugar)</option>
+            </select>
+        </div>
+
+        <div class="flex justify-end space-x-2">
+            <button onclick="closeOptionsModal()" class="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
+            <button onclick="confirmOptionsAndAddToCart()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded transition duration-200">Add to Order</button>
+        </div>
+    </div>
+</div>
+
     <!-- PASS BLADE DISCOUNTS & CONFIG DIRECTLY TO JS -->
     <script>
         window.VAT_CONFIG = {
@@ -521,6 +552,59 @@
                 toast.classList.add('hidden');
             }
         }
+
+        let pendingBeverageElement = null; // Temporarily holds the clicked HTML element
+
+function handleProductClick(element) {
+    // 1. Grab the category from the data-category attribute
+    const category = element.dataset.category || '';
+    
+    // 2. Check if the category is a drink that needs options
+    if (category.includes('milk tea') || category.includes('beverage') || category.includes('drinks')) {
+        
+        // Save the HTML element so the modal can use it later
+        pendingBeverageElement = element;
+        
+        // Capitalize the product name for the modal title
+        let productName = element.dataset.name;
+        productName = productName.charAt(0).toUpperCase() + productName.slice(1);
+        
+        // Show the modal
+        document.getElementById('modalProductName').innerText = productName + ' Options';
+        document.getElementById('optionsModal').classList.remove('hidden');
+        
+    } else {
+        // 3. If it's regular food, bypass the modal and send directly to the cart
+        addToCart(element);
+    }
+}
+
+function closeOptionsModal() {
+    // Hide the modal and clear the temporary variable
+    document.getElementById('optionsModal').classList.add('hidden');
+    pendingBeverageElement = null;
+}
+
+function confirmOptionsAndAddToCart() {
+    // 1. Grab the selected options from the modal dropdowns
+    const size = document.getElementById('optionSize').value;
+    const sugar = document.getElementById('optionSugar').value;
+    
+    // 2. Save the original product name so we can revert it later
+    const originalName = pendingBeverageElement.dataset.name;
+    
+    // 3. Temporarily update the dataset name with the selected options
+    pendingBeverageElement.dataset.name = `${originalName} (${size}, ${sugar} Sugar)`;
+    
+    // 4. Send the updated element to your existing cart function!
+    addToCart(pendingBeverageElement);
+    
+    // 5. Instantly revert the data-name back to normal so the product card isn't permanently changed
+    pendingBeverageElement.dataset.name = originalName;
+    
+    // 6. Close the modal
+    closeOptionsModal();
+}
     </script>
 </body>
 </html>

@@ -47,4 +47,12 @@ class Product extends Model implements Auditable
 
         return empty($possiblePortions) ? 0 : (int) max(0, min($possiblePortions));
     }
+
+    /**
+     * Get the category that owns the product.
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
 }

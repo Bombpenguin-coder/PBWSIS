@@ -20,6 +20,9 @@ return new class extends Migration
         $table->decimal('price', 8, 2); // 8 total digits, 2 decimal places for currency
         $table->integer('stock_quantity')->default(0);
         $table->string('status')->default('Available'); // e.g., Available, Out of Stock
+
+        // If a category is deleted, safely set the product's category_id to NULL (recommended so we don't lose product data)
+        $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
         
         // Laravel's built-in created_at and updated_at timestamps
         $table->timestamps(); 
