@@ -7,55 +7,56 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-   <!-- Thermal Print Styles -->
-<style>
-    /* CSS Print Rules specifically for 58mm Printers */
-    @page {
-        size: 58mm auto; /* Explicit thermal paper width */
-        margin: 0mm;      /* Strip default browser header/footer/margins */
-    }
-
-    @media print {
-        /* Hide full app UI cleanly */
-        html, body {
-            width: 58mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-            color: #000000 !important;
-            overflow: visible !important;
+    <!-- Thermal Print Styles -->
+    <style>
+        /* CSS Print Rules specifically for 58mm Printers */
+        @page {
+            size: 58mm auto; /* Explicit thermal paper width */
+            margin: 0mm;      /* Strip default browser header/footer/margins */
         }
 
-        body * {
-            visibility: hidden !important;
-        }
+        @media print {
+            /* Hide full app UI cleanly */
+            html, body {
+                width: 58mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                overflow: visible !important;
+            }
 
-        /* Show ONLY the receipt container */
-        #printableReceipt, #printableReceipt * {
-            visibility: visible !important;
-        }
+            body * {
+                visibility: hidden !important;
+            }
 
-        #printableReceipt {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 58mm !important; /* Lock to thermal roll size */
-            max-width: 58mm !important;
-            padding: 4mm !important; /* Clean inner border spacing */
-            margin: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-            background: #ffffff !important;
-            color: #000000 !important;
-            font-size: 11px !important;
-            line-height: 1.2 !important;
-        }
+            /* Show ONLY the receipt container */
+            #printableReceipt, #printableReceipt * {
+                visibility: visible !important;
+            }
 
-        .no-print {
-            display: none !important;
+            #printableReceipt {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 58mm !important; /* Lock to thermal roll size */
+                max-width: 58mm !important;
+                padding: 4mm !important; /* Clean inner border spacing */
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-size: 11px !important;
+                line-height: 1.2 !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
         }
-    }
-</style>
+    </style>
+
     <!-- Expose Global Config Variables -->
     <script>
         window.vatConfig = @json($vat ?? null);
@@ -64,7 +65,7 @@
     <!-- Load external JS -->
     @vite(['resources/js/pos.js'])
 </head>
-<body class="bg-[#18191c] text-zinc-100 font-sans h-screen flex flex-col overflow-hidden">
+<body class="bg-[#18191c] text-zinc-100 font-sans h-screen flex flex-col overflow-hidden select-none">
     
     <!-- POS Top Navigation -->
     <nav class="bg-[#111214] border-b border-zinc-800 text-white p-4 shadow-md shrink-0 no-print">
@@ -79,8 +80,8 @@
         </div>
     </nav>
 
-    <!-- POS Main Interface (Split Screen) -->
-    <div class="flex-1 flex overflow-hidden no-print w-full">
+    <!-- POS Main Interface (Split Screen Container) -->
+    <div class="flex-1 flex flex-row overflow-hidden no-print w-full h-full">
         
         <!-- Left Side: Product Grid + Search/Categories -->
         <div class="w-3/5 p-6 bg-[#18191c] flex flex-col h-full overflow-hidden">
@@ -98,24 +99,30 @@
 
                 <!-- Category Pills Filter -->
                 <div class="flex gap-2 overflow-x-auto pb-1">
-                    <button type="button" onclick="setCategory('all', this)" class="cat-btn bg-[#f97316] text-white font-bold text-xs py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
+                    <button type="button" 
+                            onclick="setCategory('all', this)" 
+                            class="cat-btn bg-[#f97316] text-white font-bold text-xs py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
                         All Items
                     </button>
-                    <button type="button" onclick="setCategory('milktea', this)" class="cat-btn bg-[#202226] text-zinc-300 border border-zinc-700 hover:bg-zinc-800 text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
-                         Milk Tea
-                    </button>
-                    <button type="button" onclick="setCategory('chicken', this)" class="cat-btn bg-[#202226] text-zinc-300 border border-zinc-700 hover:bg-zinc-800 text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
-                         Chicken
-                    </button>
+
+                    @foreach($categories as $category)
+                        @php
+                            $catName = strtolower($category->category_name ?? $category->name ?? '');
+                        @endphp
+                        <button type="button" 
+                                onclick="setCategory('{{ $catName }}', this)" 
+                                class="cat-btn bg-[#202226] text-zinc-300 border border-zinc-700 hover:bg-zinc-800 text-xs font-bold py-1.5 px-4 rounded-full transition shadow-sm whitespace-nowrap">
+                            {{ $category->category_name ?? $category->name }}
+                        </button>
+                    @endforeach
                 </div>
-            </div>
+            </div> <!-- Properly closed search & category section wrapper -->
 
             <!-- Scrollable Menu Grid -->
             <div class="flex-1 overflow-y-auto pr-1">
                 <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4">
                     @forelse($products as $product)
                         @php
-                            // Fetch stock level calculated by model accessor or custom stock field
                             $stock = $product->available_stock ?? $product->calculated_stock ?? 0;
                             $isAvailable = $stock > 0;
                         @endphp
@@ -125,7 +132,7 @@
                              class="product-card relative bg-[#202226] rounded-xl shadow-md border border-zinc-800 p-4 transition duration-200 select-none flex flex-col justify-between group 
                                     {{ !$isAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#f97316] hover:shadow-xl' }}" 
                              data-id="{{ $product->product_id }}" 
-                             data-name="{{ $product->product_name }}" 
+                             data-name="{{ strtolower($product->product_name) }}" 
                              data-category="{{ strtolower($product->category_name ?? $product->category ?? '') }}"
                              data-price="{{ $product->price }}"
                              data-stock="{{ $stock }}"
@@ -144,7 +151,6 @@
                                     </div>
                                 @endif
 
-                                <!-- Orange UNAVAILABLE Badge Overlay -->
                                 @if(!$isAvailable)
                                     <div class="absolute inset-0 bg-black/75 flex flex-col items-center justify-center p-2 text-center">
                                         <span class="bg-orange-600/90 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow">
@@ -160,7 +166,6 @@
                                 <div class="flex justify-between items-center mt-2">
                                     <span class="text-orange-500 font-black">₱{{ number_format($product->price, 2) }}</span>
                                     
-                                    <!-- Stock Counter Badge -->
                                     @if($isAvailable)
                                         <span class="text-[10px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded font-mono">
                                             {{ floor($stock) }} left
@@ -176,7 +181,7 @@
                     @endforelse
                 </div>
             </div>
-        </div>
+        </div> <!-- Properly closed left column wrapper -->
 
         <!-- Right Side: Order Summary / Cart -->
         <div class="w-2/5 bg-[#202226] border-l border-zinc-800 shadow-2xl flex flex-col h-full shrink-0">
@@ -223,7 +228,7 @@
                         </div>
 
                         <div class="flex justify-between text-xs text-zinc-400 py-1">
-                            <span>VAT ({{ ($vat->is_enabled ?? $vat->is_active ?? true) ? number_format($vat->rate, 2) . '% ' . ($vat->is_inclusive ? 'Incl.' : 'Excl.') : 'Disabled' }}):</span>
+                            <span>VAT ({{ ($vat->is_enabled ?? $vat->is_active ?? true) ? number_format($vat->rate ?? 12, 2) . '% ' . (($vat->is_inclusive ?? false) ? 'Incl.' : 'Excl.') : 'Disabled' }}):</span>
                             <span id="vatDisplay">₱0.00</span>
                         </div>
 
@@ -241,6 +246,7 @@
             </div>
         </div>
     </div>
+</body>
 
     <!-- HOLD ORDER REFERENCE MODAL -->
     <div id="holdOrderModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -453,12 +459,28 @@
         </div>
     </div>
 
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast-error" class="hidden fixed top-5 right-5 z-50 flex items-center w-full max-w-sm p-4 text-zinc-100 bg-[#202226] rounded-xl shadow-2xl border-l-4 border-orange-600 transition-all duration-300 ease-in-out">
+        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-orange-400 bg-orange-900/40 rounded-lg">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+        </div>
+        <div class="ml-3 text-xs font-medium text-zinc-300">
+            <span class="font-bold text-white block mb-0.5">Transaction Error</span>
+            <span id="toast-message"></span>
+        </div>
+        <button type="button" onclick="hideToast()" class="ml-auto -mx-1.5 -my-1.5 bg-[#202226] text-zinc-400 hover:text-white rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8">
+            &times;
+        </button>
+    </div>
+
     <!-- PASS BLADE DISCOUNTS & CONFIG DIRECTLY TO JS -->
     <script>
         window.VAT_CONFIG = {
-            rate: {{ $vat->is_active ? ($vat->rate / 100) : 0 }},
-            isInclusive: {{ $vat->is_inclusive ? 'true' : 'false' }},
-            isActive: {{ $vat->is_active ? 'true' : 'false' }}
+            rate: {{ ($vat->is_active ?? false) ? (($vat->rate ?? 0) / 100) : 0 }},
+            isInclusive: {{ ($vat->is_inclusive ?? false) ? 'true' : 'false' }},
+            isActive: {{ ($vat->is_active ?? false) ? 'true' : 'false' }}
         };
 
         @if(isset($discounts))
@@ -479,12 +501,13 @@
         function showErrorToast(message) {
             const toast = document.getElementById('toast-error');
             const msgContainer = document.getElementById('toast-message');
+            if (!toast || !msgContainer) return;
             
             msgContainer.textContent = message;
             toast.classList.remove('hidden');
 
             // Reset timer if triggered repeatedly
-            clearout(toastTimeout);
+            clearTimeout(toastTimeout);
 
             // Auto-hide after 5 seconds
             toastTimeout = setTimeout(() => {
@@ -499,22 +522,5 @@
             }
         }
     </script>
-
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast-error" class="hidden fixed top-5 right-5 z-50 flex items-center w-full max-w-sm p-4 text-zinc-100 bg-[#202226] rounded-xl shadow-2xl border-l-4 border-orange-600 transition-all duration-300 ease-in-out">
-        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-orange-400 bg-orange-900/40 rounded-lg">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-            </svg>
-        </div>
-        <div class="ml-3 text-xs font-medium text-zinc-300">
-            <span class="font-bold text-white block mb-0.5">Transaction Error</span>
-            <span id="toast-message"></span>
-        </div>
-        <button type="button" onclick="hideToast()" class="ml-auto -mx-1.5 -my-1.5 bg-[#202226] text-zinc-400 hover:text-white rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8">
-            &times;
-        </button>
-    </div>
-
 </body>
 </html>

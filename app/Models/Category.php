@@ -4,19 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use OwenIt\Auditing\Contracts\Auditable;
 
-class Category extends Model implements Auditable
+class Category extends Model
 {
     use HasFactory;
-    use \OwenIt\Auditing\Auditable;
 
-    protected $primaryKey = 'category_id';
-    protected $fillable = ['category_name', 'description'];
+    protected $table = 'categories';
+    protected $primaryKey = 'id'; // Standard primary key
 
-    // A category has many products
-    public function products()
-    {
-        return $this->hasMany(Product::class, 'category_id', 'category_id');
-    }
+    protected $fillable = [
+        'category_name',
+        'is_discountable',
+        'has_size_small',
+        'has_size_medium',
+        'has_size_large',
+        'has_sugar_level',
+    ];
 }

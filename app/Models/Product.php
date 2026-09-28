@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 
-
 class Product extends Model implements Auditable
 {
     use HasFactory;
@@ -33,8 +32,16 @@ class Product extends Model implements Auditable
         foreach ($this->ingredients as $ingredient) {
             // Uses 'quantity_needed' from pivot
             $required = $ingredient->pivot->quantity_needed ?? 0;
+
             if ($required > 0) {
-                $possiblePortions[] = floor($ingredient->quantity / $required);
+                // Determine pieces per box (fallback to 1 if not set)
+                $ppb = $ingredient->pieces_per_box > 0 ? $ingredient->pieces_per_box : 1;
+
+                // Calculate total loose pieces (Sealed Boxes * Pieces per Box + Loose Pieces)
+                $totalAvailablePieces = ($ingredient->quantity * $ppb) + ($ingredient->total_pieces ?? 0);
+
+                // Divide total available pieces by the required pieces per portion
+                $possiblePortions[] = floor($totalAvailablePieces / $required);
             }
         }
 

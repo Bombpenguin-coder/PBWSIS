@@ -69,19 +69,20 @@
             </div>
 
             <!-- 4. FILE MAINTENANCE -->
-            <div>
-                <button onclick="toggleSubmenu('fileMenu', 'fileArrow')" class="w-full flex justify-between items-center px-4 py-3 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
-                    <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">File Maintenance</span>
-                    <svg id="fileArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div id="fileMenu" class="{{ request()->routeIs('inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                    <a href="/inventory" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Products Catalog</a>
-                    <a href="/discounts" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Discounts</a>
-                    <a href="/vat" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">VAT</a>
-                    <a href="/purchases" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('purchases.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Purchases</a>
-                    <a href="/suppliers" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Suppliers</a>
+                <div>
+                    <button onclick="toggleSubmenu('fileMenu', 'fileArrow')" class="w-full flex justify-between items-center px-4 py-3 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
+                        <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">File Maintenance</span>
+                        <svg id="fileArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="fileMenu" class="{{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
+                        <a href="{{ route('categories.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Categories</a>
+                        <a href="/inventory" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Products Catalog</a>
+                        <a href="/discounts" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Discounts</a>
+                        <a href="/vat" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">VAT</a>
+                        <a href="/purchases" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('purchases.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Purchases</a>
+                        <a href="/suppliers" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Suppliers</a>
+                    </div>
                 </div>
-            </div>
 
             <!-- 5. ADMINISTRATION -->
             <div>
