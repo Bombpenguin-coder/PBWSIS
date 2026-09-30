@@ -13,6 +13,7 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\OperationController;
+use App\Http\Controllers\PurchaseController;
 
 
 // =========================================================
@@ -175,7 +176,8 @@ Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
     Route::get('/reports', [SalesController::class, 'reports'])->name('reports.index');
     Route::view('/purchases', 'layouts.purchases')->name('purchases.index');
     Route::get('/test-receipt', function () { return view('receipt'); });
-
+    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+    Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store'); 
     Route::get('/receipt/{sale_id}', function ($sale_id) {
         // Removed 'user' so Eloquent doesn't crash trying to find the cashier
         $sale = \App\Models\Sale::with(['details.product'])->findOrFail($sale_id);

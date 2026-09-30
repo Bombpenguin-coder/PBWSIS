@@ -9,25 +9,25 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-  public function up(): void
-{
-    Schema::create('products', function (Blueprint $table) {
-        // Laravel's default primary key (acts as your Product_ID)
-        $table->id('product_id'); 
-        
-        // ERD Attributes
-        $table->string('product_name');
-        $table->decimal('price', 8, 2); // 8 total digits, 2 decimal places for currency
-        $table->integer('stock_quantity')->default(0);
-        $table->string('status')->default('Available'); // e.g., Available, Out of Stock
+    public function up(): void
+    {
+        Schema::create('products', function (Blueprint $table) {
+            // Laravel's default primary key (acts as your Product_ID)
+            $table->id('product_id'); 
+            
+            // ERD Attributes
+            $table->string('product_name');
+            $table->decimal('price', 8, 2); // 8 total digits, 2 decimal places for currency
+            $table->integer('stock_quantity')->default(0);
+            $table->string('status')->default('Available'); // e.g., Available, Out of Stock
 
-        // If a category is deleted, safely set the product's category_id to NULL (recommended so we don't lose product data)
-        $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
-        
-        // Laravel's built-in created_at and updated_at timestamps
-        $table->timestamps(); 
-    });
-}
+            // Points specifically to the 'category_id' column in the 'categories' table
+            $table->foreignId('category_id')->nullable()->constrained('categories', 'category_id')->onDelete('set null');
+            
+            // Laravel's built-in created_at and updated_at timestamps
+            $table->timestamps(); 
+        });
+    }
 
     /**
      * Reverse the migrations.

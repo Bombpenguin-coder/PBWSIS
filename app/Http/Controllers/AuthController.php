@@ -88,7 +88,7 @@ class AuthController extends Controller
             'username' => 'The provided credentials do not match our records.',
         ])->onlyInput('username');
     }
-
+    
     // 5. Logout User
     public function logout(Request $request)
     {
