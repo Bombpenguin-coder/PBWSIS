@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OperationController extends Controller
 {
@@ -51,23 +53,42 @@ class OperationController extends Controller
     {
         $request->validate(['payment_method' => 'required|string']);
 
-        $order = Order::with('items.product.ingredients')->findOrFail($id);
+        try {
+            DB::transaction(function () use ($request, $id) {
+                $order = Order::with('items.product.ingredients')->findOrFail($id);
 
-        foreach ($order->items as $item) {
-            if ($item->product && $item->product->ingredients) {
-                foreach ($item->product->ingredients as $ingredient) {
-                    $deduction = $ingredient->pivot->quantity_needed * $item->quantity;
-                    $ingredient->decrement('stock_quantity', $deduction);
+                foreach ($order->items as $item) {
+                    if ($item->product && $item->product->ingredients) {
+                        foreach ($item->product->ingredients as $ingredient) {
+                            $qtyNeeded = $ingredient->pivot->quantity_needed 
+                                      ?? $ingredient->pivot->quantity_required 
+                                      ?? $ingredient->pivot->quantity 
+                                      ?? 1;
+
+                            $deduction = $qtyNeeded * $item->quantity;
+
+                            // Call the unboxing deduction method from your Ingredient model
+                            $success = $ingredient->deductPieces($deduction);
+
+                            if (!$success) {
+                                throw new \Exception("Insufficient stock for ingredient: {$ingredient->ingredient_name}");
+                            }
+                        }
+                    }
                 }
-            }
+
+                $order->update([
+                    'status'         => 'completed',
+                    'payment_status' => 'paid',
+                    'payment_method' => $request->payment_method
+                ]);
+            });
+
+            return redirect()->back()->with('success', 'Bill paid and inventory updated successfully!');
+
+        } catch (\Exception $e) {
+            Log::error('Bill Checkout Failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Checkout failed: ' . $e->getMessage());
         }
-
-        $order->update([
-            'status'         => 'completed',
-            'payment_status' => 'paid',
-            'payment_method' => $request->payment_method
-        ]);
-
-        return redirect()->back()->with('success', 'Bill paid and inventory updated successfully!');
     }
 }
