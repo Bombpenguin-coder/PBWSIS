@@ -4,21 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use OwenIt\Auditing\Contracts\Auditable;
 
-class Product extends Model implements Auditable
+class Product extends Model
 {
     use HasFactory;
-    use \OwenIt\Auditing\Auditable;
 
     protected $primaryKey = 'product_id';
-    protected $fillable = ['product_name', 'image', 'price', 'status'];
-    protected $appends = ['available_stock'];
+
+    protected $fillable = [
+        'product_name',
+        'image',
+        'price',
+        'status',
+    ];
 
     public function ingredients()
     {
         return $this->belongsToMany(Ingredient::class, 'product_ingredients', 'product_id', 'ingredient_id')
-                    ->withPivot('quantity_needed'); // Matches migration column name
+                    ->withPivot('quantity_needed');
     }
 
     public function getAvailableStockAttribute()

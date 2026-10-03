@@ -39,7 +39,6 @@
                             $sealedBoxes = (float)$ingredient->quantity;
                             $activePieces = (float)($ingredient->total_pieces ?? 0);
 
-                            // Automatically open next box if active loose pieces hit 0 or lower and sealed boxes remain
                             if ($activePieces <= 0 && $sealedBoxes > 0) {
                                 $sealedBoxes -= 1;
                                 $activePieces = $ppb;
@@ -51,18 +50,15 @@
                         <tr class="hover:bg-[#202226]/60 transition duration-150">
                             <td class="py-3 px-4 font-semibold text-white">{{ $ingredient->ingredient_name }}</td>
                             
-                            <!-- Sealed Stock Boxes -->
                             <td class="py-3 px-4 font-bold {{ $isLow ? 'text-rose-400' : 'text-emerald-400' }}">
                                 {{ number_format($sealedBoxes) }} <span class="text-xs font-normal text-zinc-400">Boxes</span>
                             </td>
 
-                            <!-- Loose Pieces (Active Box) -->
                             <td class="py-3 px-4 font-semibold text-amber-400">
                                 {{ number_format($activePieces) }} / {{ number_format($ppb) }} 
                                 <span class="text-xs font-normal text-zinc-400">{{ $ingredient->unit }}</span>
                             </td>
 
-                            <!-- Status Badge -->
                             <td class="py-3 px-4 text-center">
                                 @if($isLow)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 border border-rose-500/20 text-rose-400">
@@ -75,22 +71,21 @@
                                 @endif
                             </td>
 
-                            <!-- Actions Column -->
                             <td class="py-3 px-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <!-- Edit Button -->
                                     <button type="button" 
                                         onclick="openEditModal('{{ route('ingredients.update', $ingredient->ingredient_id) }}', 'Edit Ingredient', [
                                             { label: 'Ingredient Name', name: 'ingredient_name', value: '{{ addslashes($ingredient->ingredient_name) }}', required: true },
                                             { label: 'Sealed Boxes', name: 'quantity', type: 'number', value: '{{ (float)$ingredient->quantity }}', required: true },
                                             { label: 'Pieces Per Box', name: 'pieces_per_box', type: 'number', value: '{{ (float)($ingredient->pieces_per_box ?? 1) }}', required: true },
-                                            { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
+                                            { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true },
+                                            { label: 'Max Capacity', name: 'max_capacity', type: 'number', value: '{{ (float)$ingredient->max_capacity }}', required: true },
+                                            { label: 'Reorder Threshold', name: 'reorder_level', type: 'number', value: '{{ (float)$ingredient->reorder_level }}', required: true }
                                         ])" 
                                         class="text-xs font-semibold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1.5 rounded-md transition duration-150">
                                         Edit
                                     </button>
 
-                                    <!-- Delete Button Form -->
                                     <form id="delete-ingredient-form-{{ $ingredient->ingredient_id }}" action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
@@ -113,29 +108,26 @@
                 </tbody>
             </table>
         </div>
+        
+        <div class="mt-4">
+            {{ $ingredients->links() }}
+        </div>
     </div>
 
-    <!-- ================= DARK MODAL POPUP FORM ================= -->
+    <!-- Modal Form -->
     <div id="addProductModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
         <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all max-h-[90vh] flex flex-col">
-            
-            <!-- Modal Header -->
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4 shrink-0">
                 <h3 class="text-base font-bold text-white">Add Raw Ingredient</h3>
                 <button type="button" onclick="closeAddModal()" class="text-zinc-400 hover:text-white text-xl font-bold leading-none">&times;</button>
             </div>
 
-            <!-- Modal Body Form -->
             <form action="{{ route('ingredients.store') }}" method="POST">
                 @csrf
-                
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_ingredient_name">Ingredient Name</label>
                     <input type="text" name="ingredient_name" id="modal_ingredient_name" value="{{ old('ingredient_name') }}" required placeholder="e.g., Espresso Beans" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                    @error('ingredient_name')
-                        <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
-                    @enderror
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 mb-3">
@@ -143,17 +135,11 @@
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_quantity">Sealed Boxes</label>
                         <input type="number" step="1" name="quantity" id="modal_quantity" value="{{ old('quantity') }}" required placeholder="0" 
                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                        @error('quantity')
-                            <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
-                        @enderror
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_pieces_per_box">Pieces / Box</label>
                         <input type="number" step="1" name="pieces_per_box" id="modal_pieces_per_box" value="{{ old('pieces_per_box') }}" required placeholder="e.g., 50" 
                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                        @error('pieces_per_box')
-                            <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
-                        @enderror
                     </div>
                 </div>
 
@@ -161,30 +147,20 @@
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_unit">Unit</label>
                     <input type="text" name="unit" id="modal_unit" value="{{ old('unit') }}" required placeholder="g, ml, pcs" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                    @error('unit')
-                        <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
-                    @enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_max_capacity">Max Storage (Boxes)</label>
                     <input type="number" step="1" name="max_capacity" id="modal_max_capacity" value="{{ old('max_capacity') }}" required placeholder="100" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                    @error('max_capacity')
-                        <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
-                    @enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_reorder_level">Reorder Threshold (Boxes)</label>
                     <input type="number" step="1" name="reorder_level" id="modal_reorder_level" value="{{ old('reorder_level') }}" required placeholder="10" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                    @error('reorder_level')
-                        <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
-                    @enderror
                 </div>
 
-                <!-- Modal Action Buttons -->
                 <div class="flex justify-end space-x-2 pt-3 border-t border-zinc-800 mt-4">
                     <button type="button" onclick="closeAddModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
                         Cancel
@@ -197,7 +173,7 @@
         </div>
     </div>
 
-    <!-- Dark Custom Delete Confirmation Modal -->
+    <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
         <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all flex flex-col">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">

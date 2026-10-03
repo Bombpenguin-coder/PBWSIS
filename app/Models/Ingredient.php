@@ -30,6 +30,12 @@ class Ingredient extends Model implements Auditable
                     ->withPivot('quantity_needed');
     }
 
+    // One-to-Many Relationship to Purchases
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class, 'ingredient_id', 'ingredient_id');
+    }
+
     /**
      * Deduct loose pieces needed for a product sale.
      * Automatically opens unopened sealed boxes as active stock depletes.
