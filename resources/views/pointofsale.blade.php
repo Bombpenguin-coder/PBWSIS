@@ -375,44 +375,54 @@
             <h3 class="text-lg font-black text-white mb-1 no-print">Receipt Preview</h3>
             <p class="text-xs text-zinc-400 mb-4 no-print">Review official receipt before printing</p>
 
-            <!-- Printable Receipt Container -->
-            <div id="printableReceipt" class="w-full bg-white rounded-lg p-4 text-left font-mono text-xs text-black space-y-2 shadow-inner max-h-[28rem] overflow-y-auto">
-                <div class="text-center border-b border-zinc-300 pb-2">
-                    <p class="font-bold text-sm text-black uppercase tracking-wider">PBWSIS POS</p>
-                    <p class="text-[10px] text-zinc-600">Official Receipt Preview</p>
-                    <p id="receiptDate" class="text-[10px] text-zinc-500 mt-0.5"></p>
-                </div>
+           <!-- Printable Receipt Container -->
+<div id="printableReceipt" class="w-full bg-white rounded-lg p-4 text-left font-mono text-xs text-black space-y-2 shadow-inner max-h-[28rem] overflow-y-auto">
+    
+    <div class="text-center pb-2">
+        <p class="font-bold text-sm text-black uppercase tracking-wider">PBWSIS POS</p>
+        <p class="text-[10px] text-zinc-600">Official Receipt Preview</p>
+        <p id="receiptDate" class="text-[10px] text-zinc-500 mt-0.5"></p>
+    </div>
 
-                <!-- Items List -->
-                <div id="receiptItemsList" class="space-y-1 py-1 border-b border-dashed border-zinc-300 text-xs"></div>
+    <!-- Top Standalone Divider -->
+    <div class="border-t border-solid border-zinc-300 my-1"></div>
 
-                <!-- Totals Section -->
-                <div class="space-y-1 text-xs pt-1">
-                    <div class="flex justify-between py-0.5">
-                        <span>Subtotal:</span>
-                        <span id="receiptSubtotal">₱0.00</span>
-                    </div>
+    <!-- Items List (Borders removed from this container) -->
+    <div id="receiptItemsList" class="space-y-1 py-1 text-xs"></div>
 
-                    <div class="flex justify-between text-orange-600 py-0.5">
-                        <span>Discount:</span>
-                        <span id="receiptDiscount">-₱0.00</span>
-                    </div>
+    <!-- Middle Standalone Divider -->
+    <div class="border-t border-dashed border-zinc-400 my-2"></div>
 
-                    <div class="flex justify-between text-zinc-600 py-0.5">
-                        <span>VAT (12% Incl.):</span>
-                        <span id="receiptVat">₱0.00</span>
-                    </div>
+    <!-- Totals Section -->
+    <div class="space-y-1 text-xs">
+        <div class="flex justify-between py-0.5">
+            <span>Subtotal:</span>
+            <span id="receiptSubtotal">₱0.00</span>
+        </div>
 
-                    <div class="flex justify-between text-sm font-bold border-t border-dashed border-zinc-300 pt-1.5 mt-1 text-black">
-                        <span>TOTAL:</span>
-                        <span id="receiptTotal">₱0.00</span>
-                    </div>
-                </div>
+        <div class="flex justify-between text-orange-600 py-0.5">
+            <span>Discount:</span>
+            <span id="receiptDiscount">-₱0.00</span>
+        </div>
 
-                <div class="text-center border-t border-zinc-300 pt-2 text-[10px] text-zinc-500">
-                    Thank you for your purchase!
-                </div>
-            </div>
+        <div class="flex justify-between text-zinc-600 py-0.5">
+            <span>VAT (12% Incl.):</span>
+            <span id="receiptVat">₱0.00</span>
+        </div>
+
+        <!-- Bottom Standalone Divider -->
+        <div class="border-t border-dashed border-zinc-400 my-2"></div>
+
+        <div class="flex justify-between text-sm font-bold text-black pb-1">
+            <span>TOTAL:</span>
+            <span id="receiptTotal">₱0.00</span>
+        </div>
+    </div>
+
+    <div class="text-center border-t border-solid border-zinc-300 pt-2 mt-2 text-[10px] text-zinc-500">
+        Thank you for your purchase!
+    </div>
+</div>
 
             <div class="w-full mt-4 flex gap-2 no-print">
                 <button type="button" onclick="printReceipt()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">
