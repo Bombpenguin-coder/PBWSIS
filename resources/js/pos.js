@@ -136,17 +136,75 @@ function addToCart(element) {
     const name = element.getAttribute('data-name');
     const price = parseFloat(element.getAttribute('data-price'));
 
+    // Cache initial backend stock on first click
+    if (!element.hasAttribute('data-original-stock')) {
+        element.setAttribute('data-original-stock', element.getAttribute('data-stock') || '0');
+    }
+    const maxStock = parseInt(element.getAttribute('data-original-stock'), 10);
+
     if (!id || isNaN(price)) return;
 
-    const existingItem = cart.find(item => item.id === id);
+    const existingItem = cart.find(item => item.id == id);
+    const currentQty = existingItem ? existingItem.quantity : 0;
+
+    // REAL-TIME CHECK against available portion limit
+    if (maxStock > 0 && (currentQty + 1) > maxStock) {
+        if (typeof showToast === 'function') {
+            showToast(`Cannot add more ${name}. Only ${maxStock} available!`);
+        } else if (typeof showStockModal === 'function') {
+            showStockModal(`Cannot add more ${name}. Only ${maxStock} available!`);
+        }
+        return;
+    }
+
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        cart.push({ id, name, price, quantity: 1, discountType: 'none', discountRate: 0, discountedQty: 0 });
+        cart.push({
+            id: id,
+            name: name,
+            price: price,
+            quantity: 1,
+            stock: maxStock,
+            discountType: 'none',
+            discountRate: 0,
+            discountedQty: 0
+        });
     }
 
     updateStockDisplay(id);
     updateCartUI();
+}
+
+function updateStockDisplay(productId) {
+    const card = document.querySelector(`.product-card[data-id="${productId}"]`);
+    if (!card) return;
+
+    // Store original database stock on first call
+    if (!card.hasAttribute('data-original-stock')) {
+        card.setAttribute('data-original-stock', card.getAttribute('data-stock') || '0');
+    }
+    const originalStock = parseInt(card.getAttribute('data-original-stock'), 10);
+
+    const cartItem = cart.find(item => item.id == productId);
+    const qtyInCart = cartItem ? cartItem.quantity : 0;
+    const remainingStock = Math.max(0, originalStock - qtyInCart);
+
+    // Update active data-stock attribute
+    card.setAttribute('data-stock', remainingStock);
+
+    // Query and update all stock label/badge elements on the card
+    const stockBadge = card.querySelector('.stock-badge, span[class*="left"], span.text-xs');
+    if (stockBadge) {
+        stockBadge.textContent = remainingStock > 0 ? `${remainingStock} left` : '0 left';
+    }
+
+    // Toggle card visually when out of stock without breaking event delegation
+    if (remainingStock <= 0) {
+        card.classList.add('opacity-50');
+    } else {
+        card.classList.remove('opacity-50');
+    }
 }
 
 function updateItemDiscountType(index, selectElement) {
@@ -179,7 +237,22 @@ function updateQuantity(index, delta) {
     const item = cart[index];
     if (!item) return;
 
+    const productCard = document.querySelector(`.product-card[data-id="${item.id}"]`);
+    const maxStock = productCard 
+        ? parseInt(productCard.getAttribute('data-original-stock') || productCard.getAttribute('data-stock') || '0', 10) 
+        : item.stock;
+
+    if (delta > 0 && item.quantity >= maxStock) {
+        if (typeof showToast === 'function') {
+            showToast(`Cannot add more ${item.name}. Only ${maxStock} portions available!`);
+        } else if (typeof showStockModal === 'function') {
+            showStockModal(`Cannot add more ${item.name}. Only ${maxStock} available!`);
+        }
+        return;
+    }
+
     item.quantity += delta;
+
     if (item.quantity <= 0) {
         removeFromCart(index);
         return;
@@ -200,10 +273,6 @@ function removeFromCart(index) {
     cart.splice(index, 1);
     updateStockDisplay(productId);
     updateCartUI();
-}
-
-function updateStockDisplay(productId) {
-    document.getElementById(`product-card-${productId}`)?.classList.remove('opacity-50', 'pointer-events-none', 'cursor-not-allowed');
 }
 
 function updateCartUI() {
@@ -525,6 +594,18 @@ async function confirmAndSubmitOrder() {
             showPrintingModal(subtotal, discountAmount, finalTotal, amountTendered, amountTendered - finalTotal, cart);
         } else {
             const msg = result.error || result.message || "Failed to process order";
+const match = msg.match(/Max available portions:\s*(\d+)/i);
+if (match) {
+    const actualStock = parseInt(match[1], 10);
+    cart.forEach(item => {
+        const card = document.querySelector(`.product-card[data-id="${item.id}"]`);
+        if (card) {
+            card.setAttribute('data-original-stock', actualStock);
+            card.setAttribute('data-stock', actualStock);
+            updateStockDisplay(item.id);
+        }
+    });
+}
             typeof showErrorToast === 'function' ? showErrorToast(msg) : alert(msg);
         }
     } catch (error) {
@@ -639,6 +720,24 @@ window.setCategory = function(categoryQuery, btnElement) {
     });
 };
 
+function showStockModal(message) {
+    const modal = document.getElementById('stockAlertModal');
+    const msgEl = document.getElementById('stockAlertMessage');
+    if (modal && msgEl) {
+        msgEl.innerText = message;
+        modal.classList.remove('hidden');
+    } else {
+        alert(message);
+    }
+}
+
+function closeStockAlertModal() {
+    const modal = document.getElementById('stockAlertModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
 // --- EXPOSE FUNCTIONS TO WINDOW ---
 
 Object.assign(window, {
@@ -677,5 +776,6 @@ Object.assign(window, {
     printReceipt,
     finishPrinting,
     showThankYouModal,
-    closeThankYouModal
+    closeThankYouModal,
+    closeStockAlertModal
 });

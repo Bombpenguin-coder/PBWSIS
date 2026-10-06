@@ -34,19 +34,14 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-800 text-sm bg-[#18191c]">
                     @forelse($ingredients as $ingredient)
-                        @php
-                            $ppb = $ingredient->pieces_per_box > 0 ? $ingredient->pieces_per_box : 1;
-                            $sealedBoxes = (float)$ingredient->quantity;
-                            $activePieces = (float)($ingredient->total_pieces ?? 0);
+                       @php
+    $ppb = $ingredient->pieces_per_box > 0 ? $ingredient->pieces_per_box : 1;
+    $sealedBoxes = (float) $ingredient->quantity;
+    $activePieces = (float) ($ingredient->total_pieces ?? 0);
 
-                            if ($activePieces <= 0 && $sealedBoxes > 0) {
-                                $sealedBoxes -= 1;
-                                $activePieces = $ppb;
-                            }
-
-                            $maxCapacityBoxes = $ingredient->max_capacity > 0 ? $ingredient->max_capacity : 1;
-                            $isLow = $sealedBoxes <= ($ingredient->reorder_level ?? ($maxCapacityBoxes * 0.15));
-                        @endphp
+    $maxCapacityBoxes = $ingredient->max_capacity > 0 ? $ingredient->max_capacity : 1;
+    $isLow = $sealedBoxes <= ($ingredient->reorder_level ?? ($maxCapacityBoxes * 0.15));
+@endphp
                         <tr class="hover:bg-[#202226]/60 transition duration-150">
                             <td class="py-3 px-4 font-semibold text-white">{{ $ingredient->ingredient_name }}</td>
                             
@@ -173,6 +168,7 @@
         </div>
     </div>
 
+
     <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
         <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all flex flex-col">
@@ -223,5 +219,6 @@
                 document.getElementById(targetFormId).submit();
             }
         });
+     
     </script>
 @endsection
