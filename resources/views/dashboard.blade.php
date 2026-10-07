@@ -29,14 +29,14 @@
         <div class="bg-[#1a1a1e] p-6 rounded-xl shadow-lg border border-zinc-800 border-l-4 border-l-amber-500">
             <div class="flex items-center justify-between mb-2">
                 <h3 class="text-zinc-400 text-sm font-bold uppercase tracking-wider">Today's Food Cost</h3>
-                <span class="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                    {{ $todaySales > 0 ? number_format((($todayFoodCost ?? 0) / $todaySales) * 100, 1) : 0 }}% Sales
+                <span class="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                    {{ number_format($foodCostPercentage ?? 0, 1) }}% Sales
                 </span>
             </div>
             <p class="text-3xl font-black text-amber-400">₱{{ number_format($todayFoodCost ?? 0, 2) }}</p>
             <p class="text-sm text-zinc-400 mt-2 flex items-center font-medium">
-                <svg class="w-4 h-4 mr-1 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                Cost of raw ingredients used
+                <svg class="w-4 h-4 mr-1 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                Purchases + unabsorbed carryover
             </p>
         </div>
 
