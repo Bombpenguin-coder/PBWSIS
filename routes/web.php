@@ -108,19 +108,33 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ---------------------------------------------------------
-    // Legacy / Blade Compatibility Aliases
+    // Blade Compatibility Route Aliases (Fixes RouteNotFoundException)
     // ---------------------------------------------------------
-   Route::get('/inventory', [ProductController::class, 'index'])->name('inventory');
+    // Products
+    Route::get('/inventory', [ProductController::class, 'index'])->name('inventory');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
     
-    // Ingredients Compatibility Routes
+    // Ingredients
     Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
     Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
     Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
     Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
 
+    // Categories
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // Wastage
     Route::get('/wastage', [WastageController::class, 'index'])->name('wastage.index');
+    Route::post('/wastage', [WastageController::class, 'store'])->name('wastage.store');
+    Route::put('/wastage/{id}', [WastageController::class, 'update'])->name('wastage.update');
+    Route::delete('/wastage/{id}', [WastageController::class, 'destroy'])->name('wastage.destroy');
+
     // ---------------------------------------------------------
     // Operations & Kitchen Management
     // ---------------------------------------------------------
