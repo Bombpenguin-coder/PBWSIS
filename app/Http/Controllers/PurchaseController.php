@@ -41,9 +41,12 @@ class PurchaseController extends Controller
 
         if (!$ingredient) {
             $ingredient = Ingredient::create([
-                'ingredient_name' => $ingredientName,
-                'quantity' => 0,
-                'max_capacity' => 100, // Default max capacity for new ingredients
+                'ingredient_name'     => $ingredientName,
+                'quantity'            => 0,
+                'max_capacity'        => 100,
+                'unit'                => 'pcs',  // Fulfills non-null unit constraint
+                'pieces_per_box'      => 50,     // Default fallback pieces per box
+                'active_loose_pieces' => 0,      // Default fallback active pieces
             ]);
         }
 
@@ -52,12 +55,12 @@ class PurchaseController extends Controller
 
         // Record the purchase log
         Purchase::create([
-            'supplier_id' => $request->supplier_id,
-            'ingredient_id' => $ingredient->ingredient_id ?? $ingredient->id,
+            'supplier_id'       => $request->supplier_id,
+            'ingredient_id'     => $ingredient->ingredient_id ?? $ingredient->id,
             'quantity_received' => $boxQty,
-            'unit_cost' => $request->unit_cost,
-            'total_cost' => $totalCost,
-            'purchase_date' => $request->purchase_date,
+            'unit_cost'         => $request->unit_cost,
+            'total_cost'        => $totalCost,
+            'purchase_date'     => $request->purchase_date,
         ]);
 
         // Increment the ingredient inventory quantity by box count
