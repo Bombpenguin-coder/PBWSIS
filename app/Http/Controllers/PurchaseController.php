@@ -27,7 +27,7 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
+            'supplier_id' => 'required',
             'ingredient_name' => 'required|string|max:255',
             'box_qty' => 'required|integer|min:1',
             'unit_cost' => 'required|numeric|min:0',
@@ -44,6 +44,7 @@ class PurchaseController extends Controller
                 'ingredient_name'     => $ingredientName,
                 'quantity'            => 0,
                 'max_capacity'        => 100,
+                'reorder_level'       => 10,     // Fixed: Required by DB schema
                 'unit'                => 'pcs',  // Fulfills non-null unit constraint
                 'pieces_per_box'      => 50,     // Default fallback pieces per box
                 'active_loose_pieces' => 0,      // Default fallback active pieces
