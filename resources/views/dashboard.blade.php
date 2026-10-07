@@ -25,20 +25,23 @@
             </p>
         </a>
 
-        <!-- 2. TODAY'S FOOD COST WIDGET -->
-        <div class="bg-[#1a1a1e] p-6 rounded-xl shadow-lg border border-zinc-800 border-l-4 border-l-amber-500">
+        <!-- 2. TODAY'S REMAINING FOOD COST WIDGET -->
+        <a href="{{ route('purchases.index') }}" 
+           class="block bg-[#1a1a1e] p-6 rounded-xl shadow-lg border border-zinc-800 border-l-4 {{ $todayFoodCost > 0 ? 'border-l-amber-500' : 'border-l-emerald-500' }} hover:border-zinc-700 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
             <div class="flex items-center justify-between mb-2">
-                <h3 class="text-zinc-400 text-sm font-bold uppercase tracking-wider">Today's Food Cost</h3>
-                <span class="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                    {{ number_format($foodCostPercentage ?? 0, 1) }}% Sales
+                <h3 class="text-zinc-400 text-sm font-bold uppercase tracking-wider">Remaining Food Cost</h3>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full border {{ $todayFoodCost > 0 ? 'text-amber-500 bg-amber-500/10 border-amber-500/20' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' }}">
+                    {{ $todayFoodCost > 0 ? 'Target Unpaid' : 'Target Covered ✓' }}
                 </span>
             </div>
-            <p class="text-3xl font-black text-amber-400">₱{{ number_format($todayFoodCost ?? 0, 2) }}</p>
-            <p class="text-sm text-zinc-400 mt-2 flex items-center font-medium">
-                <svg class="w-4 h-4 mr-1 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                Purchases + unabsorbed carryover
+            <p class="text-3xl font-black {{ $todayFoodCost > 0 ? 'text-amber-400' : 'text-emerald-400' }}">
+                ₱{{ number_format($todayFoodCost ?? 0, 2) }}
             </p>
-        </div>
+            <p class="text-sm text-zinc-400 mt-2 flex items-center font-medium">
+                <svg class="w-4 h-4 mr-1 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                Sales deducted from restock target
+            </p>
+        </a>
 
         <!-- 3. LOW STOCK WIDGET -->
         <div onclick="openLowStockModal()" 

@@ -16,46 +16,24 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $today = Carbon::today();
+
         // 1. Calculate Today's Sales & Monthly Revenue
-        $todaySales = Sale::whereDate('sale_date', Carbon::today())->sum('total_amount') ?? 0;
+        $todaySales = Sale::whereDate('sale_date', $today)->sum('total_amount') ?? 0;
         $monthlyRevenue = Sale::whereMonth('sale_date', Carbon::now()->month)
                               ->whereYear('sale_date', Carbon::now()->year)
                               ->sum('total_amount') ?? 0;
 
-        // 2. Calculate Cumulative Food Cost with Daily Unabsorbed Rollover
-        // Find the earliest recorded purchase to begin rolling daily calculations
-        $firstPurchase = Purchase::orderBy('purchase_date', 'asc')->first();
+        // 2. Calculate Today's Food Cost (Resets daily at midnight)
+        // Starts with today's total restock/purchases and deducts today's sales.
+        $todayPurchases = Purchase::whereDate('purchase_date', $today)->sum('total_cost') ?? 0;
+        
+        // Deduct today's sales from today's purchase cost target.
+        // Once sales exceed purchases, remaining target drops to 0.
+        $todayFoodCost = max(0, $todayPurchases - $todaySales);
 
-        $carryOverCost = 0;
-
-        if ($firstPurchase) {
-            $startDate = Carbon::parse($firstPurchase->purchase_date);
-            $today = Carbon::today();
-
-            // Loop day-by-day from the first recorded purchase up to today
-            for ($date = $startDate->copy(); $date->lte($today); $date->addDay()) {
-                
-                $dailyPurchases = Purchase::whereDate('purchase_date', $date)->sum('total_cost') ?? 0;
-                $dailySales = Sale::whereDate('sale_date', $date)->sum('total_amount') ?? 0;
-
-                // Total cost to absorb today (Purchases made today + unabsorbed carryover from yesterday)
-                $effectiveFoodCost = $dailyPurchases + $carryOverCost;
-
-                if ($date->isToday()) {
-                    // This is today's active Food Cost metric
-                    $todayFoodCost = $effectiveFoodCost;
-                } else {
-                    // For past days, subtract sales from effective food cost.
-                    // Any remaining unpaid balance rolls over to the next day.
-                    $carryOverCost = max(0, $effectiveFoodCost - $dailySales);
-                }
-            }
-        } else {
-            $todayFoodCost = 0;
-        }
-
-        // Calculate Food Cost Percentage against Today's Sales
-        $foodCostPercentage = $todaySales > 0 ? ($todayFoodCost / $todaySales) * 100 : 0;
+        // Calculate Food Cost Percentage against Today's Sales based on raw today's purchases
+        $foodCostPercentage = $todaySales > 0 ? ($todayPurchases / $todaySales) * 100 : 0;
 
         // 3. Fetch ALL ingredients, sorting low stock items to the top
         $allIngredients = Ingredient::orderByRaw('(quantity <= (max_capacity * 0.50)) DESC')->get();
