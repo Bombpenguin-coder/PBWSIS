@@ -45,43 +45,69 @@ class UserManagementController extends Controller
         return redirect()->back()->with('success', 'New staff member added successfully!');
     }
 
-    public function update(Request $request, $id)
-    {
-        // 1. Validate the changes
-        $request->validate([
-            'username' => 'required|string|max:255|unique:users,username,' . $id . ',users_id',
-            'role' => 'required|string|in:Owner,Cashier,Staff',
-            'contact_number' => 'nullable|digits:11',
-        ], [
-            'contact_number.digits' => 'The contact number must be exactly 11 digits.',
-        ]);
+  public function update(Request $request, $id)
+{
+    $user = User::findOrFail($id);
 
-        // NEW: Prevent changing an existing user into a second Owner
-        $user = User::findOrFail($id);
-        
-        if ($request->role === 'Owner' && $user->role !== 'Owner') {
-            $ownerExists = User::where('role', 'Owner')->exists();
-            if ($ownerExists) {
-                return back()->withErrors(['role' => 'An Owner account already exists. You cannot assign this role to another user.'])->withInput();
-            }
+    // 1. Validate inputs
+    $request->validate([
+        'username'       => 'required|string|max:255|unique:users,username,' . $id . ',users_id',
+        'role'           => 'required|string|in:Owner,Cashier,Staff',
+        'contact_number' => 'nullable|digits:11',
+        'password'       => 'nullable|string|min:4',
+    ], [
+        'contact_number.digits' => 'The contact number must be exactly 11 digits.',
+    ]);
+
+    // 2. Security Guard: Prevent demoting the last remaining Owner
+    if ($user->role === 'Owner' && $request->role !== 'Owner') {
+        $ownerCount = User::where('role', 'Owner')->count();
+        if ($ownerCount <= 1) {
+            return back()->withErrors(['role' => 'Security Constraint: You cannot demote the last active Owner account.'])->withInput();
         }
-
-        // 2. Find and update the user
-        $user->update([
-            'username' => $request->username,
-            'role' => $request->role,
-            'contact_number' => $request->contact_number,
-        ]);
-
-        return redirect()->back()->with('success', 'Staff account updated successfully!');
     }
 
-    public function destroy($id)
-    {
-        // 3. Find the user by their custom users_id and delete them
-        $user = User::findOrFail($id);
-        $user->delete();
-
-        return redirect()->back()->with('success', 'User access disabled successfully.');
+    // 3. Security Guard: Prevent assigning a second Owner account
+    if ($request->role === 'Owner' && $user->role !== 'Owner') {
+        if (User::where('role', 'Owner')->exists()) {
+            return back()->withErrors(['role' => 'An Owner account already exists. Only one Owner is permitted.'])->withInput();
+        }
     }
+
+    $updateData = [
+        'username'       => $request->username,
+        'role'           => $request->role,
+        'contact_number' => $request->contact_number,
+    ];
+
+    if ($request->filled('password')) {
+        $updateData['password'] = Hash::make($request->password);
+    }
+
+    $user->update($updateData);
+
+    return redirect()->back()->with('success', 'Staff account updated successfully!');
+}
+
+public function destroy($id)
+{
+    $user = User::findOrFail($id);
+
+    // 1. Security Guard: Prevent self-deletion
+    if (auth()->id() == $id) {
+        return redirect()->back()->withErrors(['error' => 'Action Prohibited: You cannot delete your currently active session account.']);
+    }
+
+    // 2. Security Guard: Prevent deleting the last remaining Owner
+    if ($user->role === 'Owner') {
+        $ownerCount = User::where('role', 'Owner')->count();
+        if ($ownerCount <= 1) {
+            return redirect()->back()->withErrors(['error' => 'Action Prohibited: Cannot delete the last remaining Owner account.']);
+        }
+    }
+
+    $user->delete();
+
+    return redirect()->back()->with('success', 'User access disabled successfully.');
+}
 }

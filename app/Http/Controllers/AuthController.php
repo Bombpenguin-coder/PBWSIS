@@ -54,49 +54,58 @@ class AuthController extends Controller
     }
 
     // 4. Authenticate User Login
-    public function login(Request $request)
-    {
-        // Validate inputs
-        $credentials = $request->validate([
-            'username' => 'required|string|max:50',
-            'password' => 'required|string',
+  public function login(Request $request)
+{
+    $credentials = $request->validate([
+        'username' => 'required|string|max:50',
+        'password' => 'required|string',
+    ]);
+
+    $throttleKey = Str::lower($credentials['username']) . '|' . $request->ip();
+
+    if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+        $seconds = RateLimiter::availableIn($throttleKey);
+        throw ValidationException::withMessages([
+            'username' => ["Too many login attempts. Please try again in {$seconds} seconds."],
         ]);
-
-        // Rate Limiting Key based on username and IP address
-        $throttleKey = Str::lower($credentials['username']) . '|' . $request->ip();
-
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-            throw ValidationException::withMessages([
-                'username' => ["Too many login attempts. Please try again in {$seconds} seconds."],
-            ]);
-        }
-
-        // Attempt Authentication
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            RateLimiter::clear($throttleKey);
-            
-            $request->session()->regenerate();
-
-            return redirect()->intended(route('dashboard'))->with('success', 'Welcome back!');
-        }
-
-        // Increment failed attempt counter
-        RateLimiter::hit($throttleKey, 60);
-
-        return back()->withErrors([
-            'username' => 'The provided credentials do not match our records.',
-        ])->onlyInput('username');
     }
+
+    if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        RateLimiter::clear($throttleKey);
+        
+        // Regenerate session AFTER obtaining user info
+        $user = Auth::user();
+        $request->session()->regenerate();
+
+        // Direct Role Redirects (DO NOT USE intended() to avoid session token mismatch)
+        if ($user->role === 'Owner') {
+            return redirect()->route('dashboard')->with('success', 'Welcome back, Owner!');
+        } 
+        
+        if ($user->role === 'Cashier') {
+            return redirect('/pos')->with('success', 'POS Terminal ready.');
+        } 
+        
+        // Staff / Kitchen
+        return redirect('/inventory/ingredients')->with('success', 'Kitchen inventory access granted.');
+    }
+
+    RateLimiter::hit($throttleKey, 60);
+
+    return back()->withErrors([
+        'username' => 'The provided credentials do not match our records.',
+    ])->onlyInput('username');
+}
     
-    // 5. Logout User
-    public function logout(Request $request)
-    {
-        Auth::logout();
+  // 5. Logout User
+public function logout(Request $request)
+{
+    Auth::logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
-        return redirect()->route('login');
-    }
+    // Force a clean GET redirect back to the login page
+    return redirect()->to('/login');
+}
 }

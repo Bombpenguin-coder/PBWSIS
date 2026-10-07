@@ -71,13 +71,22 @@
     <nav class="bg-[#111214] border-b border-zinc-800 text-white p-4 shadow-md shrink-0 no-print">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold tracking-wider">PBWSIS <span class="text-[#f97316]">|</span> POS Terminal</h1>
-            <div class="flex space-x-4 items-center">
+           <div class="flex items-center space-x-3">
                 <span class="text-zinc-400 text-sm">Cashier on Duty</span>
-                <a href="{{ route('dashboard') }}" class="bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-1 px-4 rounded transition duration-200 text-sm">
-                    Back to Dashboard
-                </a>
+
+                @if(auth()->user()->role === 'Owner')
+                    <a href="{{ route('dashboard') }}" class="bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-1 px-4 rounded transition duration-200 text-sm">
+                        Back to Dashboard
+                    </a>
+                @endif
+
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1 rounded text-sm font-bold transition">
+                        Logout
+                    </button>
+                </form>
             </div>
-        </div>
     </nav>
 
     <!-- POS Main Interface (Split Screen Container) -->

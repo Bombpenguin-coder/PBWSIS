@@ -15,7 +15,6 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\OperationController;
 use App\Http\Controllers\PurchaseController;
 
-
 // =========================================================
 // 1. PUBLIC & AUTHENTICATION ROUTES
 // =========================================================
@@ -36,50 +35,42 @@ Route::post('/register', [AuthController::class, 'storeOwner']);
 // =========================================================
 Route::middleware(['auth'])->group(function () {
 
+    // ---------------------------------------------------------
+    // STRICTLY OWNER ONLY (Dashboard, User Management, Reports)
+    // ---------------------------------------------------------
+    Route::middleware(['role:Owner'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/reports', [SalesController::class, 'reports'])->name('reports.index');
 
-// --- ROUTES FOR EVERYONE (Cashiers, Admins, Owners) ---
-Route::middleware(['auth'])->group(function () {
-    Route::get('/pos', [\App\Http\Controllers\SalesController::class, 'index'])->name('pos.index');
-    Route::post('/sales', [\App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
-    Route::get('/receipt/{sale_id}', function ($sale_id) {
-        $sale = \App\Models\Sale::with(['details.product'])->findOrFail($sale_id);
-        return view('receipt', compact('sale'));
-    })->name('receipt.show');
-});
-
-// --- ROUTES STRICTLY FOR MANAGEMENT ---
-// This assumes your roles are saved as 'Admin' or 'Owner' in the database
-Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/user_management', [\App\Http\Controllers\UserManagementController::class, 'index'])->name('users.index');
-    Route::get('/audit-trail', [DashboardController::class, 'auditTrail'])->name('audit.trail');
-    
-    // Add inventory, wastage, and reports routes here!
-});
+        Route::prefix('admin')->name('admin.')->group(function () {
+            Route::prefix('users')->name('users.')->group(function () {
+                Route::get('/', [UserManagementController::class, 'index'])->name('index');
+                Route::post('/', [UserManagementController::class, 'store'])->name('store');
+                Route::put('/{user}', [UserManagementController::class, 'update'])->name('update');
+                Route::delete('/{user}', [UserManagementController::class, 'destroy'])->name('destroy');
+            });
+            Route::get('/audit-trail', [DashboardController::class, 'auditTrail'])->name('audit-trail');
+        });
+    });
 
     // ---------------------------------------------------------
-    // Dashboard & POS Core
+    // POS Core (Cashier & Owner)
     // ---------------------------------------------------------
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/pos', [SalesController::class, 'index'])->name('pos');
     Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.checkout');
 
     // ---------------------------------------------------------
-    // Sales Management (Grouped + Prefixed)
+    // Sales Management
     // ---------------------------------------------------------
     Route::prefix('sales')->name('sales.')->group(function () {
+        Route::get('/', [SalesController::class, 'index'])->name('index');
         Route::post('/', [SalesController::class, 'store'])->name('store');
         Route::get('/history', [SalesController::class, 'history'])->name('history');
         Route::get('/reports', [SalesController::class, 'reports'])->name('reports');
     });
 
-    // Legacy / Unprefixed Sales Aliases
-    Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
-    Route::get('/sales/history', [SalesController::class, 'history'])->name('sales.history');
-    Route::get('/sales/reports', [SalesController::class, 'reports'])->name('sales.reports');
-
     // ---------------------------------------------------------
-    // Inventory Management (Grouped & Prefixed)
+    // Inventory Management
     // ---------------------------------------------------------
     Route::prefix('inventory')->name('inventory.')->group(function () {
         
@@ -117,30 +108,19 @@ Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
     });
 
     // ---------------------------------------------------------
-    // Unprefixed / Legacy Aliases (Fixes Blade Template Route Errors)
+    // Legacy / Blade Compatibility Aliases
     // ---------------------------------------------------------
-    Route::get('/inventory', [ProductController::class, 'index'])->name('inventory');
+   Route::get('/inventory', [ProductController::class, 'index'])->name('inventory');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-    Route::post('/inventory/products', [ProductController::class, 'store'])->name('products.store');
-    Route::put('/inventory/products/{id}', [ProductController::class, 'update'])->name('products.update');
-    Route::delete('/inventory/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
-
-  
+    
+    // Ingredients Compatibility Routes
     Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
     Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
     Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
     Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-    Route::post('/inventory/categories', [CategoryController::class, 'store'])->name('categories.store');
-    Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('categories.update');
-    Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
-
     Route::get('/wastage', [WastageController::class, 'index'])->name('wastage.index');
-    Route::post('/inventory/wastage', [WastageController::class, 'store'])->name('wastage.store');
-    Route::put('/wastage/{id}', [WastageController::class, 'update'])->name('wastage.update');
-    Route::delete('/inventory/wastage/delete/{id}', [WastageController::class, 'destroy'])->name('wastage.destroy');
-
     // ---------------------------------------------------------
     // Operations & Kitchen Management
     // ---------------------------------------------------------
@@ -152,12 +132,10 @@ Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
         Route::post('/bills/{id}/pay', [OperationController::class, 'checkoutBill'])->name('pay');
     });
 
-   // ---------------------------------------------------------
-    // File Maintenance (Suppliers, Discounts, VAT)
+    // ---------------------------------------------------------
+    // File Maintenance
     // ---------------------------------------------------------
     Route::resource('suppliers', SupplierController::class);
-    
-    // Resource route MUST be declared outside of route closures
     Route::resource('discounts', DiscountController::class);
 
     Route::get('/discounts/active', function () {
@@ -170,34 +148,16 @@ Route::middleware(['auth', 'role:Admin,Owner'])->group(function () {
 
     Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
     Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
+
     // ---------------------------------------------------------
-    // Reports & Receipts
+    // Receipts & Purchases
     // ---------------------------------------------------------
-    Route::get('/reports', [SalesController::class, 'reports'])->name('reports.index');
-    Route::view('/purchases', 'layouts.purchases')->name('purchases.index');
-    Route::get('/test-receipt', function () { return view('receipt'); });
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
     Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store'); 
+
     Route::get('/receipt/{sale_id}', function ($sale_id) {
-        // Removed 'user' so Eloquent doesn't crash trying to find the cashier
         $sale = \App\Models\Sale::with(['details.product'])->findOrFail($sale_id);
-        
         return view('receipt', compact('sale'));
     })->name('receipt.show');
 
-    // ---------------------------------------------------------
-    // Owner Only Administration
-    // ---------------------------------------------------------
-    Route::middleware(['auth', 'role:Owner'])->prefix('admin')->name('admin.')->group(function () {
-        
-        // This creates exact routes like '/admin/users' and 'admin.users.destroy'
-        Route::prefix('users')->name('users.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\UserManagementController::class, 'index'])->name('index');
-            Route::post('/', [\App\Http\Controllers\UserManagementController::class, 'store'])->name('store');
-            Route::put('/{user}', [\App\Http\Controllers\UserManagementController::class, 'update'])->name('update');
-            Route::delete('/{user}', [\App\Http\Controllers\UserManagementController::class, 'destroy'])->name('destroy');
-        });
-        Route::get('/audit-trail', [DashboardController::class, 'auditTrail'])->name('audit-trail');
-        
-    });
 });
