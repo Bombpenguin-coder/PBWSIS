@@ -71,22 +71,28 @@
     <nav class="bg-[#111214] border-b border-zinc-800 text-white p-4 shadow-md shrink-0 no-print">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold tracking-wider">PBWSIS <span class="text-[#f97316]">|</span> POS Terminal</h1>
-           <div class="flex items-center space-x-3">
-                <span class="text-zinc-400 text-sm">Cashier on Duty</span>
-
+            
+            <div class="flex items-center space-x-4">
+                <!-- Owner Sees Back to Dashboard -->
                 @if(auth()->user()->role === 'Owner')
-                    <a href="{{ route('dashboard') }}" class="bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-1 px-4 rounded transition duration-200 text-sm">
+                    <a href="{{ route('dashboard') }}" class="bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-1.5 px-4 rounded transition duration-200 text-sm">
                         Back to Dashboard
                     </a>
+                @else
+                <!-- Cashier / Staff Sees Duty Label + Logout -->
+                    <span class="text-zinc-400 text-sm font-medium">
+                        {{ auth()->user()->role }} on Duty (<span class="text-white font-bold">{{ auth()->user()->username }}</span>)
+                    </span>
+                    
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1 rounded text-sm font-bold transition">
+                            Logout
+                        </button>
+                    </form>
                 @endif
-
-                <form action="{{ route('logout') }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1 rounded text-sm font-bold transition">
-                        Logout
-                    </button>
-                </form>
             </div>
+        </div>
     </nav>
 
     <!-- POS Main Interface (Split Screen Container) -->
@@ -125,7 +131,7 @@
                         </button>
                     @endforeach
                 </div>
-            </div> <!-- Properly closed search & category section wrapper -->
+            </div>
 
             <!-- Scrollable Menu Grid -->
             <div class="flex-1 overflow-y-auto pr-1">
@@ -190,7 +196,7 @@
                     @endforelse
                 </div>
             </div>
-        </div> <!-- Properly closed left column wrapper -->
+        </div>
 
         <!-- Right Side: Order Summary / Cart -->
         <div class="w-2/5 bg-[#202226] border-l border-zinc-800 shadow-2xl flex flex-col h-full shrink-0">
@@ -255,7 +261,6 @@
             </div>
         </div>
     </div>
-</body>
 
     <!-- HOLD ORDER REFERENCE MODAL -->
     <div id="holdOrderModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -384,54 +389,53 @@
             <h3 class="text-lg font-black text-white mb-1 no-print">Receipt Preview</h3>
             <p class="text-xs text-zinc-400 mb-4 no-print">Review official receipt before printing</p>
 
-           <!-- Printable Receipt Container -->
-<div id="printableReceipt" class="w-full bg-white rounded-lg p-4 text-left font-mono text-xs text-black space-y-2 shadow-inner max-h-[28rem] overflow-y-auto">
-    
-    <div class="text-center pb-2">
-        <p class="font-bold text-sm text-black uppercase tracking-wider">PBWSIS POS</p>
-        <p class="text-[10px] text-zinc-600">Official Receipt Preview</p>
-        <p id="receiptDate" class="text-[10px] text-zinc-500 mt-0.5"></p>
-    </div>
+            <!-- Printable Receipt Container -->
+            <div id="printableReceipt" class="w-full bg-white rounded-lg p-4 text-left font-mono text-xs text-black space-y-2 shadow-inner max-h-[28rem] overflow-y-auto">
+                <div class="text-center pb-2">
+                    <p class="font-bold text-sm text-black uppercase tracking-wider">PBWSIS POS</p>
+                    <p class="text-[10px] text-zinc-600">Official Receipt Preview</p>
+                    <p id="receiptDate" class="text-[10px] text-zinc-500 mt-0.5"></p>
+                </div>
 
-    <!-- Top Standalone Divider -->
-    <div class="border-t border-solid border-zinc-300 my-1"></div>
+                <!-- Top Standalone Divider -->
+                <div class="border-t border-solid border-zinc-300 my-1"></div>
 
-    <!-- Items List (Borders removed from this container) -->
-    <div id="receiptItemsList" class="space-y-1 py-1 text-xs"></div>
+                <!-- Items List -->
+                <div id="receiptItemsList" class="space-y-1 py-1 text-xs"></div>
 
-    <!-- Middle Standalone Divider -->
-    <div class="border-t border-dashed border-zinc-400 my-2"></div>
+                <!-- Middle Standalone Divider -->
+                <div class="border-t border-dashed border-zinc-400 my-2"></div>
 
-    <!-- Totals Section -->
-    <div class="space-y-1 text-xs">
-        <div class="flex justify-between py-0.5">
-            <span>Subtotal:</span>
-            <span id="receiptSubtotal">₱0.00</span>
-        </div>
+                <!-- Totals Section -->
+                <div class="space-y-1 text-xs">
+                    <div class="flex justify-between py-0.5">
+                        <span>Subtotal:</span>
+                        <span id="receiptSubtotal">₱0.00</span>
+                    </div>
 
-        <div class="flex justify-between text-orange-600 py-0.5">
-            <span>Discount:</span>
-            <span id="receiptDiscount">-₱0.00</span>
-        </div>
+                    <div class="flex justify-between text-orange-600 py-0.5">
+                        <span>Discount:</span>
+                        <span id="receiptDiscount">-₱0.00</span>
+                    </div>
 
-        <div class="flex justify-between text-zinc-600 py-0.5">
-            <span>VAT (12% Incl.):</span>
-            <span id="receiptVat">₱0.00</span>
-        </div>
+                    <div class="flex justify-between text-zinc-600 py-0.5">
+                        <span>VAT (12% Incl.):</span>
+                        <span id="receiptVat">₱0.00</span>
+                    </div>
 
-        <!-- Bottom Standalone Divider -->
-        <div class="border-t border-dashed border-zinc-400 my-2"></div>
+                    <!-- Bottom Standalone Divider -->
+                    <div class="border-t border-dashed border-zinc-400 my-2"></div>
 
-        <div class="flex justify-between text-sm font-bold text-black pb-1">
-            <span>TOTAL:</span>
-            <span id="receiptTotal">₱0.00</span>
-        </div>
-    </div>
+                    <div class="flex justify-between text-sm font-bold text-black pb-1">
+                        <span>TOTAL:</span>
+                        <span id="receiptTotal">₱0.00</span>
+                    </div>
+                </div>
 
-    <div class="text-center border-t border-solid border-zinc-300 pt-2 mt-2 text-[10px] text-zinc-500">
-        Thank you for your purchase!
-    </div>
-</div>
+                <div class="text-center border-t border-solid border-zinc-300 pt-2 mt-2 text-[10px] text-zinc-500">
+                    Thank you for your purchase!
+                </div>
+            </div>
 
             <div class="w-full mt-4 flex gap-2 no-print">
                 <button type="button" onclick="printReceipt()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">
@@ -495,53 +499,53 @@
     </div>
 
     <!-- Beverage Options Modal -->
-<div id="optionsModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all">
-    <div class="bg-zinc-900 text-white p-6 rounded-lg shadow-xl w-full max-w-sm border-t-4 border-amber-600 relative">
-        <h2 class="text-xl font-bold mb-4 text-white" id="modalProductName">Select Options</h2>
+    <div id="optionsModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all">
+        <div class="bg-zinc-900 text-white p-6 rounded-lg shadow-xl w-full max-w-sm border-t-4 border-amber-600 relative">
+            <h2 class="text-xl font-bold mb-4 text-white" id="modalProductName">Select Options</h2>
 
-        <div class="mb-4">
-            <label class="block text-sm font-bold mb-2 text-gray-200">Size (Ounces)</label>
-            <select id="optionSize" class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-600">
-                <option value="16oz">16 oz</option>
-                <option value="22oz">22 oz</option>
-            </select>
-        </div>
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Size (Ounces)</label>
+                <select id="optionSize" class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-600">
+                    <option value="16oz">16 oz</option>
+                    <option value="22oz">22 oz</option>
+                </select>
+            </div>
 
-        <div class="mb-6">
-            <label class="block text-sm font-bold mb-2 text-gray-200">Sugar Level</label>
-            <select id="optionSugar" class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-600">
-                <option value="100%">100% (Normal Sugar)</option>
-                <option value="75%">75% (Less Sugar)</option>
-                <option value="50%">50% (Half Sugar)</option>
-                <option value="25%">25% (Quarter Sugar)</option>
-                <option value="0%">0% (No Sugar)</option>
-            </select>
-        </div>
+            <div class="mb-6">
+                <label class="block text-sm font-bold mb-2 text-gray-200">Sugar Level</label>
+                <select id="optionSugar" class="w-full bg-zinc-800 border border-zinc-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-600">
+                    <option value="100%">100% (Normal Sugar)</option>
+                    <option value="75%">75% (Less Sugar)</option>
+                    <option value="50%">50% (Half Sugar)</option>
+                    <option value="25%">25% (Quarter Sugar)</option>
+                    <option value="0%">0% (No Sugar)</option>
+                </select>
+            </div>
 
-        <div class="flex justify-end space-x-2">
-            <button onclick="closeOptionsModal()" class="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
-            <button onclick="confirmOptionsAndAddToCart()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded transition duration-200">Add to Order</button>
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeOptionsModal()" class="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded transition duration-200">Cancel</button>
+                <button type="button" onclick="confirmOptionsAndAddToCart()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded transition duration-200">Add to Order</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Stock Alert Modal -->
-<div id="stockAlertModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-[#202023] border border-amber-600/30 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl transform transition-all">
-        <div class="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
+    <!-- Stock Alert Modal -->
+    <div id="stockAlertModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-[#202023] border border-amber-600/30 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl transform transition-all">
+            <div class="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Insufficient Stock</h3>
+            <p id="stockAlertMessage" class="text-zinc-400 text-sm mb-6"></p>
+            <button type="button" onclick="closeStockAlertModal()" class="w-full bg-[#f97316] hover:bg-orange-600 text-white font-semibold py-2.5 px-4 rounded-xl transition duration-200 shadow-lg shadow-orange-500/20">
+                Got it
+            </button>
         </div>
-        <h3 class="text-lg font-bold text-white mb-2">Insufficient Stock</h3>
-        <p id="stockAlertMessage" class="text-zinc-400 text-sm mb-6"></p>
-        <button onclick="closeStockAlertModal()" class="w-full bg-[#f97316] hover:bg-orange-600 text-white font-semibold py-2.5 px-4 rounded-xl transition duration-200 shadow-lg shadow-orange-500/20">
-            Got it
-        </button>
     </div>
-</div>
 
-    <!-- PASS BLADE DISCOUNTS & CONFIG DIRECTLY TO JS -->
+   <!-- PASS BLADE DISCOUNTS & CONFIG DIRECTLY TO JS -->
     <script>
         window.VAT_CONFIG = {
             rate: {{ ($vat->is_active ?? false) ? (($vat->rate ?? 0) / 100) : 0 }},
@@ -549,17 +553,7 @@
             isActive: {{ ($vat->is_active ?? false) ? 'true' : 'false' }}
         };
 
-        @if(isset($discounts))
-            window.availableDiscounts = [
-                @foreach($discounts as $d)
-                {
-                    id: '{{ $d->id ?? $d->discount_id ?? $d->name }}',
-                    name: '{{ $d->name }}',
-                    rate: {{ $d->value ?? $d->percentage ?? $d->rate ?? 0 }}
-                },
-                @endforeach
-            ];
-        @endif
+        window.availableDiscounts = @json($discounts ?? []);
 
         // Toast Notification Logic
         let toastTimeout;
@@ -572,10 +566,7 @@
             msgContainer.textContent = message;
             toast.classList.remove('hidden');
 
-            // Reset timer if triggered repeatedly
             clearTimeout(toastTimeout);
-
-            // Auto-hide after 5 seconds
             toastTimeout = setTimeout(() => {
                 hideToast();
             }, 5000);
@@ -590,56 +581,39 @@
 
         let pendingBeverageElement = null; // Temporarily holds the clicked HTML element
 
-function handleProductClick(element) {
-    // 1. Grab the category from the data-category attribute
-    const category = element.dataset.category || '';
-    
-    // 2. Check if the category is a drink that needs options
-    if (category.includes('milk tea') || category.includes('beverage') || category.includes('drinks')) {
-        
-        // Save the HTML element so the modal can use it later
-        pendingBeverageElement = element;
-        
-        // Capitalize the product name for the modal title
-        let productName = element.dataset.name;
-        productName = productName.charAt(0).toUpperCase() + productName.slice(1);
-        
-        // Show the modal
-        document.getElementById('modalProductName').innerText = productName + ' Options';
-        document.getElementById('optionsModal').classList.remove('hidden');
-        
-    } else {
-        // 3. If it's regular food, bypass the modal and send directly to the cart
-        addToCart(element);
-    }
-}
+        function handleProductClick(element) {
+            const category = element.dataset.category || '';
+            
+            if (category.includes('milk tea') || category.includes('beverage') || category.includes('drinks')) {
+                pendingBeverageElement = element;
+                
+                let productName = element.dataset.name;
+                productName = productName.charAt(0).toUpperCase() + productName.slice(1);
+                
+                document.getElementById('modalProductName').innerText = productName + ' Options';
+                document.getElementById('optionsModal').classList.remove('hidden');
+            } else {
+                addToCart(element);
+            }
+        }
 
-function closeOptionsModal() {
-    // Hide the modal and clear the temporary variable
-    document.getElementById('optionsModal').classList.add('hidden');
-    pendingBeverageElement = null;
-}
+        function closeOptionsModal() {
+            document.getElementById('optionsModal').classList.add('hidden');
+            pendingBeverageElement = null;
+        }
 
-function confirmOptionsAndAddToCart() {
-    // 1. Grab the selected options from the modal dropdowns
-    const size = document.getElementById('optionSize').value;
-    const sugar = document.getElementById('optionSugar').value;
-    
-    // 2. Save the original product name so we can revert it later
-    const originalName = pendingBeverageElement.dataset.name;
-    
-    // 3. Temporarily update the dataset name with the selected options
-    pendingBeverageElement.dataset.name = `${originalName} (${size}, ${sugar} Sugar)`;
-    
-    // 4. Send the updated element to your existing cart function!
-    addToCart(pendingBeverageElement);
-    
-    // 5. Instantly revert the data-name back to normal so the product card isn't permanently changed
-    pendingBeverageElement.dataset.name = originalName;
-    
-    // 6. Close the modal
-    closeOptionsModal();
-}
+        function confirmOptionsAndAddToCart() {
+            const size = document.getElementById('optionSize').value;
+            const sugar = document.getElementById('optionSugar').value;
+            
+            const originalName = pendingBeverageElement.dataset.name;
+            pendingBeverageElement.dataset.name = `${originalName} (${size}, ${sugar} Sugar)`;
+            
+            addToCart(pendingBeverageElement);
+            pendingBeverageElement.dataset.name = originalName;
+            
+            closeOptionsModal();
+        }
     </script>
 </body>
 </html>

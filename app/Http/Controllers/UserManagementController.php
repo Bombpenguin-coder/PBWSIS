@@ -16,17 +16,22 @@ class UserManagementController extends Controller
 
     public function store(Request $request)
     {
+        // Automatically uppercase the username input before validation
+        $request->merge([
+            'username' => strtoupper(trim($request->username)),
+        ]);
+
         // 1. Validate the incoming form data
         $request->validate([
-            'username' => 'required|string|max:255|unique:users,username',
-            'password' => 'required|string|min:4',
-            'role' => 'required|string|in:Owner,Cashier,Staff',
+            'username'       => 'required|string|max:255|unique:users,username',
+            'password'       => 'required|string|min:4',
+            'role'           => 'required|string|in:Owner,Cashier,Staff',
             'contact_number' => 'nullable|digits:11',
         ], [
             'contact_number.digits' => 'The contact number must be exactly 11 digits.',
         ]);
 
-        // NEW: Check if the role is Owner and if one already exists
+        // Check if the role is Owner and if one already exists
         if ($request->role === 'Owner') {
             $ownerExists = User::where('role', 'Owner')->exists();
             if ($ownerExists) {
@@ -36,20 +41,25 @@ class UserManagementController extends Controller
 
         // 2. Save the new user to the database
         User::create([
-            'username' => $request->username,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'username'       => $request->username,
+            'password'       => Hash::make($request->password),
+            'role'           => $request->role,
             'contact_number' => $request->contact_number,
         ]);
 
         return redirect()->back()->with('success', 'New staff member added successfully!');
     }
 
-  public function update(Request $request, $id)
+    public function update(Request $request, $id)
 {
     $user = User::findOrFail($id);
 
-    // 1. Validate inputs
+    // Automatically uppercase the username input before validation
+    $request->merge([
+        'username' => strtoupper(trim($request->username)),
+    ]);
+
+    // 1. Validate inputs (Specifying users_id as the primary key column)
     $request->validate([
         'username'       => 'required|string|max:255|unique:users,username,' . $id . ',users_id',
         'role'           => 'required|string|in:Owner,Cashier,Staff',
@@ -89,25 +99,25 @@ class UserManagementController extends Controller
     return redirect()->back()->with('success', 'Staff account updated successfully!');
 }
 
-public function destroy($id)
-{
-    $user = User::findOrFail($id);
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
 
-    // 1. Security Guard: Prevent self-deletion
-    if (auth()->id() == $id) {
-        return redirect()->back()->withErrors(['error' => 'Action Prohibited: You cannot delete your currently active session account.']);
-    }
-
-    // 2. Security Guard: Prevent deleting the last remaining Owner
-    if ($user->role === 'Owner') {
-        $ownerCount = User::where('role', 'Owner')->count();
-        if ($ownerCount <= 1) {
-            return redirect()->back()->withErrors(['error' => 'Action Prohibited: Cannot delete the last remaining Owner account.']);
+        // 1. Security Guard: Prevent self-deletion
+        if (auth()->id() == $id) {
+            return redirect()->back()->withErrors(['error' => 'Action Prohibited: You cannot delete your currently active session account.']);
         }
+
+        // 2. Security Guard: Prevent deleting the last remaining Owner
+        if ($user->role === 'Owner') {
+            $ownerCount = User::where('role', 'Owner')->count();
+            if ($ownerCount <= 1) {
+                return redirect()->back()->withErrors(['error' => 'Action Prohibited: Cannot delete the last remaining Owner account.']);
+            }
+        }
+
+        $user->delete();
+
+        return redirect()->back()->with('success', 'User access disabled successfully.');
     }
-
-    $user->delete();
-
-    return redirect()->back()->with('success', 'User access disabled successfully.');
-}
 }

@@ -54,9 +54,16 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ---------------------------------------------------------
-    // POS Core (Cashier & Owner)
+    // POS Core (Cashier & Owner Only)
     // ---------------------------------------------------------
-    Route::get('/pos', [SalesController::class, 'index'])->name('pos');
+    Route::get('/pos', function (Illuminate\Http\Request $request) {
+        // Guard: Prevent Staff from opening POS
+        if (auth()->user()->role === 'Staff') {
+            return redirect()->route('ingredients.index')->with('error', 'Access Restricted: Kitchen Staff cannot access POS.');
+        }
+        return app(SalesController::class)->index($request);
+    })->name('pos');
+
     Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.checkout');
 
     // ---------------------------------------------------------

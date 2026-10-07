@@ -20,6 +20,11 @@ class AuthController extends Controller
             return redirect()->route('setup.register');
         }
 
+        // If already logged in, redirect straight to their role interface
+        if (Auth::check()) {
+            return $this->redirectBasedOnRole(Auth::user());
+        }
+
         return view('Login'); 
     }
 
@@ -44,7 +49,7 @@ class AuthController extends Controller
         ]);
 
         User::create([
-            'username'       => trim($validated['username']),
+            'username'       => strtoupper(trim($validated['username'])),
             'password'       => Hash::make($validated['password']),
             'role'           => 'Owner', 
             'contact_number' => $validated['contact_number'] ? trim($validated['contact_number']) : null,
@@ -54,30 +59,61 @@ class AuthController extends Controller
     }
 
     // 4. Authenticate User Login
-  public function login(Request $request)
-{
-    $credentials = $request->validate([
-        'username' => 'required|string|max:50',
-        'password' => 'required|string',
-    ]);
-
-    $throttleKey = Str::lower($credentials['username']) . '|' . $request->ip();
-
-    if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-        $seconds = RateLimiter::availableIn($throttleKey);
-        throw ValidationException::withMessages([
-            'username' => ["Too many login attempts. Please try again in {$seconds} seconds."],
+    public function login(Request $request)
+    {
+        // Auto-uppercase input username before authentication attempt
+        $request->merge([
+            'username' => strtoupper(trim($request->username)),
         ]);
+
+        $credentials = $request->validate([
+            'username' => 'required|string|max:50',
+            'password' => 'required|string',
+        ]);
+
+        $throttleKey = Str::lower($credentials['username']) . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            throw ValidationException::withMessages([
+                'username' => ["Too many login attempts. Please try again in {$seconds} seconds."],
+            ]);
+        }
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            RateLimiter::clear($throttleKey);
+            
+            // Regenerate session AFTER obtaining user info
+            $user = Auth::user();
+            $request->session()->regenerate();
+
+            return $this->redirectBasedOnRole($user);
+        }
+
+        RateLimiter::hit($throttleKey, 60);
+
+        return back()->withErrors([
+            'username' => 'The provided credentials do not match our records.',
+        ])->onlyInput('username');
+    }
+    
+    // 5. Logout User
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // Force a clean GET redirect back to the login page
+        return redirect()->to('/login');
     }
 
-    if (Auth::attempt($credentials, $request->boolean('remember'))) {
-        RateLimiter::clear($throttleKey);
-        
-        // Regenerate session AFTER obtaining user info
-        $user = Auth::user();
-        $request->session()->regenerate();
-
-        // Direct Role Redirects (DO NOT USE intended() to avoid session token mismatch)
+    /**
+     * Helper Method: Redirect user based on role
+     */
+    protected function redirectBasedOnRole($user)
+    {
         if ($user->role === 'Owner') {
             return redirect()->route('dashboard')->with('success', 'Welcome back, Owner!');
         } 
@@ -87,25 +123,6 @@ class AuthController extends Controller
         } 
         
         // Staff / Kitchen
-        return redirect('/inventory/ingredients')->with('success', 'Kitchen inventory access granted.');
+        return redirect('/ingredients')->with('success', 'Kitchen inventory access granted.');
     }
-
-    RateLimiter::hit($throttleKey, 60);
-
-    return back()->withErrors([
-        'username' => 'The provided credentials do not match our records.',
-    ])->onlyInput('username');
-}
-    
-  // 5. Logout User
-public function logout(Request $request)
-{
-    Auth::logout();
-
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    // Force a clean GET redirect back to the login page
-    return redirect()->to('/login');
-}
 }

@@ -17,25 +17,11 @@
     --color-brand-panel: #222226;
 }
 
-/* Printable Receipt Styles */
+/* Printable Receipt Styles (Scoped specifically to POS Receipt Modal) */
 @media print {
-    /* Hide everything on the page */
-    body * {
-        visibility: hidden !important;
-    }
-
-    /* Reset body background */
-    body {
-        background: #ffffff !important;
-    }
-
-    /* Make printable area visible and take full paper width */
-    #printableReceipt, 
-    #printableReceipt * {
-        visibility: visible !important;
-    }
-
+    /* If a printable receipt element exists on the page, isolate it */
     #printableReceipt {
+        visibility: visible !important;
         position: fixed !important;
         left: 0 !important;
         top: 0 !important;
@@ -49,10 +35,15 @@
         color: #000000 !important;
     }
 
-    /* Hide modal buttons and background */
+    #printableReceipt * {
+        visibility: visible !important;
+    }
+
+    /* Hide elements marked as no-print */
     .no-print {
         display: none !important;
     }
+
 
     @page {
         size: auto;

@@ -3,10 +3,76 @@
 @section('header_title', 'Monthly Reports')
 
 @section('content')
+<style>
+/* Override Global POS Receipt Print Styles specifically for Reports */
+@media print {
+    /* Hide all layout elements (Sidebars, Topbars, Nav, Buttons) */
+    aside, nav, header, footer, .no-print, button, form {
+        display: none !important;
+    }
+
+    /* Reset background and text color for clear printing */
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: Arial, sans-serif !important;
+    }
+
+    /* Target the reports container and make it full width */
+    body * {
+        visibility: visible !important;
+    }
+
+    .max-w-7xl {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Clean up table formatting for print */
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-top: 20px !important;
+    }
+
+    th, td {
+        border: 1px solid #d1d5db !important;
+        padding: 8px 12px !important;
+        color: #000000 !important;
+        background: transparent !important;
+    }
+
+    /* Cards layout adjustment for printing */
+    .grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 16px !important;
+    }
+
+    .bg-\[\#18191c\], .bg-brand-orange {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #d1d5db !important;
+        box-shadow: none !important;
+    }
+
+    .text-white, .text-zinc-400, .text-zinc-300, .text-brand-orange {
+        color: #000000 !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 15mm;
+    }
+}
+</style>
+
 <div class="space-y-6 max-w-7xl mx-auto">
 
     <!-- Filter Bar -->
-    <div class="bg-[#18191c] p-6 rounded-2xl shadow-sm border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="bg-[#18191c] p-6 rounded-2xl shadow-sm border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 no-print">
         <form method="GET" action="{{ route('reports.index') }}" class="flex flex-wrap items-end gap-4">
             <input type="hidden" name="tab" value="{{ $activeTab }}">
             
@@ -29,9 +95,13 @@
             <div>
                 <label class="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Select Year</label>
                 <select name="year" id="yearSelect" onchange="updateMonthOptions()" class="bg-[#202226] border border-zinc-700 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:ring-2 focus:ring-brand-orange focus:outline-none">
-                    @foreach(range(date('Y') - 2, date('Y')) as $y)
+                    @php
+                        $startYear = 2018; // Establishment Year
+                        $currentYear = (int) date('Y');
+                    @endphp
+                    @for ($y = $currentYear; $y >= $startYear; $y--)
                         <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
-                    @endforeach
+                    @endfor
                 </select>
             </div>
 
@@ -45,8 +115,8 @@
         </button>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="border-b border-zinc-800">
+    <!-- Navigation Tabs (Payment Methods Removed) -->
+    <div class="border-b border-zinc-800 no-print">
         <nav class="-mb-px flex space-x-8">
             <a href="{{ route('reports.index', ['tab' => 'summary', 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
                class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'summary' ? 'border-brand-orange text-brand-orange' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
@@ -60,13 +130,23 @@
                class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'bestsellers' ? 'border-brand-orange text-brand-orange' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
                Best Sellers
             </a>
-            <a href="{{ route('reports.index', ['tab' => 'payments', 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
-               class="pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition {{ $activeTab === 'payments' ? 'border-brand-orange text-brand-orange' : 'border-transparent text-zinc-400 hover:text-zinc-200' }}">
-               Payment Methods
-            </a>
         </nav>
     </div>
 
+    <!-- Printable Report Header (Visible only when printed) -->
+    <div class="hidden print:block mb-6 border-b pb-4">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-black uppercase tracking-wide">Prince Buffalo Wings</h1>
+                <p class="text-sm text-gray-600 font-semibold">Sales & Performance Summary Report</p>
+            </div>
+            <div class="text-right text-xs text-gray-500">
+                <p><span class="font-bold text-black">Period:</span> {{ $reportDateTitle }}</p>
+                <p><span class="font-bold text-black">Generated on:</span> {{ date('F d, Y h:i A') }}</p>
+            </div>
+        </div>
+    </div>
+    
     <!-- TAB 1: Sales Summary Cards -->
     @if($activeTab === 'summary')
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -166,39 +246,6 @@
                     @empty
                     <tr>
                         <td colspan="3" class="py-8 text-center text-zinc-500 font-medium">No product sales recorded for this period.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-    @endif
-
-    <!-- TAB 4: Payment Methods -->
-    @if($activeTab === 'payments')
-    <div class="bg-[#18191c] rounded-2xl shadow-sm border border-zinc-800 overflow-hidden">
-        <div class="p-6 border-b border-zinc-800">
-            <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Payment Channel Breakdown</h4>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#202226] border-b border-zinc-800 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                        <th class="py-4 px-6">Payment Method</th>
-                        <th class="py-4 px-6">Transaction Count</th>
-                        <th class="py-4 px-6 text-right">Total Collected</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-800 text-sm">
-                    @forelse($paymentMethods as $pm)
-                    <tr class="hover:bg-[#202226]/50 transition">
-                        <td class="py-4 px-6 font-bold text-white uppercase tracking-wider">{{ $pm->payment_method }}</td>
-                        <td class="py-4 px-6 text-zinc-300 font-bold">{{ $pm->count }} <span class="text-xs text-zinc-400 font-normal">orders</span></td>
-                        <td class="py-4 px-6 text-right font-black text-white">₱{{ number_format($pm->total, 2) }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="3" class="py-8 text-center text-zinc-500 font-medium">No payment records found for this period.</td>
                     </tr>
                     @endforelse
                 </tbody>
