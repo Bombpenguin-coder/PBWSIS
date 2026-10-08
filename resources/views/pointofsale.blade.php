@@ -7,55 +7,60 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Thermal Print Styles -->
     <style>
-        /* CSS Print Rules specifically for 58mm Printers */
-        @page {
-            size: 58mm auto; /* Explicit thermal paper width */
-            margin: 0mm;      /* Strip default browser header/footer/margins */
+    @page {
+        size: 58mm auto;
+        margin: 0mm !important;
+    }
+
+    @media print {
+        html, body {
+            width: 58mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
-        @media print {
-            /* Hide full app UI cleanly */
-            html, body {
-                width: 58mm !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-                overflow: visible !important;
-            }
-
-            body * {
-                visibility: hidden !important;
-            }
-
-            /* Show ONLY the receipt container */
-            #printableReceipt, #printableReceipt * {
-                visibility: visible !important;
-            }
-
-            #printableReceipt {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 58mm !important; /* Lock to thermal roll size */
-                max-width: 58mm !important;
-                padding: 4mm !important; /* Clean inner border spacing */
-                margin: 0 !important;
-                border: none !important;
-                box-shadow: none !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-                font-size: 11px !important;
-                line-height: 1.2 !important;
-            }
-
-            .no-print {
-                display: none !important;
-            }
+        /* Force sharp, non-blurry bitmap text for thermal heads */
+        * {
+            color: #000000 !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            font-weight: 700 !important;
+            -webkit-font-smoothing: none !important;
+            text-rendering: optimizeSpeed !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
-    </style>
+
+        body * {
+            visibility: hidden !important;
+        }
+
+        #printableReceipt, #printableReceipt * {
+            visibility: visible !important;
+        }
+
+        #printableReceipt {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 48mm !important; /* 48mm is the true printable area of 58mm paper! */
+            max-width: 48mm !important;
+            max-height: none !important;
+            height: auto !important;
+            overflow: visible !important;
+            padding: 2mm !important;
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+            line-height: 1.35 !important;
+        }
+    }
+</style>
 
     <!-- Expose Global Config Variables -->
     <script>
@@ -389,53 +394,44 @@
             <h3 class="text-lg font-black text-white mb-1 no-print">Receipt Preview</h3>
             <p class="text-xs text-zinc-400 mb-4 no-print">Review official receipt before printing</p>
 
-            <!-- Printable Receipt Container -->
-            <div id="printableReceipt" class="w-full bg-white rounded-lg p-4 text-left font-mono text-xs text-black space-y-2 shadow-inner max-h-[28rem] overflow-y-auto">
-                <div class="text-center pb-2">
-                    <p class="font-bold text-sm text-black uppercase tracking-wider">PBWSIS POS</p>
-                    <p class="text-[10px] text-zinc-600">Official Receipt Preview</p>
-                    <p id="receiptDate" class="text-[10px] text-zinc-500 mt-0.5"></p>
-                </div>
+<!-- Printable Receipt Container (On-Screen Preview Only - POS58 prints via Backend) -->
+<div id="printableReceipt" class="w-full bg-white rounded-lg p-4 text-left font-mono text-xs text-black space-y-2 shadow-inner max-h-[28rem] overflow-y-auto">
+    <div class="text-center border-b border-zinc-300 pb-2">
+        <p class="font-bold text-sm text-black uppercase tracking-wider">PBWSIS POS</p>
+        <p class="text-[10px] text-zinc-600">Official Receipt Preview</p>
+        <p id="receiptDate" class="text-[10px] text-zinc-500 mt-0.5"></p>
+    </div>
 
-                <!-- Top Standalone Divider -->
-                <div class="border-t border-solid border-zinc-300 my-1"></div>
+    <!-- Items List -->
+    <div id="receiptItemsList" class="space-y-1 py-1 border-b border-dashed border-zinc-300 text-xs"></div>
 
-                <!-- Items List -->
-                <div id="receiptItemsList" class="space-y-1 py-1 text-xs"></div>
+    <!-- Totals Section -->
+    <div class="space-y-1 text-xs pt-1">
+        <div class="flex justify-between py-0.5">
+            <span>Subtotal:</span>
+            <span id="receiptSubtotal">₱0.00</span>
+        </div>
 
-                <!-- Middle Standalone Divider -->
-                <div class="border-t border-dashed border-zinc-400 my-2"></div>
+        <div class="flex justify-between text-orange-600 py-0.5">
+            <span>Discount:</span>
+            <span id="receiptDiscount">-₱0.00</span>
+        </div>
 
-                <!-- Totals Section -->
-                <div class="space-y-1 text-xs">
-                    <div class="flex justify-between py-0.5">
-                        <span>Subtotal:</span>
-                        <span id="receiptSubtotal">₱0.00</span>
-                    </div>
+        <div class="flex justify-between text-zinc-600 py-0.5">
+            <span>VAT (12% Incl.):</span>
+            <span id="receiptVat">₱0.00</span>
+        </div>
 
-                    <div class="flex justify-between text-orange-600 py-0.5">
-                        <span>Discount:</span>
-                        <span id="receiptDiscount">-₱0.00</span>
-                    </div>
+        <div class="flex justify-between text-sm font-bold border-t border-dashed border-zinc-300 pt-1.5 mt-1 text-black">
+            <span>TOTAL:</span>
+            <span id="receiptTotal">₱0.00</span>
+        </div>
+    </div>
 
-                    <div class="flex justify-between text-zinc-600 py-0.5">
-                        <span>VAT (12% Incl.):</span>
-                        <span id="receiptVat">₱0.00</span>
-                    </div>
-
-                    <!-- Bottom Standalone Divider -->
-                    <div class="border-t border-dashed border-zinc-400 my-2"></div>
-
-                    <div class="flex justify-between text-sm font-bold text-black pb-1">
-                        <span>TOTAL:</span>
-                        <span id="receiptTotal">₱0.00</span>
-                    </div>
-                </div>
-
-                <div class="text-center border-t border-solid border-zinc-300 pt-2 mt-2 text-[10px] text-zinc-500">
-                    Thank you for your purchase!
-                </div>
-            </div>
+    <div class="text-center border-t border-zinc-300 pt-2 text-[10px] text-zinc-500">
+        Thank you for your purchase!
+    </div>
+</div>
 
             <div class="w-full mt-4 flex gap-2 no-print">
                 <button type="button" onclick="printReceipt()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">

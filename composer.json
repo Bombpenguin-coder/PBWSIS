@@ -9,7 +9,6 @@
         "php": "^8.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "mike42/escpos-php": "*",
         "owen-it/laravel-auditing": "^14.0"
     },
     "require-dev": {

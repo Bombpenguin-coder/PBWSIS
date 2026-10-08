@@ -15,6 +15,10 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\OperationController;
 use App\Http\Controllers\PurchaseController;
 
+// ESC/POS Thermal Printer Library Imports
+use Mike42\Escpos\Printer;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+
 // =========================================================
 // 1. PUBLIC & AUTHENTICATION ROUTES
 // =========================================================
@@ -65,6 +69,9 @@ Route::middleware(['auth'])->group(function () {
     })->name('pos');
 
     Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.checkout');
+
+    // Direct ESC/POS Hardware Print Route for POS58
+    Route::post('/pos/print/{sale_id}', [SalesController::class, 'printThermalReceipt'])->name('pos.print');
 
     // ---------------------------------------------------------
     // Sales Management
@@ -181,4 +188,77 @@ Route::middleware(['auth'])->group(function () {
         return view('receipt', compact('sale'));
     })->name('receipt.show');
 
+}); // End of Authenticated Routes
+
+
+// =========================================================
+// 3. THERMAL PRINTER TEST ROUTE (POS58)
+// =========================================================
+Route::get('/test-pos58', function () {
+    try {
+        // ADJUSTABLE PARAMETER: Ensure "POS58" matches your Windows Printer Share Name
+        $connector = new WindowsPrintConnector("POS58");
+        $printer = new Printer($connector);
+
+        // Header
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->setEmphasis(true);
+        $printer->text("PBWSIS POS\n");
+        $printer->setEmphasis(false);
+        $printer->text("Official Receipt Preview\n");
+        $printer->text(now()->format('d/m/Y, H:i:s') . "\n");
+        $printer->text("--------------------------------\n");
+
+        // Body (Left Aligned)
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+
+        // Helper closure to format 32-character rows cleanly on 58mm paper
+        $formatRow = function ($name, $price) {
+            $maxWidth = 32;
+            $priceStr = " " . $price;
+            $maxNameWidth = $maxWidth - strlen($priceStr);
+
+            $wrappedLines = explode("\n", wordwrap($name, $maxNameWidth, "\n", true));
+            
+            $firstLine = $wrappedLines[0];
+            $spaces = $maxWidth - strlen($firstLine) - strlen($price);
+            $output = $firstLine . str_repeat(" ", max(1, $spaces)) . $price . "\n";
+
+            for ($i = 1; $i < count($wrappedLines); $i++) {
+                $output .= $wrappedLines[$i] . "\n";
+            }
+
+            return $output;
+        };
+
+        // Sample Items
+        $printer->text($formatRow("1x sweet and sour chicken", "P150.00"));
+        $printer->text($formatRow("1x chicken tender", "P69.00"));
+        $printer->text("--------------------------------\n");
+
+        // Totals
+        $printer->text($formatRow("Subtotal:", "P219.00"));
+        $printer->text($formatRow("Discount:", "-P0.00"));
+        $printer->text($formatRow("VAT (12% Incl.):", "P23.46"));
+        $printer->text("--------------------------------\n");
+
+        // Grand Total
+        $printer->setEmphasis(true);
+        $printer->text($formatRow("TOTAL:", "P219.00"));
+        $printer->setEmphasis(false);
+        $printer->text("--------------------------------\n");
+
+        // Footer
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->text("Thank you for your purchase!\n");
+
+        // Feed paper and close connection
+        $printer->feed(4);
+        $printer->close();
+
+        return "SUCCESS! Check your POS58 thermal printer for the receipt.";
+
+    } catch (\Exception $e) {
+        return "PRINTER ERROR: " . $e->getMessage();
+    }
 });
