@@ -20,18 +20,23 @@ class AuthController extends Controller
             return redirect()->route('setup.register');
         }
 
-        // If already logged in, redirect straight to their role interface
         if (Auth::check()) {
             return $this->redirectBasedOnRole(Auth::user());
         }
 
-        return view('Login'); 
+        return view('login'); 
     }
 
-    // 2. Registration View (Disabled for Public Access)
+    // 2. First-Time Setup Registration View
     public function showRegister()
     {
-        return redirect()->route('login');
+        // If an Owner already exists, lock setup and send to login
+        if (User::where('role', 'Owner')->exists()) {
+            return redirect()->route('login');
+        }
+
+        // Return your setup view file (e.g., resources/views/register.blade.php or setup.blade.php)
+        return view('register'); 
     }
 
     // 3. Register First Owner Account (First-time setup only)
@@ -43,10 +48,10 @@ class AuthController extends Controller
         }
 
         $validated = $request->validate([
-            'username'       => 'required|string|alpha_dash|max:50|unique:users,username',
-            'password'       => 'required|string|min:8|max:64',
-            'contact_number' => 'nullable|string|regex:/^[0-9+\-\s()]+$/|max:20',
-        ]);
+        'username'       => 'required|string|alpha_dash|max:50|unique:users,username',
+        'password'       => 'required|string|min:8|max:64',
+        'contact_number' => 'nullable|numeric|digits:11',
+]       );
 
         User::create([
             'username'       => strtoupper(trim($validated['username'])),

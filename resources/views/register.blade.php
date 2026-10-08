@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-zinc-900 flex items-center justify-center min-h-screen text-white font-sans">
+<body class="bg-zinc-900 flex items-center justify-center min-h-screen text-white font-sans p-4">
 
     <div class="w-full max-w-md p-8 bg-zinc-800 rounded-xl shadow-2xl border border-zinc-700">
         <!-- Logo Header -->
@@ -25,52 +25,75 @@
             </div>
         @endif
 
-        <!-- Registration Form -->
-        <form action="{{ route('setup.store') }}" method="POST">
-                @csrf
+        <form action="{{ route('setup.store') }}" method="POST" class="space-y-4">
+            @csrf
 
-            <!-- Username -->
+            <!-- Form Heading -->
             <div>
-                <label class="block text-xs font-semibold uppercase text-zinc-300 mb-1">Username</label>
-                <input type="text" name="username" value="{{ old('username') }}" placeholder="Choose username" required
-                    class="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-red-600 transition">
+                <h2 class="text-2xl font-bold text-white">First-Time Setup</h2>
+                <p class="text-zinc-400 text-sm">Create the Master Owner account to initialize PBWSIS.</p>
             </div>
 
-            <!-- Password -->
+            <!-- Username Field -->
             <div>
-                <label class="block text-xs font-semibold uppercase text-zinc-300 mb-1">Password</label>
-                <input type="password" name="password" placeholder="••••••••" required
-                    class="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-red-600 transition">
+                <label for="username" class="block text-sm font-medium text-zinc-300 mb-1">Owner Username</label>
+                <input type="text" 
+                       name="username" 
+                       id="username" 
+                       value="{{ old('username') }}"
+                       class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-white focus:outline-none focus:border-orange-500" 
+                       placeholder="e.g. OWNER01" 
+                       required>
+                @error('username')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            <!-- Role Selection -->
+            <!-- Contact Number Field -->
             <div>
-                <label class="block text-xs font-semibold uppercase text-zinc-300 mb-1">Role</label>
-                <select name="role" required
-                    class="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-red-600 transition">
-                    <option value="Cashier">Cashier</option>
-                    <option value="Staff">Staff</option>
-                </select>
+                <label for="contact_number" class="block text-sm font-medium text-zinc-300 mb-1">Contact Number (Optional)</label>
+                <input type="text" 
+                       name="contact_number" 
+                       id="contact_number" 
+                       value="{{ old('contact_number') }}"
+                       maxlength="11"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                       class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-white focus:outline-none focus:border-orange-500" 
+                       placeholder="09123456789">
+                @error('contact_number')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            <!-- Contact Number -->
+            <!-- Password Field -->
             <div>
-                <label class="block text-xs font-semibold uppercase text-zinc-300 mb-1">Contact Number (Optional)</label>
-                <input type="text" name="contact_number" placeholder="09xxxxxxxxx"
-                    class="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-red-600 transition">
+                <label for="password" class="block text-sm font-medium text-zinc-300 mb-1">Password</label>
+                <input type="password" 
+                       name="password" 
+                       id="password" 
+                       class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-white focus:outline-none focus:border-orange-500" 
+                       placeholder="••••••••" 
+                       required>
+                @error('password')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Hidden / Explicit Role Indicator -->
+            <div class="p-3 bg-orange-500/10 border border-orange-500/30 rounded-md text-xs text-orange-400">
+                <span class="font-bold">Role:</span> Master Owner (System Administrator)
             </div>
 
             <!-- Submit Button -->
-            <button type="submit"
-                class="w-full py-3 mt-2 bg-red-700 hover:bg-red-800 text-white font-bold rounded-lg shadow-lg hover:shadow-red-900/40 transition duration-200">
-                Create Account
+            <button type="submit" class="w-full py-2.5 bg-[#EA580C] hover:bg-orange-600 text-white font-semibold rounded-md transition shadow-md">
+                Create Master Owner Account
             </button>
         </form>
 
-        <!-- Only show the login link if the system has already been initialized -->
+        <!-- Login Link -->
         @if(\App\Models\User::exists())
             <div class="text-center mt-4">
-                <a href="{{ route('login') }}" class="text-sm text-blue-600 hover:underline">
+                <a href="{{ route('login') }}" class="text-sm text-blue-500 hover:underline">
                     Already have an account? Login here.
                 </a>
             </div>

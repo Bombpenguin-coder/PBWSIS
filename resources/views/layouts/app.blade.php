@@ -17,92 +17,107 @@
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-all duration-300" onclick="toggleSidebar()"></div>
 
     <!-- Push/Collapsible Sidebar -->
-    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-64 bg-[#18191c] text-zinc-300 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out z-50 shadow-md border-r border-zinc-800 flex flex-col shrink-0">
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-68 bg-[#18191c] text-zinc-300 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out z-50 shadow-md border-r border-zinc-800 flex flex-col shrink-0">
         
-        <!-- Sidebar Header -->
-        <div class="p-5 border-b border-zinc-800 flex justify-between items-center">
-            <h1 class="text-xl font-black tracking-wider inline-flex items-center gap-1">
-                <span class="text-white">PBW</span>
-                <span class="bg-[#EA580C] text-white px-1.5 py-0.5 rounded font-extrabold text-lg">SIS</span>
-            </h1>
+        <!-- Sidebar Header with Logo -->
+        <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-[#18191c]">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
+                <!-- Logo Container -->
+                <div class="relative w-10 h-10 flex items-center justify-center shrink-0">
+                    <img src="{{ asset('images/logo.jpg') }}" 
+                         alt="Prince Buffalo Logo" 
+                         class="w-full h-full object-contain rounded-lg bg-white p-0.5 shadow-sm group-hover:scale-105 transition-transform duration-200"
+                         onerror="this.style.display='none'">
+                </div>
+                
+                <!-- Brand Name -->
+                <h1 class="text-xl font-black tracking-wider inline-flex items-center gap-1.5">
+                    <span class="text-white group-hover:text-zinc-200 transition">PBW</span>
+                    <span class="bg-[#EA580C] text-white px-2 py-0.5 rounded-md font-extrabold text-base shadow-sm">SIS</span>
+                </h1>
+            </a>
+            
+            <!-- Mobile Close Button -->
             <button onclick="toggleSidebar()" class="md:hidden text-zinc-400 hover:text-white focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
             </button>
         </div>
-
+        
         <!-- Navigation Menu -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
             
             <!-- 1. OPERATIONS -->
             <div>
-                <button onclick="toggleSubmenu('opsMenu', 'opsArrow')" class="w-full flex justify-between items-center px-4 py-3 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
-                    <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">Operations</span>
-                    <svg id="opsArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('pos') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <button onclick="toggleSubmenu('opsMenu', 'opsArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
+                    <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">Operations</span>
+                    <svg id="opsArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('pos') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="opsMenu" class="{{ request()->routeIs('pos') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                    <a href="{{ route('pos') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">POS / Billing</a>
+                    <a href="{{ route('pos') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">POS / Billing</a>
                 </div>
             </div>
 
             <!-- 2. INSIGHTS -->
             <div>
-                <button onclick="toggleSubmenu('insightsMenu', 'insightsArrow')" class="w-full flex justify-between items-center px-4 py-3 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
-                    <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">Insights</span>
-                    <svg id="insightsArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('dashboard', 'reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <button onclick="toggleSubmenu('insightsMenu', 'insightsArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
+                    <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">Insights</span>
+                    <svg id="insightsArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('dashboard', 'reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="insightsMenu" class="{{ request()->routeIs('dashboard', 'reports.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Dashboard</a>
-                    <a href="{{ route('reports.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('reports.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Reports</a>
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Dashboard</a>
+                    <a href="{{ route('reports.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('reports.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Reports</a>
                 </div>
             </div>
 
             <!-- 3. INVENTORY -->
             <div>
-                <button onclick="toggleSubmenu('inventoryMenu', 'inventoryArrow')" class="w-full flex justify-between items-center px-4 py-3 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
-                    <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">Inventory</span>
-                    <svg id="inventoryArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('ingredients.*', 'wastage.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <button onclick="toggleSubmenu('inventoryMenu', 'inventoryArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
+                    <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">Inventory</span>
+                    <svg id="inventoryArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('ingredients.*', 'wastage.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="inventoryMenu" class="{{ request()->routeIs('ingredients.*', 'wastage.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                   <a href="{{ route('inventory.ingredients.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
-                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Shrinkage</a>
+                   <a href="{{ route('inventory.ingredients.index') ?? '#' }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
+                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Shrinkage</a>
                 </div>
             </div>
 
             <!-- 4. FILE MAINTENANCE -->
-                <div>
-                    <button onclick="toggleSubmenu('fileMenu', 'fileArrow')" class="w-full flex justify-between items-center px-4 py-3 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
-                        <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">File Maintenance</span>
-                        <svg id="fileArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div id="fileMenu" class="{{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                        <a href="{{ route('categories.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Categories</a>
-                        <a href="/inventory" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Products Catalog</a>
-                        <a href="/discounts" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Discounts</a>
-                        <a href="/vat" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">VAT</a>
-                        <a href="/purchases" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('purchases.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Purchases</a>
-                        <a href="/suppliers" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Suppliers</a>
-                    </div>
+            <div>
+                <button onclick="toggleSubmenu('fileMenu', 'fileArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
+                    <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">File Maintenance</span>
+                    <svg id="fileArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="fileMenu" class="{{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
+                    <a href="{{ route('categories.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Categories</a>
+                    <a href="/inventory" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Products Catalog</a>
+                    <a href="/discounts" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Discounts</a>
+                    <a href="/vat" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">VAT</a>
+                    <a href="/purchases" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('purchases.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Purchases</a>
+                    <a href="/suppliers" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Suppliers</a>
                 </div>
+            </div>
 
             <!-- 5. ADMINISTRATION -->
             <div>
-                <button onclick="toggleSubmenu('adminMenu', 'adminArrow')" class="w-full flex justify-between items-center px-4 py-3 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
-                    <span class="font-bold tracking-wider text-xs uppercase text-zinc-300">Administration</span>
-                    <svg id="adminArrow" class="w-4 h-4 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('admin.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <button onclick="toggleSubmenu('adminMenu', 'adminArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
+                    <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">Administration</span>
+                    <svg id="adminArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('admin.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="adminMenu" class="{{ request()->routeIs('admin.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                    <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('admin.users.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">User Management</a>
-                    <a href="{{ route('admin.audit-trail') }}" class="block px-4 py-2 text-sm rounded-md transition duration-200 {{ request()->routeIs('admin.audit-trail') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Audit Trail</a>
+                    <a href="{{ route('admin.users.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('admin.users.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">User Management</a>
+                    <a href="{{ route('admin.audit-trail') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('admin.audit-trail') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Audit Trail</a>
                 </div>
             </div>
         </nav>
         
         <!-- Sidebar Footer -->
-        <div class="p-4 border-t border-zinc-800 text-sm text-zinc-400 flex items-center justify-between bg-[#18191c]">
+        <div class="p-4 border-t border-zinc-800 text-base text-zinc-400 flex items-center justify-between bg-[#18191c]">
             <div>Logged in as <span class="text-white font-bold">{{ Auth::user()->username ?? 'Owner' }}</span></div>
             <form action="{{ route('logout') }}" method="POST" class="inline">
                 @csrf
-                <button type="submit" class="text-xs font-bold text-orange-500 hover:text-orange-400 transition flex items-center space-x-1">
+                <button type="submit" class="text-sm font-bold text-orange-500 hover:text-orange-400 transition flex items-center space-x-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     <span>Logout</span>
                 </button>
