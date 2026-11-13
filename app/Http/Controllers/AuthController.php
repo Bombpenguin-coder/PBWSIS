@@ -12,12 +12,12 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // 1. Display Login Screen
+   // 1. Display Login Screen
     public function showLogin()
     {
         // Redirect to initial setup if no Owner exists
         if (!User::where('role', 'Owner')->exists()) {
-            return redirect()->route('setup.register');
+            return redirect('/setup'); // Directly use the URL path to avoid route name mismatch loops
         }
 
         if (Auth::check()) {
@@ -27,15 +27,15 @@ class AuthController extends Controller
         return view('login'); 
     }
 
-    // 2. First-Time Setup Registration View
-    public function showRegister()
+  // 2. Registration View (First-time setup view)
+  public function showRegister()
     {
-        // If an Owner already exists, lock setup and send to login
+        // If an Owner already exists, block public access and send them to login
         if (User::where('role', 'Owner')->exists()) {
             return redirect()->route('login');
         }
 
-        // Return your setup view file (e.g., resources/views/register.blade.php or setup.blade.php)
+        // Point to register.blade.php
         return view('register'); 
     }
 

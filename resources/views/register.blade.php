@@ -63,6 +63,13 @@
                 @error('contact_number')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
+                <label class="block text-xs font-semibold uppercase text-zinc-300 mb-1">Role</label>
+                <select name="role" required
+                    class="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-red-600 transition">
+                    <option value="Owner">Owner</option>
+                    <option value="Cashier">Cashier</option>
+                    <option value="Staff">Staff</option>
+                </select>
             </div>
 
             <!-- Password Field -->
