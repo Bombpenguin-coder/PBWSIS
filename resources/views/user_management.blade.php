@@ -7,7 +7,7 @@
     <!-- Action Bar -->
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-white tracking-wide">Registered Users</h2>
-        <button onclick="openUserModal('addUserModal')" class="bg-[#EA580C] hover:bg-orange-600 text-white font-bold py-2.5 px-4 rounded-lg shadow-md transition duration-200 text-sm flex items-center space-x-1">
+        <button onclick="openAddUserModal()" class="bg-[#EA580C] hover:bg-orange-600 text-white font-bold py-2.5 px-4 rounded-lg shadow-md transition duration-200 text-sm flex items-center space-x-1">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             <span>Add New User</span>
         </button>
@@ -21,6 +21,7 @@
                     <tr>
                         <th class="py-3.5 px-5">Username</th>
                         <th class="py-3.5 px-5">Role</th>
+                        <th class="py-3.5 px-5">Module Access Matrix</th>
                         <th class="py-3.5 px-5">Contact</th>
                         <th class="py-3.5 px-5 text-center">Actions</th>
                     </tr>
@@ -38,14 +39,30 @@
                                     </span>
                                 @endif
                             </td>
+                            <td class="py-4 px-5">
+                                @if(strtolower($user->role) === 'owner')
+                                    <span class="text-xs text-orange-400 font-semibold">Full System Access</span>
+                                @else
+                                    <div class="flex flex-wrap gap-1">
+                                        @forelse($user->permissions ?? [] as $perm)
+                                            <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] rounded">
+                                                {{ ucwords(str_replace('_', ' ', $perm)) }}
+                                            </span>
+                                        @empty
+                                            <span class="text-xs text-zinc-500 italic">No access assigned</span>
+                                        @endforelse
+                                    </div>
+                                @endif
+                            </td>
                             <td class="py-4 px-5 text-zinc-400">{{ $user->contact_number ?? 'N/A' }}</td>
                             <td class="py-4 px-5">
                                 <div class="flex justify-center items-center space-x-2">
-                                    <!-- Edit Button -->
+                                    <!-- Edit Button (Using safe @json directive) -->
                                     <button type="button" 
                                             data-id="{{ $user->users_id }}"
                                             data-username="{{ $user->username }}"
                                             data-role="{{ $user->role }}"
+                                            data-permissions="@json($user->permissions ?? [])"
                                             data-contact="{{ $user->contact_number }}"
                                             onclick="openUserEditModal(this)" 
                                             class="text-xs font-bold bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 py-1.5 px-3 rounded-lg transition">
@@ -69,7 +86,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="py-8 text-center text-zinc-500">No staff accounts found.</td>
+                            <td colspan="5" class="py-8 text-center text-zinc-500">No staff accounts found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -77,9 +94,21 @@
         </div>
     </div>
 
+    @php
+        $availableModules = [
+            'pos'           => 'Point of Sale (POS)',
+            'operations'    => 'Kitchen / Held Orders / Bills',
+            'inventory'     => 'Products & Ingredients',
+            'wastage'       => 'Wastage Management',
+            'purchases'     => 'Purchases & Suppliers',
+            'sales_history' => 'Sales History & Receipts',
+            'reports'       => 'Sales Reports',
+        ];
+    @endphp
+
     <!-- Add User Modal -->
     <div id="addUserModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all">
-        <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl max-w-md w-full p-6 text-white relative">
+        <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl max-w-md w-full p-6 text-white relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5 border-b border-zinc-800 pb-3">
                 <h3 class="text-lg font-bold text-white">Add New Staff</h3>
                 <button type="button" onclick="closeUserModal('addUserModal')" class="text-zinc-400 hover:text-white text-xl leading-none">&times;</button>
@@ -97,12 +126,25 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">Role</label>
-                    <select name="role" required class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#EA580C]">
+                    <select id="add_role" name="role" onchange="applyRoleDefaults('add', this.value)" required class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#EA580C]">
                         <option value="Cashier">Cashier</option>
                         <option value="Staff">Staff</option>
-                        <option value="Owner">Owner</option>
                     </select>
                 </div>
+
+                <!-- ARBAC Permission Checkboxes -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-zinc-400 mb-2">ARBAC Permission Matrix</label>
+                    <div class="bg-[#202226] border border-zinc-700 rounded-lg p-3 space-y-2">
+                        @foreach($availableModules as $key => $label)
+                            <label class="flex items-center space-x-2.5 cursor-pointer text-sm text-zinc-200 hover:text-white">
+                                <input type="checkbox" name="permissions[]" value="{{ $key }}" class="add-perm-checkbox w-4 h-4 rounded border-zinc-600 text-[#EA580C] focus:ring-[#EA580C] bg-zinc-800">
+                                <span>{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">Contact Number</label>
                     <input type="text" 
@@ -124,7 +166,7 @@
 
     <!-- Edit User Modal -->
     <div id="editUserModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all">
-        <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl max-w-md w-full p-6 text-white relative">
+        <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl max-w-md w-full p-6 text-white relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5 border-b border-zinc-800 pb-3">
                 <h3 class="text-lg font-bold text-white">Edit Staff Details</h3>
                 <button type="button" onclick="closeUserModal('editUserModal')" class="text-zinc-400 hover:text-white text-xl leading-none">&times;</button>
@@ -139,12 +181,26 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">Role</label>
+                    <!-- Removed onchange here so editing permissions manually won't get wiped out -->
                     <select id="edit_role" name="role" required class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#EA580C]">
                         <option value="Cashier">Cashier</option>
                         <option value="Staff">Staff</option>
-                        <option value="Owner">Owner</option>
                     </select>
                 </div>
+
+                <!-- ARBAC Permission Checkboxes -->
+                <div id="edit_permissions_container">
+                    <label class="block text-xs font-semibold uppercase text-zinc-400 mb-2">ARBAC Permission Matrix</label>
+                    <div class="bg-[#202226] border border-zinc-700 rounded-lg p-3 space-y-2">
+                        @foreach($availableModules as $key => $label)
+                            <label class="flex items-center space-x-2.5 cursor-pointer text-sm text-zinc-200 hover:text-white">
+                                <input type="checkbox" name="permissions[]" value="{{ $key }}" class="edit-perm-checkbox w-4 h-4 rounded border-zinc-600 text-[#EA580C] focus:ring-[#EA580C] bg-zinc-800">
+                                <span>{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold uppercase text-zinc-400 mb-1">New Password (Optional)</label>
                     <input type="password" id="edit_password" name="password" placeholder="Leave blank to keep current password" class="w-full bg-[#202226] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#EA580C]">
@@ -190,6 +246,24 @@
     </div>
     
     <script>
+    const roleDefaults = {
+        'Cashier': ['pos', 'operations', 'sales_history'],
+        'Staff': ['operations', 'inventory', 'wastage']
+    };
+
+    function applyRoleDefaults(prefix, role) {
+        const defaults = roleDefaults[role] || [];
+        document.querySelectorAll(`.${prefix}-perm-checkbox`).forEach(cb => {
+            cb.checked = defaults.includes(cb.value);
+        });
+    }
+
+    function openAddUserModal() {
+        document.getElementById('add_role').value = 'Cashier';
+        applyRoleDefaults('add', 'Cashier');
+        openUserModal('addUserModal');
+    }
+
     function openUserModal(modalId) {
         document.getElementById(modalId)?.classList.remove('hidden');
     }
@@ -202,6 +276,16 @@
         const id = buttonElement.getAttribute('data-id');
         const username = buttonElement.getAttribute('data-username');
         let role = buttonElement.getAttribute('data-role');
+        
+        // Safely parse permissions using dataset or attribute
+        let permissions = [];
+        try {
+            const rawPerms = buttonElement.getAttribute('data-permissions');
+            permissions = rawPerms ? JSON.parse(rawPerms) : [];
+        } catch (e) {
+            permissions = [];
+        }
+
         const contact = buttonElement.getAttribute('data-contact');
 
         if (role === 'Kitchen Staff') {
@@ -211,22 +295,29 @@
         document.getElementById('edit_username').value = username;
 
         const roleSelect = document.getElementById('edit_role');
-        roleSelect.value = role;
-
-        // Lock role dropdown if editing an Owner account
+        const permContainer = document.getElementById('edit_permissions_container');
+        
         if (role === 'Owner') {
+            roleSelect.innerHTML = '<option value="Owner" selected>Owner (Protected)</option>';
             roleSelect.disabled = true;
+            permContainer.classList.add('hidden');
         } else {
+            roleSelect.innerHTML = '<option value="Cashier">Cashier</option><option value="Staff">Staff</option>';
+            roleSelect.value = role;
             roleSelect.disabled = false;
+            permContainer.classList.remove('hidden');
+
+            // Explicitly check/uncheck each checkbox based on saved permissions array from DB
+            document.querySelectorAll('.edit-perm-checkbox').forEach(cb => {
+                cb.checked = permissions.includes(cb.value);
+            });
         }
 
         document.getElementById('edit_contact').value = contact || '';
-        document.getElementById('edit_password').value = ''; // Reset password input
+        document.getElementById('edit_password').value = ''; 
         
-        // Ensure form submits to /admin/users/{id}
         document.getElementById('editUserForm').action = '/admin/users/' + id;
         
-        // CRITICAL FIX: Enable roleSelect right before submit so disabled value is posted to server
         document.getElementById('editUserForm').onsubmit = function() {
             roleSelect.disabled = false;
         };
