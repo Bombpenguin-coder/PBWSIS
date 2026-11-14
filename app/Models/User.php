@@ -15,11 +15,12 @@ class User extends Authenticatable implements Auditable
     // Override the default 'id' primary key
     protected $primaryKey = 'users_id';
 
-    // Allow these specific columns to be saved to the database
+    // Allow these specific columns to be saved to the database (Added 'permissions')
     protected $fillable = [
         'username',
         'password',
         'role',
+        'permissions',
         'contact_number',
     ];
 
@@ -29,11 +30,12 @@ class User extends Authenticatable implements Auditable
         'remember_token',
     ];
 
-    // Attribute casts
+    // Attribute casts (Added 'permissions' => 'array')
     protected function casts(): array
     {
         return [
             'password' => 'hashed',
+            'permissions' => 'array',
         ];
     }
 }
