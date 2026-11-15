@@ -38,4 +38,18 @@ class User extends Authenticatable implements Auditable
             'permissions' => 'array',
         ];
     }
+
+    /**
+     * Check if user has access to a specific module permission
+     */
+    public function hasPermission($permission)
+    {
+        // Owners have access to everything automatically
+        if (strtolower($this->role) === 'owner') {
+            return true;
+        }
+
+        // Check if the permission exists in their JSON array
+        return in_array($permission, $this->permissions ?? []);
+    }
 }
