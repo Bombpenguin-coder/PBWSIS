@@ -19,18 +19,18 @@
     <!-- Push/Collapsible Sidebar -->
     <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-68 bg-[#18191c] text-zinc-300 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out z-50 shadow-md border-r border-zinc-800 flex flex-col shrink-0">
         
-        <!-- Sidebar Header with Logo -->
+       <!-- Sidebar Header with Logo -->
         <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-[#18191c]">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
-                <!-- Logo Container -->
-                <div class="relative w-10 h-10 flex items-center justify-center shrink-0">
+                <!-- Logo Container with Auto-Fallback -->
+                <div class="relative w-10 h-10 flex items-center justify-center shrink-0 bg-[#202226] border border-zinc-700 rounded-lg overflow-hidden shadow-sm group-hover:scale-105 transition-transform duration-200">
                     <img src="{{ asset('images/logo.jpg') }}" 
                          alt="Prince Buffalo Logo" 
-                         class="w-full h-full object-contain rounded-lg bg-white p-0.5 shadow-sm group-hover:scale-105 transition-transform duration-200"
-                         onerror="this.style.display='none'">
+                         class="w-full h-full object-contain p-0.5 bg-white"
+                         onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-xs font-black text-[#EA580C]\'>PB</span>';">
                 </div>
                 
-                <!-- Brand Name -->
+                <!-- Brand Name (PBW in White, SIS in Orange Badge) -->
                 <h1 class="text-xl font-black tracking-wider inline-flex items-center gap-1.5">
                     <span class="text-white group-hover:text-zinc-200 transition">PBW</span>
                     <span class="bg-[#EA580C] text-white px-2 py-0.5 rounded-md font-extrabold text-base shadow-sm">SIS</span>

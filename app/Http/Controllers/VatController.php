@@ -28,10 +28,13 @@ class VatController extends Controller
     /**
      * Update VAT configuration in database.
      */
-    public function update(Request $request, VatSetting $vat): RedirectResponse
+   public function update(Request $request, VatSetting $vat): RedirectResponse
     {
         $validated = $request->validate([
             'rate' => 'required|numeric|min:0|max:100',
+        ], [
+            'rate.min' => 'The VAT rate cannot be negative.',
+            'rate.max' => 'The VAT rate cannot exceed 100%.',
         ]);
 
         $vat->update([

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Wastage Logs')
+@section('title', 'Shrinkage Logs')
 @section('header_title', 'Wastage & Spoilage Tracking')
 
 @section('content')
@@ -10,7 +10,7 @@
         <!-- Header & Action Button -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
             <div>
-                <h2 class="text-lg font-bold text-white">Wastage History</h2>
+                <h2 class="text-lg font-bold text-white">Shrinkage History</h2>
             </div>
             
             <button type="button" onclick="openAddModal()" class="bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
@@ -77,7 +77,7 @@
                     @empty
                         <tr>
                             <td colspan="5" class="py-8 px-4 text-center text-zinc-500">
-                                No wastage logs recorded yet.
+                                No Shrinkage logs recorded yet.
                             </td>
                         </tr>
                     @endforelse
@@ -158,7 +158,7 @@
                     <button type="button" onclick="closeAddModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
                         Cancel
                     </button>
-                    <button type="submit" class="bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
+                    <button type="submit" class="bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition">
                         + Save Spoilage
                     </button>
                 </div>

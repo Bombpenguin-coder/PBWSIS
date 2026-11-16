@@ -24,34 +24,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#a1a1aa',          // X-Axis Text Color
-                            font: { family: 'ui-sans-serif, system-ui', size: 12 }
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)', // Vertical Gridlines
-                            drawBorder: false
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: '#a1a1aa',          // Y-Axis Text Color
-                            font: { family: 'ui-sans-serif, system-ui', size: 12 },
-                            callback: function(value) {
-                                return '₱' + value.toLocaleString();
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.08)', // Horizontal Gridlines
-                            drawBorder: false
-                        }
-                    }
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                ticks: {
+                    color: '#a1a1aa',          // X-Axis Text Color
+                    font: { family: 'ui-sans-serif, system-ui', size: 12 }
                 },
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.05)', // Vertical Gridlines
+                    drawBorder: false
+                }
+            },
+         y: {
+            beginAtZero: true,
+            suggestedMax: 2000, // <--- Sets a realistic baseline ceiling when sales are empty
+            ticks: {
+                color: '#a1a1aa',          // Y-Axis Text Color
+                font: { family: 'ui-sans-serif, system-ui', size: 12 },
+                precision: 0,              // Forces whole numbers
+                stepSize: 100,             // <--- Forces clean 100-peso jumps (0, 100, 200, 300...)
+                callback: function(value) {
+                    return '₱' + value.toLocaleString();
+                }
+            },
+            grid: {
+                color: 'rgba(255, 255, 255, 0.08)', // Horizontal Gridlines
+                drawBorder: false
+            }
+        }
+        },
                 plugins: {
                     legend: { display: false },
                     tooltip: {

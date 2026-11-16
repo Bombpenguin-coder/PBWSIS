@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PBWSIS - Create Account</title>
+    <title>PBWSIS - Create Master Owner Account</title>
     <script src="https://cdn.tailwindcss.com"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-zinc-900 flex items-center justify-center min-h-screen text-white font-sans p-4">
 
     <div class="w-full max-w-md p-8 bg-zinc-800 rounded-xl shadow-2xl border border-zinc-700">
-        <!-- Logo Header -->
+       <!-- Logo Header -->
         <div class="text-center mb-6">
             <h1 class="text-3xl font-black tracking-wider">
-                <span class="text-red-600">PBW</span><span class="text-white">SIS</span>
+                <span class="text-[#EA580C]">PBW</span><span class="text-white">SIS</span>
             </h1>
-            <p class="text-zinc-400 text-xs mt-1">Create a New User Account</p>
+            <p class="text-zinc-400 text-xs mt-1">System Initialization</p>
         </div>
 
         <!-- Errors -->
@@ -63,13 +63,6 @@
                 @error('contact_number')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
-                <label class="block text-xs font-semibold uppercase text-zinc-300 mb-1">Role</label>
-                <select name="role" required
-                    class="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-red-600 transition">
-                    <option value="Owner">Owner</option>
-                    <option value="Cashier">Cashier</option>
-                    <option value="Staff">Staff</option>
-                </select>
             </div>
 
             <!-- Password Field -->
@@ -86,9 +79,9 @@
                 @enderror
             </div>
 
-            <!-- Hidden / Explicit Role Indicator -->
+            <!-- Explicit Role Indicator -->
             <div class="p-3 bg-orange-500/10 border border-orange-500/30 rounded-md text-xs text-orange-400">
-                <span class="font-bold">Role:</span> Master Owner (System Administrator)
+                <span class="font-bold">Role:</span> Master Owner (System Administrator with Full Access)
             </div>
 
             <!-- Submit Button -->
