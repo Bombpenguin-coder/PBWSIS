@@ -10,7 +10,6 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
             <div>
                 <h2 class="text-lg font-bold text-white">Current Raw Materials</h2>
-                <p class="text-xs text-zinc-400">Live inventory levels and health status</p>
             </div>
             <button type="button" onclick="openAddModal()" class="bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,26 +26,24 @@
                     <tr>
                         <th class="py-3 px-4 text-left font-semibold">Ingredient</th>
                         <th class="py-3 px-4 text-left font-semibold">Sealed Boxes</th>
-                        <th class="py-3 px-4 text-left font-semibold">Active Loose Pieces</th>
+                        <th class="py-3 px-4 text-left font-semibold">Pieces</th>
                         <th class="py-3 px-4 text-center font-semibold">Status</th>
                         <th class="py-3 px-4 text-center font-semibold">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-800 text-sm bg-[#18191c]">
                     @forelse($ingredients as $ingredient)
-                       @php
-    $ppb = $ingredient->pieces_per_box > 0 ? $ingredient->pieces_per_box : 1;
-    $sealedBoxes = (float) $ingredient->quantity;
-    $activePieces = (float) ($ingredient->total_pieces ?? 0);
-
-    $maxCapacityBoxes = $ingredient->max_capacity > 0 ? $ingredient->max_capacity : 1;
-    $isLow = $sealedBoxes <= ($ingredient->reorder_level ?? ($maxCapacityBoxes * 0.15));
-@endphp
+                        @php
+                            $ppb = $ingredient->pieces_per_box > 0 ? $ingredient->pieces_per_box : 1;
+                            $sealedBoxes = (float) $ingredient->quantity;
+                            $activePieces = (float) ($ingredient->total_pieces ?? 0);
+                            $status = $ingredient->stock_status; // 'optimal', 'warning', 'critical'
+                        @endphp
                         <tr class="hover:bg-[#202226]/60 transition duration-150">
                             <td class="py-3 px-4 font-semibold text-white">{{ $ingredient->ingredient_name }}</td>
                             
-                            <td class="py-3 px-4 font-bold {{ $isLow ? 'text-rose-400' : 'text-emerald-400' }}">
-                                {{ number_format($sealedBoxes) }} <span class="text-xs font-normal text-zinc-400">Boxes</span>
+                            <td class="py-3 px-4 font-bold {{ $status === 'critical' ? 'text-rose-400' : ($status === 'warning' ? 'text-amber-400' : 'text-emerald-400') }}">
+                                {{ number_format($sealedBoxes) }} <span class="text-xs font-normal text-zinc-400">/ {{ number_format($ingredient->max_capacity) }} Boxes</span>
                             </td>
 
                             <td class="py-3 px-4 font-semibold text-amber-400">
@@ -55,30 +52,31 @@
                             </td>
 
                             <td class="py-3 px-4 text-center">
-                                @if($isLow)
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 border border-rose-500/20 text-rose-400">
-                                        Low Stock
+                                @if($status === 'critical')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 border border-rose-500/30 text-rose-400">
+                                        Critical 
+                                    </span>
+                                @elseif($status === 'warning')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                                        Low Stock 
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                                         Optimal
                                     </span>
                                 @endif
+                                
                             </td>
 
                             <td class="py-3 px-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <button type="button" 
-                                        onclick="openEditModal('{{ route('ingredients.update', $ingredient->ingredient_id) }}', 'Edit Ingredient', [
-                                            { label: 'Ingredient Name', name: 'ingredient_name', value: '{{ addslashes($ingredient->ingredient_name) }}', required: true },
-                                            { label: 'Sealed Boxes', name: 'quantity', type: 'number', value: '{{ (float)$ingredient->quantity }}', required: true },
-                                            { label: 'Pieces Per Box', name: 'pieces_per_box', type: 'number', value: '{{ (float)($ingredient->pieces_per_box ?? 1) }}', required: true },
-                                            { label: 'Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true },
-                                            { label: 'Max Capacity', name: 'max_capacity', type: 'number', value: '{{ (float)$ingredient->max_capacity }}', required: true },
-                                            { label: 'Reorder Threshold', name: 'reorder_level', type: 'number', value: '{{ (float)$ingredient->reorder_level }}', required: true }
+                                        onclick="openEditModal('{{ route('ingredients.update', $ingredient->ingredient_id) }}', 'Edit Box Contents ({{ addslashes($ingredient->ingredient_name) }})', [
+                                            { label: 'Amount of Goods per Box (Pieces / Box)', name: 'pieces_per_box', type: 'number', value: '{{ (float)($ingredient->pieces_per_box ?? 1) }}', required: true },
+                                            { label: 'Measurement Unit (e.g. g, ml, pcs)', name: 'unit', value: '{{ $ingredient->unit }}', required: true }
                                         ])" 
                                         class="text-xs font-semibold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1.5 rounded-md transition duration-150">
-                                        Edit
+                                        Edit Box Qty
                                     </button>
 
                                     <form id="delete-ingredient-form-{{ $ingredient->ingredient_id }}" action="{{ route('ingredients.destroy', $ingredient->ingredient_id) }}" method="POST" class="inline">
@@ -109,7 +107,7 @@
         </div>
     </div>
 
-    <!-- Modal Form -->
+    <!-- Add Modal Form -->
     <div id="addProductModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
         <div class="bg-[#18191c] border border-zinc-800 rounded-xl shadow-2xl w-full max-w-sm p-5 relative transform transition-all max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4 shrink-0">
@@ -121,19 +119,19 @@
                 @csrf
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_ingredient_name">Ingredient Name</label>
-                    <input type="text" name="ingredient_name" id="modal_ingredient_name" value="{{ old('ingredient_name') }}" required placeholder="e.g., Espresso Beans" 
+                    <input type="text" name="ingredient_name" id="modal_ingredient_name" value="{{ old('ingredient_name') }}" required placeholder="e.g., Chicken Wings" 
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_quantity">Sealed Boxes</label>
-                        <input type="number" step="1" name="quantity" id="modal_quantity" value="{{ old('quantity') }}" required placeholder="0" 
+                        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_quantity">Initial Boxes</label>
+                        <input type="number" step="1" min="1" name="quantity" id="modal_quantity" value="{{ old('quantity') }}" required placeholder="20" 
                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_pieces_per_box">Pieces / Box</label>
-                        <input type="number" step="1" name="pieces_per_box" id="modal_pieces_per_box" value="{{ old('pieces_per_box') }}" required placeholder="e.g., 50" 
+                        <input type="number" step="1" min="1" name="pieces_per_box" id="modal_pieces_per_box" value="{{ old('pieces_per_box') }}" required placeholder="e.g., 50" 
                                class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                     </div>
                 </div>
@@ -144,17 +142,9 @@
                            class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
                 </div>
 
-                <div class="mb-3">
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_max_capacity">Max Storage (Boxes)</label>
-                    <input type="number" step="1" name="max_capacity" id="modal_max_capacity" value="{{ old('max_capacity') }}" required placeholder="100" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                </div>
-
-                <div class="mb-3">
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1" for="modal_reorder_level">Reorder Threshold (Boxes)</label>
-                    <input type="number" step="1" name="reorder_level" id="modal_reorder_level" value="{{ old('reorder_level') }}" required placeholder="10" 
-                           class="w-full bg-[#202226] border border-zinc-700 text-white p-2 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                </div>
+                <p class="text-[11px] text-zinc-400 bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 mb-3">
+                    Restock alerts will automatically be calculated at <span class="text-amber-400 font-semibold">30% (Warning)</span> and <span class="text-rose-400 font-semibold">10% (Critical)</span> of the box quantity.
+                </p>
 
                 <div class="flex justify-end space-x-2 pt-3 border-t border-zinc-800 mt-4">
                     <button type="button" onclick="closeAddModal()" class="bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 px-3 rounded-lg transition border border-zinc-700">
@@ -167,7 +157,6 @@
             </form>
         </div>
     </div>
-
 
     <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
@@ -219,6 +208,5 @@
                 document.getElementById(targetFormId).submit();
             }
         });
-     
     </script>
 @endsection

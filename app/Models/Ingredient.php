@@ -19,48 +19,71 @@ class Ingredient extends Model implements Auditable
         'pieces_per_box',  // Pieces per box capacity
         'total_pieces',    // Active open/loose pieces
         'unit',
-        'max_capacity',
-        'reorder_level',
+        'max_capacity',    // Stores the reference batch total (e.g. 20 boxes)
+        'reorder_level',   // Stores the 30% yellow warning threshold
     ];
 
-    // Many-to-Many Relationship to Products (Recipes)
     public function products()
     {
         return $this->belongsToMany(Product::class, 'product_ingredients', 'ingredient_id', 'product_id')
                     ->withPivot('quantity_needed');
     }
 
-    // One-to-Many Relationship to Purchases
     public function purchases()
     {
         return $this->hasMany(Purchase::class, 'ingredient_id', 'ingredient_id');
     }
 
     /**
-     * Deduct loose pieces needed for a product sale.
-     * Automatically opens unopened sealed boxes as active stock depletes.
-     *
-     * @param float $requiredPieces Total loose pieces needed for order
-     * @return bool
+     * Yellow Warning Threshold (30% of reference batch capacity)
      */
+    public function getWarningThresholdAttribute(): int
+    {
+        $max = $this->max_capacity > 0 ? $this->max_capacity : 1;
+        return (int) ceil($max * 0.30);
+    }
+
+    /**
+     * Red Critical Threshold (10% of reference batch capacity)
+     */
+    public function getCriticalThresholdAttribute(): int
+    {
+        $max = $this->max_capacity > 0 ? $this->max_capacity : 1;
+        return (int) ceil($max * 0.10);
+    }
+
+    /**
+     * Returns 3-tier stock status: 'critical' (red), 'warning' (yellow), or 'optimal' (green)
+     */
+    public function getStockStatusAttribute(): string
+    {
+        $boxes = (float) $this->quantity;
+
+        if ($boxes <= 0 || $boxes <= $this->critical_threshold) {
+            return 'critical';
+        }
+
+        if ($boxes <= $this->warning_threshold) {
+            return 'warning';
+        }
+
+        return 'optimal';
+    }
+
     public function deductPieces(float $requiredPieces): bool
     {
         $ppb = $this->pieces_per_box > 0 ? $this->pieces_per_box : 1;
-
-        // Calculate grand total available loose pieces across sealed boxes and active stock
         $grandTotalAvailable = ($this->quantity * $ppb) + $this->total_pieces;
 
         if ($grandTotalAvailable < $requiredPieces) {
-            return false; // Insufficient stock
+            return false;
         }
 
-        // Deduct required amount from active loose pieces
         $this->total_pieces -= $requiredPieces;
 
-        // Auto-unbox sealed boxes if active pieces drop below 0
         while ($this->total_pieces < 0 && $this->quantity > 0) {
-            $this->quantity -= 1;       // Open 1 sealed box
-            $this->total_pieces += $ppb; // Add box capacity to loose stock
+            $this->quantity -= 1;
+            $this->total_pieces += $ppb;
         }
 
         $this->save();

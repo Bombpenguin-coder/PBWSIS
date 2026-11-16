@@ -26,27 +26,27 @@ class IngredientController extends Controller
     {
         $validatedData = $request->validate([
             'ingredient_name' => 'required|string|max:255',
-            'quantity'        => 'required|numeric|min:0',
+            'quantity'        => 'required|numeric|min:1',
             'pieces_per_box'  => 'required|numeric|min:1',
             'unit'            => 'required|string|max:50',
-            'max_capacity'    => 'required|numeric|min:1',
-            'reorder_level'   => 'required|numeric|min:0',
         ]);
 
         try {
+            $qty = (int) $validatedData['quantity'];
             $ppb = $validatedData['pieces_per_box'];
+            $autoReorder = (int) ceil($qty * 0.30);
 
             Ingredient::create([
                 'ingredient_name' => $validatedData['ingredient_name'],
-                'quantity'        => $validatedData['quantity'],
+                'quantity'        => $qty,
                 'pieces_per_box'  => $ppb,
-                'total_pieces'    => $ppb,
+                'total_pieces'    => $pbb,
                 'unit'            => $validatedData['unit'],
-                'max_capacity'    => $validatedData['max_capacity'],
-                'reorder_level'   => $validatedData['reorder_level'],
+                'max_capacity'    => $qty,
+                'reorder_level'   => $autoReorder,
             ]);
             
-            return back()->with('success', 'Ingredient added successfully!');
+            return back()->with('success', 'Ingredient added with automatic restock thresholds!');
             
         } catch (\Exception $e) {
             Log::error('Failed to create ingredient: ' . $e->getMessage());
@@ -59,29 +59,22 @@ class IngredientController extends Controller
         try {
             $ingredient = Ingredient::findOrFail($id);
 
+            // Only allow editing the amount of goods per box (and unit)
             $validated = $request->validate([
-                'ingredient_name' => 'required|string|max:255',
-                'quantity'        => 'required|numeric|min:0',
-                'pieces_per_box'  => 'required|numeric|min:1',
-                'unit'            => 'required|string|max:50',
-                'max_capacity'    => 'required|numeric|min:1',
-                'reorder_level'   => 'required|numeric|min:0',
+                'pieces_per_box' => 'required|numeric|min:1',
+                'unit'           => 'required|string|max:50',
             ]);
 
             $newPpb = $validated['pieces_per_box'];
-            $activePieces = min($ingredient->total_pieces ?? $newPpb, $newPpb);
+            $activePieces = min($ingredient->total_pieces ?? 0, $newPpb);
 
             $ingredient->update([
-                'ingredient_name' => $validated['ingredient_name'],
-                'quantity'        => $validated['quantity'],
-                'pieces_per_box'  => $newPpb,
-                'total_pieces'    => $activePieces,
-                'unit'            => $validated['unit'],
-                'max_capacity'    => $validated['max_capacity'],
-                'reorder_level'   => $validated['reorder_level'],
+                'pieces_per_box' => $newPpb,
+                'total_pieces'   => $newPpb,
+                'unit'           => $validated['unit'],
             ]);
 
-            return redirect()->back()->with('success', 'Ingredient updated successfully.');
+            return redirect()->back()->with('success', 'Box contents updated successfully.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput()->with('error', 'Validation failed.');

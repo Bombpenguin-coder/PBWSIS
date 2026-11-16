@@ -4,7 +4,6 @@
 <div class="p-6 space-y-6">
     <div>
         <h1 class="text-2xl font-bold text-white">Purchases / Restock Inventory</h1>
-        <p class="text-zinc-400 text-sm">Log stock receipts and track inventory purchase history.</p>
     </div>
 
     <div class="bg-[#1a1a1e] border border-zinc-800 rounded-2xl p-6 shadow-xl border-t-4 border-t-[#EA580C]">

@@ -13,7 +13,6 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
             <div>
                 <h2 class="text-lg font-bold text-white">Active & Preset Discounts</h2>
-                <p class="text-xs text-zinc-400">Manage promotional and custom price adjustments</p>
             </div>
             
            <button type="button" onclick="openAddDiscountModal()" class="bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 text-xs flex items-center gap-1.5">

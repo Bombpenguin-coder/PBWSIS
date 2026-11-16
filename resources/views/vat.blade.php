@@ -9,7 +9,6 @@
     <div class="max-w-xl bg-[#18191c] p-6 rounded-xl shadow-sm border border-zinc-800">
         <div class="border-b border-zinc-800 pb-4 mb-5">
             <h2 class="text-lg font-bold text-white">Tax & VAT Rules</h2>
-            <p class="text-xs text-zinc-400">Configure global VAT rate and calculation behavior across sales</p>
         </div>
 
         <form action="{{ route('vat.update', $vat->id) }}" method="POST">
