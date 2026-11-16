@@ -40,11 +40,10 @@ Route::post('/register', [AuthController::class, 'storeOwner']);
 Route::middleware(['auth'])->group(function () {
 
     // ---------------------------------------------------------
-    // STRICTLY OWNER ONLY (Dashboard, User Management, Reports)
+    // STRICTLY OWNER ONLY (Dashboard, User Management, Audit Trail)
     // ---------------------------------------------------------
     Route::middleware(['role:Owner'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/reports', [SalesController::class, 'reports'])->name('reports.index');
 
         Route::prefix('admin')->name('admin.')->group(function () {
             Route::prefix('users')->name('users.')->group(function () {
@@ -58,63 +57,101 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ---------------------------------------------------------
-    // POS Core (Cashier & Owner Only)
+    // POS Core
     // ---------------------------------------------------------
     Route::get('/pos', function (Illuminate\Http\Request $request) {
-        // Guard: Prevent Staff from opening POS
-        if (auth()->user()->role === 'Staff') {
-            return redirect()->route('ingredients.index')->with('error', 'Access Restricted: Kitchen Staff cannot access POS.');
+        if (!auth()->user()->hasPermission('pos')) {
+            return redirect()->route('sales.history')->with('error', 'Access Restricted: You do not have POS permissions.');
         }
         return app(SalesController::class)->index($request);
     })->name('pos');
 
     Route::post('/pos/checkout', [SalesController::class, 'store'])->name('pos.checkout');
-
-    // Direct ESC/POS Hardware Print Route for POS58
     Route::post('/pos/print/{sale_id}', [SalesController::class, 'printThermalReceipt'])->name('pos.print');
 
     // ---------------------------------------------------------
-    // Sales Management
+    // Sales Management & Reports
     // ---------------------------------------------------------
+    Route::get('/reports', function (Illuminate\Http\Request $request) {
+        if (!auth()->user()->hasPermission('reports')) {
+            return redirect()->route('sales.history')->with('error', 'Access Restricted: Reports permission required.');
+        }
+        return app(SalesController::class)->reports($request);
+    })->name('reports.index');
+
     Route::prefix('sales')->name('sales.')->group(function () {
-        Route::get('/', [SalesController::class, 'index'])->name('index');
+        Route::get('/', function (Illuminate\Http\Request $request) {
+            if (!auth()->user()->hasPermission('pos') && !auth()->user()->hasPermission('sales_history')) {
+                return redirect('/login')->with('error', 'Access Restricted.');
+            }
+            return app(SalesController::class)->index($request);
+        })->name('index');
+
         Route::post('/', [SalesController::class, 'store'])->name('store');
-        Route::get('/history', [SalesController::class, 'history'])->name('history');
-        Route::get('/reports', [SalesController::class, 'reports'])->name('reports');
+
+        Route::get('/history', function (Illuminate\Http\Request $request) {
+            if (!auth()->user()->hasPermission('sales_history')) {
+                return redirect()->route('pos')->with('error', 'Access Restricted: Sales History permission required.');
+            }
+            return app(SalesController::class)->history($request);
+        })->name('history');
+
+        Route::get('/reports', function (Illuminate\Http\Request $request) {
+            if (!auth()->user()->hasPermission('reports')) {
+                return redirect()->route('sales.history')->with('error', 'Access Restricted.');
+            }
+            return app(SalesController::class)->reports($request);
+        })->name('reports');
     });
 
     // ---------------------------------------------------------
-    // Inventory Management
+    // Inventory Management (Guarded)
     // ---------------------------------------------------------
     Route::prefix('inventory')->name('inventory.')->group(function () {
         
-        // Products
         Route::prefix('products')->name('products.')->group(function () {
-            Route::get('/', [ProductController::class, 'index'])->name('index');
+            Route::get('/', function (Illuminate\Http\Request $request) {
+                if (!auth()->user()->hasPermission('inventory')) {
+                    return redirect()->route('pos')->with('error', 'Access Restricted.');
+                }
+                return app(ProductController::class)->index($request);
+            })->name('index');
             Route::post('/', [ProductController::class, 'store'])->name('store');
             Route::put('{id}', [ProductController::class, 'update'])->name('update');
             Route::delete('{id}', [ProductController::class, 'destroy'])->name('destroy');
         });
 
-        // Ingredients
         Route::prefix('ingredients')->name('ingredients.')->group(function () {
-            Route::get('/', [IngredientController::class, 'index'])->name('index');
+            Route::get('/', function (Illuminate\Http\Request $request) {
+                if (!auth()->user()->hasPermission('inventory')) {
+                    return redirect()->route('pos')->with('error', 'Access Restricted.');
+                }
+                return app(IngredientController::class)->index($request);
+            })->name('index');
             Route::post('/', [IngredientController::class, 'store'])->name('store');
             Route::put('{id}', [IngredientController::class, 'update'])->name('update');
             Route::delete('{id}', [IngredientController::class, 'destroy'])->name('destroy');
         });
 
-        // Categories
         Route::prefix('categories')->name('categories.')->group(function () {
-            Route::get('/', [CategoryController::class, 'index'])->name('index');
+            Route::get('/', function (Illuminate\Http\Request $request) {
+                if (!auth()->user()->hasPermission('inventory')) {
+                    return redirect()->route('pos')->with('error', 'Access Restricted.');
+                }
+                return app(CategoryController::class)->index($request);
+            })->name('index');
             Route::post('/', [CategoryController::class, 'store'])->name('store');
             Route::put('{id}', [CategoryController::class, 'update'])->name('update');
             Route::delete('{id}', [CategoryController::class, 'destroy'])->name('destroy');
         });
 
-        // Wastage
         Route::prefix('wastage')->name('wastage.')->group(function () {
-            Route::get('/', [WastageController::class, 'index'])->name('index');
+            Route::get('/', function (Illuminate\Http\Request $request) {
+                if (!auth()->user()->hasPermission('wastage')) {
+                    return redirect()->route('pos')->with('error', 'Access Restricted: Wastage permission required.');
+                }
+                return app(WastageController::class)->index($request);
+            })->name('index');
             Route::post('/', [WastageController::class, 'store'])->name('store');
             Route::put('{id}', [WastageController::class, 'update'])->name('update');
             Route::delete('{id}', [WastageController::class, 'destroy'])->name('destroy');
@@ -122,29 +159,43 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ---------------------------------------------------------
-    // Blade Compatibility Route Aliases (Fixes RouteNotFoundException)
+    // Blade Compatibility Route Aliases
     // ---------------------------------------------------------
-    // Products
-    Route::get('/inventory', [ProductController::class, 'index'])->name('inventory');
+    Route::get('/inventory', function (Illuminate\Http\Request $request) {
+        if (!auth()->user()->hasPermission('inventory')) {
+            return redirect()->route('pos')->with('error', 'Access Restricted.');
+        }
+        return app(ProductController::class)->index($request);
+    })->name('inventory');
+
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
     
-    // Ingredients
-    Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
+    Route::get('/ingredients', function (Illuminate\Http\Request $request) {
+        if (!auth()->user()->hasPermission('inventory')) {
+            return redirect()->route('pos')->with('error', 'Access Restricted.');
+        }
+        return app(IngredientController::class)->index($request);
+    })->name('ingredients.index');
+
     Route::post('/inventory/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
     Route::put('/ingredients/{id}', [IngredientController::class, 'update'])->name('ingredients.update');
     Route::delete('/inventory/ingredients/{id}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
 
-    // Categories
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
-    // Wastage
-    Route::get('/wastage', [WastageController::class, 'index'])->name('wastage.index');
+    Route::get('/wastage', function (Illuminate\Http\Request $request) {
+        if (!auth()->user()->hasPermission('wastage')) {
+            return redirect()->route('pos')->with('error', 'Access Restricted.');
+        }
+        return app(WastageController::class)->index($request);
+    })->name('wastage.index');
+    
     Route::post('/wastage', [WastageController::class, 'store'])->name('wastage.store');
     Route::put('/wastage/{id}', [WastageController::class, 'update'])->name('wastage.update');
     Route::delete('/wastage/{id}', [WastageController::class, 'destroy'])->name('wastage.destroy');
@@ -161,7 +212,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ---------------------------------------------------------
-    // File Maintenance
+    // File Maintenance & Purchases
     // ---------------------------------------------------------
     Route::resource('suppliers', SupplierController::class);
     Route::resource('discounts', DiscountController::class);
@@ -177,10 +228,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
     Route::put('/vat/{vat}', [VatController::class, 'update'])->name('vat.update');
 
-    // ---------------------------------------------------------
-    // Receipts & Purchases
-    // ---------------------------------------------------------
-    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+    Route::get('/purchases', function (Illuminate\Http\Request $request) {
+        if (!auth()->user()->hasPermission('purchases')) {
+            return redirect()->route('pos')->with('error', 'Access Restricted: Purchases permission required.');
+        }
+        return app(PurchaseController::class)->index($request);
+    })->name('purchases.index');
+
     Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store'); 
 
     Route::get('/receipt/{sale_id}', function ($sale_id) {
@@ -196,7 +250,6 @@ Route::middleware(['auth'])->group(function () {
 // =========================================================
 Route::get('/test-pos58', function () {
     try {
-        // ADJUSTABLE PARAMETER: Ensure "POS58" matches your Windows Printer Share Name
         $connector = new WindowsPrintConnector("POS58");
         $printer = new Printer($connector);
 
@@ -212,7 +265,6 @@ Route::get('/test-pos58', function () {
         // Body (Left Aligned)
         $printer->setJustification(Printer::JUSTIFY_LEFT);
 
-        // Helper closure to format 32-character rows cleanly on 58mm paper
         $formatRow = function ($name, $price) {
             $maxWidth = 32;
             $priceStr = " " . $price;
@@ -252,7 +304,6 @@ Route::get('/test-pos58', function () {
         $printer->setJustification(Printer::JUSTIFY_CENTER);
         $printer->text("Thank you for your purchase!\n");
 
-        // Feed paper and close connection
         $printer->feed(4);
         $printer->close();
 

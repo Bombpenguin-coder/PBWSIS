@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-   // 1. Display Login Screen
+    // 1. Display Login Screen
     public function showLogin()
     {
         // Redirect to initial setup if no Owner exists
@@ -27,8 +27,8 @@ class AuthController extends Controller
         return view('login'); 
     }
 
-  // 2. Registration View (First-time setup view)
-  public function showRegister()
+    // 2. Registration View (First-time setup view)
+    public function showRegister()
     {
         // If an Owner already exists, block public access and send them to login
         if (User::where('role', 'Owner')->exists()) {
@@ -48,10 +48,10 @@ class AuthController extends Controller
         }
 
         $validated = $request->validate([
-        'username'       => 'required|string|alpha_dash|max:50|unique:users,username',
-        'password'       => 'required|string|min:8|max:64',
-        'contact_number' => 'nullable|numeric|digits:11',
-]       );
+            'username'       => 'required|string|alpha_dash|max:50|unique:users,username',
+            'password'       => 'required|string|min:8|max:64',
+            'contact_number' => 'nullable|numeric|digits:11',
+        ]);
 
         User::create([
             'username'       => strtoupper(trim($validated['username'])),
@@ -115,19 +115,52 @@ class AuthController extends Controller
     }
 
     /**
-     * Helper Method: Redirect user based on role
+     * Helper Method: Dynamically redirect user based on Role and ARBAC Permissions
      */
     protected function redirectBasedOnRole($user)
     {
-        if ($user->role === 'Owner') {
+        // 1. Owner always goes to dashboard/admin area
+        if (strtolower($user->role) === 'owner') {
             return redirect()->route('dashboard')->with('success', 'Welcome back, Owner!');
         } 
         
-        if ($user->role === 'Cashier') {
-            return redirect('/pos')->with('success', 'POS Terminal ready.');
-        } 
-        
-        // Staff / Kitchen
-        return redirect('/ingredients')->with('success', 'Kitchen inventory access granted.');
+        // 2. Fetch their saved permissions array
+        $permissions = $user->permissions ?? [];
+
+        // 3. Map permission keys to your actual Laravel Route names from web.php
+        $moduleRouteMap = [
+            'pos'           => 'pos',
+            'inventory'     => 'inventory',
+            'wastage'       => 'wastage.index',
+            'purchases'     => 'purchases.index',
+            'sales_history' => 'sales.history',
+            'reports'       => 'reports.index',
+        ];
+
+        foreach ($permissions as $perm) {
+            if (isset($moduleRouteMap[$perm]) && \Illuminate\Support\Facades\Route::has($moduleRouteMap[$perm])) {
+                return redirect()->route($moduleRouteMap[$perm])->with('success', 'Access granted.');
+            }
+        }
+
+        // 4. Fallback URL paths matching your exact web.php URI structure
+        $modulePathMap = [
+            'pos'           => '/pos',
+            'inventory'     => '/inventory',
+            'wastage'       => '/wastage',
+            'purchases'     => '/purchases',
+            'sales_history' => '/sales/history', // Corrected to match your prefix /sales/history
+            'reports'       => '/reports',
+        ];
+
+        foreach ($permissions as $perm) {
+            if (isset($modulePathMap[$perm])) {
+                return redirect($modulePathMap[$perm])->with('success', 'Access granted.');
+            }
+        }
+
+        // 5. Safeguard if zero permissions match
+        Auth::logout();
+        return redirect('/login')->withErrors(['username' => 'This account has no module access permissions assigned.']);
     }
 }

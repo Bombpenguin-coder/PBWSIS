@@ -45,61 +45,93 @@
             </button>
         </div>
         
-        <!-- Navigation Menu -->
+       <!-- Navigation Menu -->
         <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
             
-            <!-- 1. OPERATIONS -->
+            <!-- 1. OPERATIONS (POS) -->
+            @if(auth()->user()->hasPermission('pos') || auth()->user()->hasPermission('operations'))
             <div>
                 <button onclick="toggleSubmenu('opsMenu', 'opsArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
                     <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">Operations</span>
                     <svg id="opsArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('pos') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="opsMenu" class="{{ request()->routeIs('pos') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                    <a href="{{ route('pos') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">POS / Billing</a>
+                    @if(auth()->user()->hasPermission('pos'))
+                        <a href="{{ route('pos') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('pos') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">POS / Billing</a>
+                    @endif
                 </div>
             </div>
+            @endif
 
-            <!-- 2. INSIGHTS -->
+            <!-- 2. INSIGHTS (Dashboard & Reports) -->
+            @if(strtolower(auth()->user()->role) === 'owner' || auth()->user()->hasPermission('reports') || auth()->user()->hasPermission('sales_history'))
             <div>
                 <button onclick="toggleSubmenu('insightsMenu', 'insightsArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
                     <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">Insights</span>
-                    <svg id="insightsArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('dashboard', 'reports.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg id="insightsArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('dashboard', 'reports.*', 'sales.history') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="insightsMenu" class="{{ request()->routeIs('dashboard', 'reports.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                    <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Dashboard</a>
-                    <a href="{{ route('reports.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('reports.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Reports</a>
+                <div id="insightsMenu" class="{{ request()->routeIs('dashboard', 'reports.*', 'sales.history') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
+                    @if(strtolower(auth()->user()->role) === 'owner')
+                        <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('dashboard') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Dashboard</a>
+                    @endif
+                    @if(auth()->user()->hasPermission('reports'))
+                        <a href="{{ route('reports.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('reports.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Reports</a>
+                    @endif
+                    @if(auth()->user()->hasPermission('sales_history'))
+                        <a href="{{ route('sales.history') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('sales.history') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Sales History</a>
+                    @endif
                 </div>
             </div>
+            @endif
 
-            <!-- 3. INVENTORY -->
+            <!-- 3. INVENTORY (Ingredients & Wastage) -->
+            @if(auth()->user()->hasPermission('inventory') || auth()->user()->hasPermission('wastage'))
             <div>
                 <button onclick="toggleSubmenu('inventoryMenu', 'inventoryArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
                     <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">Inventory</span>
                     <svg id="inventoryArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('ingredients.*', 'wastage.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="inventoryMenu" class="{{ request()->routeIs('ingredients.*', 'wastage.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                   <a href="{{ route('inventory.ingredients.index') ?? '#' }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
-                    <a href="{{ route('wastage.index') ?? '#' }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Shrinkage</a>
+                    @if(auth()->user()->hasPermission('inventory'))
+                        <a href="{{ route('inventory.ingredients.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('ingredients.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Ingredients</a>
+                    @endif
+                    @if(auth()->user()->hasPermission('wastage'))
+                        <a href="{{ route('wastage.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('wastage.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Shrinkage</a>
+                    @endif
                 </div>
             </div>
+            @endif
 
-            <!-- 4. FILE MAINTENANCE -->
+          <!-- 4. FILE MAINTENANCE -->
+            @if(auth()->user()->hasPermission('inventory') || auth()->user()->hasPermission('purchases') || strtolower(auth()->user()->role) === 'owner')
             <div>
                 <button onclick="toggleSubmenu('fileMenu', 'fileArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
                     <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">File Maintenance</span>
                     <svg id="fileArrow" class="w-5 h-5 text-zinc-400 transform transition-transform duration-300 {{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="fileMenu" class="{{ request()->routeIs('categories.*', 'inventory', 'discounts.*', 'vat.*', 'purchases.*', 'suppliers.*') ? '' : 'hidden' }} pl-4 pr-2 py-2 mt-1 space-y-1 bg-[#202226] rounded-lg border-l-2 border-[#EA580C] ml-2">
-                    <a href="{{ route('categories.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Categories</a>
-                    <a href="/inventory" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Products Catalog</a>
-                    <a href="/discounts" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Discounts</a>
-                    <a href="/vat" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">VAT</a>
-                    <a href="/purchases" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('purchases.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Purchases</a>
-                    <a href="/suppliers" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Suppliers</a>
+                    
+                    @if(auth()->user()->hasPermission('inventory'))
+                        <a href="{{ route('categories.index') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('categories.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Categories</a>
+                        <a href="/inventory" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('inventory') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Products Catalog</a>
+                    @endif
+
+                    @if(strtolower(auth()->user()->role) === 'owner')
+                        <a href="/discounts" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('discounts.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Discounts</a>
+                        <a href="/vat" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('vat.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">VAT</a>
+                    @endif
+
+                    @if(auth()->user()->hasPermission('purchases'))
+                        <a href="/purchases" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('purchases.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Purchases</a>
+                        <a href="/suppliers" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('suppliers.*') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Suppliers</a>
+                    @endif
+
                 </div>
             </div>
+            @endif
 
-            <!-- 5. ADMINISTRATION -->
+            <!-- 5. ADMINISTRATION (Owner Only) -->
+            @if(strtolower(auth()->user()->role) === 'owner')
             <div>
                 <button onclick="toggleSubmenu('adminMenu', 'adminArrow')" class="w-full flex justify-between items-center px-4 py-3.5 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition duration-200 focus:outline-none">
                     <span class="font-extrabold tracking-wider text-sm uppercase text-zinc-200">Administration</span>
@@ -110,6 +142,7 @@
                     <a href="{{ route('admin.audit-trail') }}" class="block px-4 py-2.5 text-base rounded-md transition duration-200 {{ request()->routeIs('admin.audit-trail') ? 'text-white font-bold bg-[#EA580C] shadow-sm' : 'text-zinc-300 hover:text-white hover:bg-zinc-800' }}">Audit Trail</a>
                 </div>
             </div>
+            @endif
         </nav>
         
         <!-- Sidebar Footer -->
