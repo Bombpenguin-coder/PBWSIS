@@ -166,9 +166,8 @@
                         <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                             Required Ingredients
                         </label>
-                        <button type="button" onclick="addProductIngredientRow()" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline">
+                        <button type="button" onclick="addProductIngredientRow()" class="text-xs font-bold text-brand-orange hover:text-brand-orange hover:underline">
                             + Add Ingredient
-                        </button>
                     </div>
 
                     <div id="productIngredientsWrapper" class="space-y-2">
@@ -194,7 +193,7 @@
 
                 <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800 mt-4">
                     <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-[#202226] hover:bg-zinc-700 text-zinc-300 text-xs font-semibold rounded-lg transition-colors border border-zinc-700">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">+ Save Product</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">+ Save Product</button>
                 </div>
             </form>
         </div>
